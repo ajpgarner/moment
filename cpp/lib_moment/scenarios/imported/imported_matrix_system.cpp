@@ -103,19 +103,19 @@ namespace Moment::Imported {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    ImportedMatrixSystem::createNewMomentMatrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) {
+    ImportedMatrixSystem::create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    ImportedMatrixSystem::createNewLocalizingMatrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
-                                                    Multithreading::MultiThreadPolicy mt_policy) {
+    ImportedMatrixSystem::create_localizing_matrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
+                                                   Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
     std::unique_ptr<class PolynomialMatrix>
-    ImportedMatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
-                                          Multithreading::MultiThreadPolicy mt_policy) {
+    ImportedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+                                                              Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
@@ -195,7 +195,7 @@ namespace Moment::Imported {
         // Did we create new symbols in this process?
         const size_t new_symbol_count = this->Symbols().size();
         if (new_symbol_count > initial_symbol_size) {
-            this->onNewSymbolsRegistered(write_lock, initial_symbol_size, new_symbol_count);
+            this->on_new_symbols_registered(write_lock, initial_symbol_size, new_symbol_count);
         }
 
         // Finally, register new matrix

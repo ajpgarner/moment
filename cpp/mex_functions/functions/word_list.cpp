@@ -107,7 +107,7 @@ namespace Moment::mex::functions {
         const auto& dictionary = matrixSystemPtr->Context().osg_list();
 
         // Get (or make) unique word list.
-        const auto &osg = dictionary[input.word_length];
+        const auto &osg = dictionary.Level(input.word_length)();
 
         // Output list of words
         OSGExporter exporter(this->matlabEngine, symbols);

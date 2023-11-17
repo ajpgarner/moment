@@ -44,12 +44,12 @@ namespace Moment {
     concept makes_matrices =
         std::is_same_v<typename factory_t::Index, index_t> &&
         requires (factory_t& factory, const factory_t& const_factory,
-                  const index_t& index, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
+                  const index_t& index, ptrdiff_t offset, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
                   const std::unique_lock<std::shared_mutex>& const_lock,
                   const Multithreading::MultiThreadPolicy& mt_policy) {
             {factory.get_write_lock()};
             {factory(lock, index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
-            {factory.notify(const_lock, index, matrix_ref)};
+            {factory.notify(const_lock, index, offset, matrix_ref)};
             {const_factory.not_found_msg(index)} -> std::convertible_to<std::string>;
         };
 
@@ -139,12 +139,27 @@ namespace Moment {
 
             // Otherwise, call factory to actually handle insertion into system.
             auto [matrix_offset, matrix_ref] = matrixFactory(lock, index, mt_policy);
-            [[maybe_unused]] const auto [actual_offset, did_insertion] = this->indices.insert(index, matrix_offset);
+            const auto [actual_offset, did_insertion] = this->indices.insert(index, matrix_offset);
             assert(actual_offset == matrix_offset);
             assert(did_insertion);
-            matrixFactory.notify(lock, index, matrix_ref);
+            matrixFactory.notify(lock, index, actual_offset, matrix_ref);
 
             return std::pair<size_t, matrix_t&>{static_cast<size_t>(matrix_offset), matrix_ref};
+        }
+
+        /**
+         * Register existing matrix at specified index
+         */
+        [[nodiscard]] ptrdiff_t insert_alias(const std::unique_lock<std::shared_mutex>& lock,
+                                             const index_t& index, const ptrdiff_t matrix_offset) {
+            // Must hold write lock
+            assert(this->system.is_locked_write_lock(lock));
+            assert(matrix_offset>=0);
+
+            // Put into indices
+            const auto [actual_offset, did_insertion] = this->indices.insert(index, matrix_offset);
+
+            return actual_offset;
         }
 
         /**
@@ -173,6 +188,7 @@ namespace Moment {
         [[nodiscard]] inline bool contains(const index_t& index) const noexcept {
             return this->indices.contains(index);
         }
+
 
 
         [[nodiscard]] inline const MatrixType& operator()(const index_t& index) const {
@@ -219,7 +235,7 @@ namespace Moment {
     /**
      * Alias for matrix indices backed by std::map.
      */
-    template<std::derived_from<Moment::SymbolicMatrix> matrix_t,
+    template<typename matrix_t,
             typename index_t,
             makes_matrices<matrix_t, index_t> factory_t,
             typename matrix_system_t>

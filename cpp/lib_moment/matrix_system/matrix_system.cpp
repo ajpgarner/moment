@@ -83,36 +83,36 @@ namespace Moment {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::createNewMomentMatrix(MaintainsMutex::WriteLock& lock,
-                                        const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock,
+                                       const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
         const size_t prev_symbol_count = this->symbol_table->size();
         auto ptr = MomentMatrix::create_matrix(*this->context, *this->symbol_table, level, mt_policy);
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
+            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
         }
         return ptr;
     }
 
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::createNewLocalizingMatrix(MaintainsMutex::WriteLock& lock,
-                                            const LocalizingMatrixIndex& lmi,
-                                            const Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::create_localizing_matrix(WriteLock& lock,
+                                           const LocalizingMatrixIndex& lmi,
+                                           Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
         const size_t prev_symbol_count = this->symbol_table->size();
         auto ptr = LocalizingMatrix::create_matrix(*this->context, *this->symbol_table, lmi, mt_policy);
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
+            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
         }
         return ptr;
     }
 
     std::unique_ptr<class PolynomialMatrix>
-    MatrixSystem::createNewPolyLM(MaintainsMutex::WriteLock &lock,
-                                  const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock,
+                                                      const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
 
         // First ensure constituent parts exist
@@ -134,7 +134,7 @@ namespace Moment {
 
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(lock, prev_symbol_count, new_symbol_count);
+            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
         }
 
         return ptr;
@@ -149,10 +149,10 @@ namespace Moment {
 
         const size_t new_symbol_count = this->symbol_table->size();
         if (new_symbol_count > prev_symbol_count) {
-            this->onNewSymbolsRegistered(write_lock, prev_symbol_count, new_symbol_count);
+            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
         }
 
-        this->onDictionaryGenerated(write_lock, word_length, this->context->operator_sequence_generator(word_length));
+        this->on_new_dictionary(write_lock, word_length, this->context->operator_sequence_generator(word_length));
 
         return new_symbols;
     }

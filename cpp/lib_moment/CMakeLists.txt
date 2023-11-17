@@ -78,6 +78,8 @@ add_library(lib_moment
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_matrix_system.cpp
+        scenarios/pauli/pauli_moment_matrix.cpp
+        scenarios/pauli/pauli_moment_matrix_indices.cpp
         scenarios/pauli/pauli_osg.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp

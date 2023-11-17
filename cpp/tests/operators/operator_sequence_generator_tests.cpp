@@ -115,7 +115,8 @@ namespace Moment::Tests {
 
         OperatorSequenceGenerator osg{collection, 2};
         ASSERT_EQ(osg.max_sequence_length, 2);
-        auto osg_conj = osg.conjugate();
+        auto osg_conj_ptr = osg.conjugate();
+        auto& osg_conj = *osg_conj_ptr;
         compare_sequences(osg, {OperatorSequence::Identity(collection),
                                 OperatorSequence({alice[0]}, collection),
                                 OperatorSequence({alice[1]}, collection),
@@ -143,7 +144,8 @@ namespace Moment::Tests {
 
 
         OperatorSequenceGenerator osg{collection, 2};
-        auto osg_conj = osg.conjugate();
+        auto osg_conj_ptr = osg.conjugate();
+        auto& osg_conj = *osg_conj_ptr;
         EXPECT_EQ(osg_conj.max_sequence_length, osg.max_sequence_length);
 
         compare_sequences(osg, {OperatorSequence::Identity(collection),

@@ -27,9 +27,7 @@ namespace Moment {
         const size_t max_sequence_length;
 
 
-    protected:
-
-
+    public:
         /**
          * Create a generator with a list of pre-calculated operator sequences
          * @param operatorContext Reference to context
@@ -41,8 +39,6 @@ namespace Moment {
                 : context{operatorContext}, max_sequence_length{max_length},
                   unique_sequences{std::move(preComputedSequences)} { }
 
-
-    public:
         /**
          * Generates all unique permutations of operator sequences, up to max_length.
          * @param operatorContext
@@ -64,7 +60,7 @@ namespace Moment {
         /**
          * Creates a generator for the piece-wise conjugated OperatorSequences of this generator.
          */
-        [[nodiscard]] OperatorSequenceGenerator conjugate() const;
+        [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> conjugate() const;
 
         /**
          * Create all generic sequences

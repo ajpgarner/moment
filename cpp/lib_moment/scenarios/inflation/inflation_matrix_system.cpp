@@ -41,16 +41,16 @@ namespace Moment::Inflation {
 
     InflationMatrixSystem::~InflationMatrixSystem() noexcept = default;
 
-    void InflationMatrixSystem::onNewSymbolsRegistered(const MaintainsMutex::WriteLock& write_lock,
-                                                       size_t old_symbol_count, size_t new_symbol_count) {
+    void InflationMatrixSystem::on_new_symbols_registered(const MaintainsMutex::WriteLock& write_lock,
+                                                          size_t old_symbol_count, size_t new_symbol_count) {
         assert(write_lock.owns_lock());
         this->factors->on_new_symbols_added();
         this->Rulebook.refreshAll(write_lock, old_symbol_count);
     }
 
     std::unique_ptr<class ExtendedMatrix>
-    InflationMatrixSystem::createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex &index,
-                                                   const Multithreading::MultiThreadPolicy mt_policy) {
+    InflationMatrixSystem::create_extended_matrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex &index,
+                                                  Multithreading::MultiThreadPolicy mt_policy) {
 
         // Get source moment matrix (or create it under lock)
         auto [source_index, source] = this->MomentMatrix.create(lock, index.moment_matrix_level, mt_policy);
@@ -98,15 +98,15 @@ namespace Moment::Inflation {
     }
 
 
-    void InflationMatrixSystem::onRulebookAdded(const MaintainsMutex::WriteLock &write_lock, size_t index,
-                                                const MomentRulebook &rb, bool insertion) {
+    void InflationMatrixSystem::on_rulebook_added(const MaintainsMutex::WriteLock &write_lock, size_t index,
+                                                  const MomentRulebook &rb, bool insertion) {
         // Add additional rules to factor rulebook
         auto& write_rb = this->Rulebook(index);
         assert(&write_rb == &rb);
-        this->expandRulebook(write_rb, 0);
+        this->expand_rulebook(write_rb, 0);
     }
 
-    ptrdiff_t InflationMatrixSystem::expandRulebook(MomentRulebook &rulebook, const size_t from_symbol) {
+    ptrdiff_t InflationMatrixSystem::expand_rulebook(MomentRulebook &rulebook, size_t from_symbol) {
         // Debug check rulebook is compatible
         assert(&rulebook.symbols == &(this->Symbols()));
         assert(&rulebook.context == &this->inflationContext);

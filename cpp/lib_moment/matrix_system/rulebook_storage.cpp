@@ -43,7 +43,7 @@ namespace Moment {
             }
 
             // Dispatch notification to derived classes
-            this->system.onRulebookAdded(write_lock, rulebook_index, rulebook, true);
+            this->system.on_rulebook_added(write_lock, rulebook_index, rulebook, true);
 
             // Return created book
             return {rulebook_index, rulebook};
@@ -73,7 +73,7 @@ namespace Moment {
         // NB: Name should be handled already, either from existing name, or newly-merged-in name.
 
         // Dispatch notification of merge-in to derived classes
-        this->system.onRulebookAdded(write_lock, existing_rulebook_id, existing_rulebook, false);
+        this->system.on_rulebook_added(write_lock, existing_rulebook_id, existing_rulebook, false);
 
         // Return merged book
         return {existing_rulebook_id, existing_rulebook};
@@ -88,7 +88,7 @@ namespace Moment {
     void RulebookStorage::refreshAll(const MaintainsMutex::WriteLock& write_lock, const size_t previous_symbol_count) {
         assert(write_lock.owns_lock());
         for (auto& bookPtr : this->rulebooks) {
-            this->system.expandRulebook(*bookPtr, previous_symbol_count);
+            this->system.expand_rulebook(*bookPtr, previous_symbol_count);
         }
     }
 

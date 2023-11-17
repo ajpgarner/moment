@@ -55,15 +55,15 @@ namespace Moment::Inflation {
                                       Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
 
-        auto extended_matrix_ptr = this->system.createNewExtendedMatrix(lock, index, mt_policy);
+        auto extended_matrix_ptr = this->system.create_extended_matrix(lock, index, mt_policy);
         auto& matrix = *extended_matrix_ptr;
         ptrdiff_t offset = this->system.push_back(lock, std::move(extended_matrix_ptr));
         return std::pair<ptrdiff_t, ExtendedMatrix &>{offset, matrix};
     }
 
     void ExtendedMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
-                                       const Index& index, ExtendedMatrix& matrix) {
-        this->system.onNewExtendedMatrixCreated(lock, index, matrix);
+                                       const Index& index, ptrdiff_t offset, ExtendedMatrix& matrix) {
+        this->system.on_new_extended_matrix(lock, index, offset, matrix);
     }
 
     std::string ExtendedMatrixFactory::not_found_msg(const ExtendedMatrixFactory::Index &index) const {

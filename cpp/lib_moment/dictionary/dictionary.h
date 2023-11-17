@@ -10,9 +10,10 @@
 
 #include "operator_sequence_generator.h"
 
+#include "multithreading/maintains_mutex.h"
+
 #include <atomic>
-#include <mutex>
-#include <shared_mutex>
+#include <map>
 #include <vector>
 
 namespace Moment {
@@ -24,42 +25,55 @@ namespace Moment {
      *
      * Design assumption: if k < k', then osg(k) is a prefix of osg(k').
      */
-    class Dictionary {
-    private:
-        mutable std::shared_mutex mutex;
+    class Dictionary : protected MaintainsMutex {
+    public:
+        /**
+         * An operator sequence generator and its conjugate
+         */
+        struct OSGPair {
+        private:
+            std::unique_ptr<OperatorSequenceGenerator> forward_osg;
+            std::unique_ptr<OperatorSequenceGenerator> conjugate_osg;
 
-        mutable std::vector<std::unique_ptr<OperatorSequenceGenerator>> osgs;
-        mutable std::vector<std::unique_ptr<OperatorSequenceGenerator>> conj_osgs;
+        public:
+            explicit OSGPair(std::unique_ptr<OperatorSequenceGenerator> fwd,
+                    std::unique_ptr<OperatorSequenceGenerator> rev = nullptr) noexcept
+                : forward_osg{std::move(fwd)}, conjugate_osg{std::move(rev)} {
+            }
+
+            OSGPair(OSGPair&& rhs) = default;
+
+            [[nodiscard]] const OperatorSequenceGenerator& operator()() const noexcept {
+                return *forward_osg;
+            }
+
+            [[nodiscard]] const OperatorSequenceGenerator& conjugate() const noexcept {
+                return (conjugate_osg ? *conjugate_osg : *forward_osg);
+            }
+        };
+
+    protected:
+        /** List of operator sequences */
+        mutable std::vector<OSGPair> osgs;
+
+        /** Key, linking NPA hierarchy level (e.g. moment matrix level) to generator offset */
+        mutable std::map<size_t, size_t> npa_level_to_offset;
 
     public:
         const Context& context;
 
     public:
+        /**
+         * Construct a cache of operator sequence generators
+         * @param context
+         */
         explicit Dictionary(const Context& context);
 
         /**
-         * Gets dictionary of supplied word length. Creates dictionary if it doesn't already exist.
-         * Nominally thread-safe, will lock for write if new dictionary requested.
-         * @param word_length The maximum number of operators in a word.
-         * @return Operator sequence generator.
+         * Gets a 'pure' NPA hierarchy level (e.g. Moment matrix) generator.
+         * @param npa_level The maximum word length.
          */
-        const OperatorSequenceGenerator& operator[](size_t word_length) const;
-
-        /**
-         * Gets largest dictionary known.
-         * Nominally thread-safe.
-         * @return Operator sequence generator.
-         */
-        [[nodiscard]] const OperatorSequenceGenerator& largest() const;
-
-        /**
-         * Gets dictionary of supplied word length in conjugated order. Creates dictionary if it doesn't already exist.
-         * Nominally thread-safe, will lock for write if new dictionary requested.
-         * @param word_length The maximum number of operators in a word.
-         * @return Operator sequence generator.
-         */
-        const OperatorSequenceGenerator& conjugated(size_t word_length) const;
-
+        const Dictionary::OSGPair& Level(const size_t max_word_length) const;
 
     };
 }

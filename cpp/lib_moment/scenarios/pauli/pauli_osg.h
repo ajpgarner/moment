@@ -12,6 +12,10 @@ namespace Moment::Pauli {
 
     class PauliContext;
 
+    /**
+     * Generates operator sequences of up to a desired length for the Pauli scenario.
+     * Can be constrained to only generate series whose operators are nearest neighbours, or N-nearest neighbours.
+     */
     class PauliSequenceGenerator : public OperatorSequenceGenerator {
     public:
         const PauliContext& pauliContext;

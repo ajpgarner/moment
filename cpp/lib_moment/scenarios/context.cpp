@@ -74,10 +74,11 @@ namespace Moment {
 
     const OperatorSequenceGenerator&
     Context::operator_sequence_generator(const size_t level, const bool conjugated) const {
+        const auto& osg_pair = this->word_list->Level(level);
         if (conjugated) {
-            return this->word_list->conjugated(level);
+            return osg_pair.conjugate();
         }
-        return (*this->word_list)[level];
+        return osg_pair();
     }
 
     std::optional<OperatorSequence> Context::get_if_canonical(const sequence_storage_t &raw_sequence) const {

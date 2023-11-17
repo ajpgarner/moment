@@ -112,19 +112,20 @@ namespace Moment::Inflation {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class ExtendedMatrix>
-        createNewExtendedMatrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
-                                Multithreading::MultiThreadPolicy mt_policy);
+        create_extended_matrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
+                               Multithreading::MultiThreadPolicy mt_policy);
 
-        ptrdiff_t expandRulebook(MomentRulebook &rulebook, size_t from_symbol) override;
+        ptrdiff_t expand_rulebook(MomentRulebook &rulebook, size_t from_symbol) override;
 
-        virtual void onNewExtendedMatrixCreated(const MaintainsMutex::WriteLock& write_lock,
-                                                const ExtendedMatrixIndex& emi, const class ExtendedMatrix& em) { }
+        virtual void on_new_extended_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                            const ExtendedMatrixIndex& emi,
+                                            ptrdiff_t offset, const class ExtendedMatrix& em) { }
 
-        void onNewSymbolsRegistered(const MaintainsMutex::WriteLock& write_lock,
-                                    size_t old_symbol_count, size_t new_symbol_count) override;
+        void on_new_symbols_registered(const MaintainsMutex::WriteLock& write_lock,
+                                       size_t old_symbol_count, size_t new_symbol_count) override;
 
-        void onRulebookAdded(const WriteLock &write_lock, size_t index,
-                             const MomentRulebook &rb, bool insertion) override;
+        void on_rulebook_added(const MaintainsMutex::WriteLock& write_lock, size_t index,
+                               const MomentRulebook &rb, bool insertion) override;
 
 
     private:

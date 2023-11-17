@@ -9,12 +9,19 @@
 
 #include "matrix_system/matrix_system.h"
 
+#include "pauli_moment_matrix_indices.h"
+
 namespace Moment::Pauli {
 
     class PauliContext;
     class PauliMatrixSystem : public MatrixSystem {
     public:
         const class PauliContext& pauliContext;
+
+        /**
+         * Moment matrices whose first row might be limited to nearest neighbours, etc.
+         */
+        PauliMomentMatrixIndices PauliMomentMatrices;
 
     public:
         /**
@@ -31,11 +38,36 @@ namespace Moment::Pauli {
          */
         explicit PauliMatrixSystem(oper_name_t qubit_count, double tolerance = 1.0);
 
+
+    protected:
+        /**
+         * Construct a new moment matrix, with restriction of top-row elements to N-nearest neighbours.
+         */
+        std::unique_ptr<PauliMomentMatrix>
+        create_nearest_neighbour_moment_matrix(WriteLock& lock, const PauliMomentMatrixIndex& index,
+                                               Multithreading::MultiThreadPolicy mt_policy);
+
+        void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                  size_t level,
+                                  ptrdiff_t matrix_offset, const SymbolicMatrix& mm) override;
+
+        /*
+         * Virtual method, called after a nearest neighbour moment matrix is generated.
+         * @param level The moment matrix level.
+         * @param mm The newly generated moment matrix.
+         */
+        virtual void on_new_nearest_neighbour_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                            const PauliMomentMatrixIndex& index,
+                                                            ptrdiff_t matrix_offset,
+                                                            const PauliMomentMatrix& mm);
+
     public:
         ~PauliMatrixSystem();
 
         [[nodiscard]] std::string system_type_name() const final {
             return "Pauli Matrix System";
         }
+
+        friend class PauliMomentMatrixFactory;
     };
 }

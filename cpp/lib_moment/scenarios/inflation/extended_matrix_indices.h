@@ -81,7 +81,8 @@ namespace Moment::Inflation {
         [[nodiscard]] std::pair<ptrdiff_t, ExtendedMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, const Index& index, ExtendedMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
+                    ptrdiff_t offset, ExtendedMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
 

@@ -42,7 +42,7 @@ namespace Moment {
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, size_t index, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, size_t index, ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(Index level) const;
 
@@ -65,7 +65,7 @@ namespace Moment {
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& lmi) const;
 
@@ -88,7 +88,8 @@ namespace Moment {
         [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, const Index& index, PolynomialMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
+                    ptrdiff_t offset, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const PolynomialLMIndex& pmi) const;
 
@@ -111,7 +112,8 @@ namespace Moment {
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, const Index& index, SymbolicMatrix& matrix);
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
+                    ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
 

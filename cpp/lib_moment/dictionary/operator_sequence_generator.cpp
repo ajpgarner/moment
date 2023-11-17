@@ -38,7 +38,7 @@ namespace Moment {
     }
 
 
-    OperatorSequenceGenerator OperatorSequenceGenerator::conjugate() const {
+    std::unique_ptr<OperatorSequenceGenerator> OperatorSequenceGenerator::conjugate() const {
         std::vector<OperatorSequence> conjList{};
         conjList.reserve(this->unique_sequences.size());
         size_t longest = 0;
@@ -49,11 +49,10 @@ namespace Moment {
             if (len > longest) {
                 longest = len;
             }
-
             conjList.emplace_back(std::move(seqConj));
         }
 
-        return OperatorSequenceGenerator{this->context, longest, std::move(conjList)};
+        return std::make_unique<OperatorSequenceGenerator>(this->context, longest, std::move(conjList));
     }
 
 

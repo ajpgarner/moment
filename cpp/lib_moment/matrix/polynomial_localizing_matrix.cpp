@@ -23,7 +23,7 @@ namespace Moment {
                           size_t level) {
             // We have to call for an OSG to infer dimensions
             const auto& osg_list = context.osg_list();
-            const auto& osg = osg_list[level];
+            const auto& osg = osg_list.Level(level)();
             const size_t dimensions = osg.size();
 
             // Then we can make a blank matrix
