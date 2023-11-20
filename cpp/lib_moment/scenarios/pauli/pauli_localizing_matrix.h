@@ -1,13 +1,14 @@
 /**
- * moment_matrix.h
+ * pauli_localizing_matrix.h
  *
- * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
+
 #pragma once
 
-#include "matrix/operator_matrix/moment_matrix.h"
-#include "nearest_neighbour_index.h"
+#include "matrix/operator_matrix/localizing_matrix.h"
+#include "pauli_localizing_matrix_indices.h"
 
 #include "multithreading/multithreading.h"
 
@@ -22,13 +23,13 @@ namespace Moment {
         /**
          * MomentMatrix, of operators.
          */
-        class PauliMomentMatrix : public MomentMatrix {
+        class PauliLocalizingMatrix : public LocalizingMatrix {
         public:
             /** Context */
             const PauliContext& pauliContext;
 
             /** The Level of moment matrix defined */
-            const NearestNeighbourIndex NNIndex;
+            const PauliLocalizingMatrixIndex PauliIndex;
 
         public:
             /**
@@ -37,20 +38,30 @@ namespace Moment {
              * @param level The hierarchy depth.
              * @param mt_policy Whether or not to use multi-threaded creation.
              */
-            PauliMomentMatrix(const PauliContext& context, const NearestNeighbourIndex& level,
+            PauliLocalizingMatrix(const PauliContext& context, const PauliLocalizingMatrixIndex& plmi,
                               std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
 
-            PauliMomentMatrix(const PauliMomentMatrix&) = delete;
+            PauliLocalizingMatrix(const PauliLocalizingMatrix&) = delete;
 
-            PauliMomentMatrix(PauliMomentMatrix&& src) noexcept;
+            PauliLocalizingMatrix(PauliLocalizingMatrix&& src) noexcept;
 
-            ~PauliMomentMatrix() noexcept;
+            ~PauliLocalizingMatrix() noexcept;
 
             /**
-             * The generators associated with this matrix
+             * Get nearest-neighbour info from index.
+             */
+            [[nodiscard]] const NearestNeighbourIndex& NearestNeighbour() const noexcept {
+                return this->PauliIndex.Index;
+            }
+
+            /**
+             * The generators associated with this matrix.
              */
             [[nodiscard]] const OSGPair& generators() const override;
 
+            /**
+             * Description of the localizing matrix.
+             */
             [[nodiscard]] std::string description() const override;
 
         public:
@@ -60,8 +71,8 @@ namespace Moment {
              */
             [[nodiscard]] static std::unique_ptr<MonomialMatrix>
             create_matrix(const PauliContext& context, class SymbolTable& symbols,
-                 const NearestNeighbourIndex& nn_index,
-                 Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+                          const PauliLocalizingMatrixIndex& plmi,
+                          Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
 
         };

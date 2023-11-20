@@ -9,6 +9,7 @@
 
 #include "matrix_system/matrix_system.h"
 
+#include "pauli_localizing_matrix_indices.h"
 #include "pauli_moment_matrix_indices.h"
 
 namespace Moment::Pauli {
@@ -22,6 +23,11 @@ namespace Moment::Pauli {
          * Moment matrices whose first row might be limited to nearest neighbours, etc.
          */
         PauliMomentMatrixIndices PauliMomentMatrices;
+
+        /**
+         * Localizing matrices whose first row might be limited to nearest neighbours, etc.
+         */
+        PauliLocalizingMatrixIndices PauliLocalizingMatrices;
 
     public:
         /**
@@ -43,6 +49,10 @@ namespace Moment::Pauli {
         std::unique_ptr<SymbolicMatrix>
         create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
+        std::unique_ptr<struct SymbolicMatrix>
+        create_localizing_matrix(WriteLock& lock, const LocalizingMatrixIndex& lmi,
+                                 Multithreading::MultiThreadPolicy mt_policy) override;
+
         /**
          * Construct a new moment matrix, with restriction of top-row elements to N-nearest neighbours.
          */
@@ -50,9 +60,21 @@ namespace Moment::Pauli {
         create_nearest_neighbour_moment_matrix(WriteLock& lock, const PauliMomentMatrixIndex& index,
                                                Multithreading::MultiThreadPolicy mt_policy);
 
-        void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                  size_t level,
+
+        /**
+         * Construct a new localizing matrix, with restriction of top-row elements to N-nearest neighbours.
+         */
+        std::unique_ptr<MonomialMatrix>
+        create_nearest_neighbour_localizing_matrix(WriteLock& lock, const PauliLocalizingMatrixIndex& index,
+                                                   Multithreading::MultiThreadPolicy mt_policy);
+
+
+
+        void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
                                   ptrdiff_t matrix_offset, const SymbolicMatrix& mm) override;
+
+        void on_new_localizing_matrix(const WriteLock& write_lock, const LocalizingMatrixIndex& lmi,
+                                      ptrdiff_t matrix_offset, const SymbolicMatrix& lm) override;
 
         /*
          * Virtual method, called after a nearest neighbour moment matrix is generated.
@@ -63,6 +85,15 @@ namespace Moment::Pauli {
                                                             const PauliMomentMatrixIndex& index,
                                                             ptrdiff_t matrix_offset,
                                                             const MonomialMatrix& mm);
+        /*
+         * Virtual method, called after a nearest neighbour localizing matrix is generated.
+         * @param level The moment matrix level.
+         * @param mm The newly generated moment matrix.
+         */
+        virtual void on_new_nearest_neighbour_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                                const PauliLocalizingMatrixIndex& index,
+                                                                ptrdiff_t matrix_offset,
+                                                                const MonomialMatrix& mm);
 
     public:
         ~PauliMatrixSystem();
@@ -72,5 +103,6 @@ namespace Moment::Pauli {
         }
 
         friend class PauliMomentMatrixFactory;
+        friend class PauliLocalizingMatrixFactory;
     };
 }

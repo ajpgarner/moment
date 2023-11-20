@@ -11,9 +11,6 @@
 
 #include "multithreading/maintains_mutex.h"
 
-#include "utilities/index_tree.h"
-#include "utilities/set_to_vector.h"
-
 #include "integer_types.h"
 #include "nearest_neighbour_index.h"
 

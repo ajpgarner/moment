@@ -38,8 +38,9 @@ namespace Moment::Pauli {
                   << " nearest neighbour" << ((index.neighbours != 1) ? "s" : "");
         }
         if (index.wrapped) {
-            errSS << " with wrapping.";
+            errSS << " with wrapping";
         }
+        errSS << ".";
         return errSS.str();
     }
 

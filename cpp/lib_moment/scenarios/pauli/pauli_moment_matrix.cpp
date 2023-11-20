@@ -14,14 +14,11 @@
 #include "matrix/operator_matrix/operator_matrix_factory.h"
 #include "matrix/monomial_matrix.h"
 
-#include "dictionary/operator_sequence_generator.h"
-
 #include "multithreading/matrix_generation_worker.h"
 #include "multithreading/multithreading.h"
 
 #include "scenarios/context.h"
 
-#include <limits>
 #include <stdexcept>
 #include <sstream>
 #include <thread>
@@ -31,7 +28,7 @@ namespace Moment::Pauli {
     PauliMomentMatrix::PauliMomentMatrix(const PauliContext& context, const NearestNeighbourIndex& nn_index,
                                std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
             : MomentMatrix{context, nn_index.moment_matrix_level, std::move(op_seq_mat)},
-              pauliContext{context}, index{nn_index} {
+              pauliContext{context}, NNIndex{nn_index} {
 
     }
 
@@ -41,18 +38,18 @@ namespace Moment::Pauli {
 
     const OSGPair& PauliMomentMatrix::generators() const {
         const auto& dictionary = dynamic_cast<const PauliDictionary&>(context.dictionary());
-        return dictionary.NearestNeighbour(this->index);
+        return dictionary.NearestNeighbour(this->NNIndex);
     }
 
     std::string PauliMomentMatrix::description() const {
         std::stringstream ss;
-        ss << "Moment Matrix, Level " << this->index.moment_matrix_level;
-        if (this->index.neighbours > 0) {
-            ss << ", " << this->index.neighbours << " nearest neighbour";
-            if (this->index.neighbours != 1) {
+        ss << "Moment Matrix, Level " << this->NNIndex.moment_matrix_level;
+        if (this->NNIndex.neighbours > 0) {
+            ss << ", " << this->NNIndex.neighbours << " nearest neighbour";
+            if (this->NNIndex.neighbours != 1) {
                 ss << "s";
             }
-            if (this->index.wrapped) {
+            if (this->NNIndex.wrapped) {
                 ss << " (wrapped)";
             }
         }

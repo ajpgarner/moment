@@ -12,6 +12,8 @@
 
 #include "scenarios/pauli/pauli_matrix_system.h"
 #include "scenarios/pauli/pauli_context.h"
+#include "scenarios/pauli/pauli_moment_matrix.h"
+#include "scenarios/pauli/pauli_localizing_matrix.h"
 
 #include "../../matrix/compare_os_matrix.h"
 #include "../../matrix/compare_symbol_matrix.h"
@@ -168,8 +170,42 @@ namespace Moment::Tests {
         ASSERT_TRUE(pMM.is_monomial());
         ASSERT_TRUE(pMM.has_operator_matrix());
 
+        const auto* asMM_ptr = dynamic_cast<const PauliMomentMatrix*>(&(pMM.operator_matrix()));
+        ASSERT_NE(asMM_ptr, nullptr);
+        const auto& asMM = *asMM_ptr;
+
+        EXPECT_EQ(asMM.Level(), 2);
+        EXPECT_EQ(asMM.NNIndex.moment_matrix_level, 2);
+        EXPECT_EQ(asMM.NNIndex.neighbours, 1);
+        EXPECT_EQ(asMM.NNIndex.wrapped, false);
+
         const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
         EXPECT_EQ(&pMM, &pMM_alias);
+
+    }
+    TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourLM) {
+        PauliMatrixSystem system{3};
+        const auto& context = system.pauliContext;
+
+        const auto x1 = context.sigmaX(0);
+        const PauliLocalizingMatrixIndex plmi{2, 1, false, x1};
+
+        const auto& pLM_x = system.PauliLocalizingMatrices(plmi);
+        ASSERT_EQ(pLM_x.Dimension(), 28);
+        ASSERT_TRUE(pLM_x.is_monomial());
+        ASSERT_TRUE(pLM_x.has_operator_matrix());
+        const auto* asLM_ptr = dynamic_cast<const PauliLocalizingMatrix*>(&pLM_x.operator_matrix());
+        ASSERT_NE(asLM_ptr, nullptr);
+        const auto& asLM = *asLM_ptr;
+
+        EXPECT_EQ(asLM.Level(), 2);
+        EXPECT_EQ(asLM.PauliIndex.Index.moment_matrix_level, 2);
+        EXPECT_EQ(asLM.PauliIndex.Index.neighbours, 1);
+        EXPECT_EQ(asLM.PauliIndex.Index.wrapped, false);
+        EXPECT_EQ(asLM.Word(), x1);
+
+        const auto& pLM_x_alias = system.PauliLocalizingMatrices(plmi);
+        EXPECT_EQ(&pLM_x, &pLM_x_alias);
 
     }
 

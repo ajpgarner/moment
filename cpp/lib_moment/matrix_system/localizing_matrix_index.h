@@ -15,12 +15,11 @@ namespace Moment {
         size_t Level;
         OperatorSequence Word;
         size_t WordHash;
-        bool WordIsHermitian;
 
     public:
         LocalizingMatrixIndex(size_t level, OperatorSequence word)
                 : Level{level}, Word{std::move(word)},
-                  WordHash{Word.hash()}, WordIsHermitian{Word == Word.conjugate()} {
+                  WordHash{Word.hash()} {
         }
 
         constexpr bool operator<(const LocalizingMatrixIndex& rhs) const noexcept {

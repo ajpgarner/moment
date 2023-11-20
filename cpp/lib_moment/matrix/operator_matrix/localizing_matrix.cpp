@@ -62,7 +62,8 @@ namespace Moment {
                                     LocalizingMatrixIndex lmi,
                                     Multithreading::MultiThreadPolicy mt_policy) {
 
-        const bool should_be_hermitian = lmi.Word.hash() == lmi.Word.conjugate().hash();
+        const bool should_be_hermitian = (lmi.Word.hash() == lmi.Word.conjugate().hash())
+                                            && !is_imaginary(lmi.Word.get_sign());
 
         if (context.can_have_aliases()) {
             const auto alias_lm_functor = [&context, &lmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {

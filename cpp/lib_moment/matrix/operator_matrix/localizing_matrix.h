@@ -66,7 +66,5 @@ namespace Moment {
          * Otherwise, returns nullptr.
          */
         static const LocalizingMatrix* as_monomial_localizing_matrix_ptr(const SymbolicMatrix& input) noexcept;
-
-        friend class LocalizingMatrixCreationContext;
     };
 }
