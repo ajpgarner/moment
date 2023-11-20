@@ -51,6 +51,8 @@ namespace Moment {
 
         [[nodiscard]] std::string description() const override;
 
+        const OSGPair& generators() const override;
+
 
         /**
          * Full creation stack, with possible multithreading.

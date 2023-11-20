@@ -9,6 +9,7 @@
 #pragma once
 
 #include "operator_sequence_generator.h"
+#include "osg_pair.h"
 
 #include "multithreading/maintains_mutex.h"
 
@@ -26,32 +27,6 @@ namespace Moment {
      * Design assumption: if k < k', then osg(k) is a prefix of osg(k').
      */
     class Dictionary : protected MaintainsMutex {
-    public:
-        /**
-         * An operator sequence generator and its conjugate
-         */
-        struct OSGPair {
-        private:
-            std::unique_ptr<OperatorSequenceGenerator> forward_osg;
-            std::unique_ptr<OperatorSequenceGenerator> conjugate_osg;
-
-        public:
-            explicit OSGPair(std::unique_ptr<OperatorSequenceGenerator> fwd,
-                    std::unique_ptr<OperatorSequenceGenerator> rev = nullptr) noexcept
-                : forward_osg{std::move(fwd)}, conjugate_osg{std::move(rev)} {
-            }
-
-            OSGPair(OSGPair&& rhs) = default;
-
-            [[nodiscard]] const OperatorSequenceGenerator& operator()() const noexcept {
-                return *forward_osg;
-            }
-
-            [[nodiscard]] const OperatorSequenceGenerator& conjugate() const noexcept {
-                return (conjugate_osg ? *conjugate_osg : *forward_osg);
-            }
-        };
-
     protected:
         /** List of operator sequences */
         mutable std::vector<OSGPair> osgs;
@@ -78,7 +53,7 @@ namespace Moment {
          * Gets a 'pure' NPA hierarchy level (e.g. Moment matrix) generator.
          * @param npa_level The maximum word length.
          */
-        [[nodiscard]] const Dictionary::OSGPair& Level(const size_t max_word_length) const;
+        [[nodiscard]] const OSGPair& Level(const size_t max_word_length) const;
 
         /**
          * Return number of registered OSGs

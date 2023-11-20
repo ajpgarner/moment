@@ -79,7 +79,7 @@ namespace Moment::Inflation {
             assert(new_dimension == extended_matrix.dimension);
 
             // Existing generators, combine with scalars...
-            const auto& mm_osg = moment_matrix.Generators();
+            const auto& mm_osg = moment_matrix.generators()();
 
             size_t row_index = 0;
             for (const auto& raw_seq : mm_osg) {

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "matrix/operator_matrix/operator_matrix.h"
+#include "matrix/operator_matrix/moment_matrix.h"
 #include "nearest_neighbour_index.h"
 
 #include "multithreading/multithreading.h"
@@ -23,7 +23,7 @@ namespace Moment {
         /**
          * MomentMatrix, of operators.
          */
-        class PauliMomentMatrix : public OperatorMatrix {
+        class PauliMomentMatrix : public MomentMatrix {
         public:
             /** Context */
             const PauliContext& pauliContext;
@@ -48,14 +48,9 @@ namespace Moment {
             ~PauliMomentMatrix() noexcept;
 
             /**
-             * The hierarchy depth of this moment matrix.
-             */
-            [[nodiscard]] constexpr size_t Level() const noexcept { return this->index.moment_matrix_level; }
-
-            /**
              * The generators associated with this matrix
              */
-            [[nodiscard]] const PauliSequenceGenerator& Generators() const;
+            [[nodiscard]] const OSGPair& generators() const override;
 
             [[nodiscard]] std::string description() const override;
 

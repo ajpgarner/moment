@@ -7,6 +7,7 @@
 #include "localizing_matrix.h"
 #include "operator_matrix_factory.h"
 
+#include "dictionary/dictionary.h"
 #include "dictionary/operator_sequence_generator.h"
 
 #include "scenarios/context.h"
@@ -38,6 +39,10 @@ namespace Moment {
         return ss.str();
     }
 
+    const OSGPair& LocalizingMatrix::generators() const {
+        const auto& dictionary = this->context.dictionary();
+        return dictionary.Level(this->Index.Level);
+    }
 
     const LocalizingMatrix* LocalizingMatrix::as_monomial_localizing_matrix_ptr(const SymbolicMatrix& input) noexcept {
         if (!input.is_monomial()) {

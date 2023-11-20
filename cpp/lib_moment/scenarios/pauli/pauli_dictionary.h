@@ -29,7 +29,7 @@ namespace Moment::Pauli {
          * Gets a nearest neighbour partial-NPA hierarchy level generator.
          * @param npa_level The maximum word length.
          */
-        [[nodiscard]] const Dictionary::OSGPair& NearestNeighbour(const NearestNeighbourIndex& index) const;
+        [[nodiscard]] const OSGPair& NearestNeighbour(const NearestNeighbourIndex& index) const;
 
 
     };

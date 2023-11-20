@@ -60,7 +60,7 @@ namespace Moment::Inflation {
 
             // 2. see what constraints introducing this extension could impose
             bool any_use = false;
-            for (const auto &rawPrefix: moment_matrix.Generators()) {
+            for (const auto &rawPrefix: moment_matrix.generators()()) {
                 // Find prefix as factored object
                 auto prefix = context.canonical_moment(rawPrefix);
 

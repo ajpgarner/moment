@@ -8,6 +8,7 @@
 
 #include "pauli_moment_matrix.h"
 #include "pauli_context.h"
+#include "pauli_dictionary.h"
 #include "pauli_osg.h"
 
 #include "matrix/operator_matrix/operator_matrix_factory.h"
@@ -29,7 +30,8 @@ namespace Moment::Pauli {
 
     PauliMomentMatrix::PauliMomentMatrix(const PauliContext& context, const NearestNeighbourIndex& nn_index,
                                std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-            : OperatorMatrix{context, std::move(op_seq_mat)}, pauliContext{context}, index{nn_index} {
+            : MomentMatrix{context, nn_index.moment_matrix_level, std::move(op_seq_mat)},
+              pauliContext{context}, index{nn_index} {
 
     }
 
@@ -37,9 +39,9 @@ namespace Moment::Pauli {
 
     PauliMomentMatrix::~PauliMomentMatrix() noexcept = default;
 
-    const PauliSequenceGenerator& PauliMomentMatrix::Generators() const {
-        return dynamic_cast<const PauliSequenceGenerator&>(this->pauliContext.operator_sequence_generator(this->index));
-
+    const OSGPair& PauliMomentMatrix::generators() const {
+        const auto& dictionary = dynamic_cast<const PauliDictionary&>(context.dictionary());
+        return dictionary.NearestNeighbour(this->index);
     }
 
     std::string PauliMomentMatrix::description() const {
@@ -66,10 +68,10 @@ namespace Moment::Pauli {
             return lhs * rhs;
         };
 
-        OperatorMatrixFactory<OperatorMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
+        OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
                 creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
 
-        return creation_context.execute();
+        return creation_context.execute(nn_index);
     }
 
 }

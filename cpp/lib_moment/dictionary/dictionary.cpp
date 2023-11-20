@@ -26,7 +26,7 @@ namespace Moment {
     }
 
 
-    const Dictionary::OSGPair& Dictionary::Level(const size_t npa_level) const {
+    const OSGPair& Dictionary::Level(const size_t npa_level) const {
         // Try and read
         auto read_lock = this->get_read_lock();
         auto offset_iter = this->npa_level_to_offset.find(npa_level);

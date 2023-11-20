@@ -8,6 +8,7 @@
 #include "moment_matrix.h"
 #include "operator_matrix_factory.h"
 
+#include "dictionary/dictionary.h"
 #include "dictionary/operator_sequence_generator.h"
 
 #include "multithreading/matrix_generation_worker.h"
@@ -35,8 +36,9 @@ namespace Moment {
 
     MomentMatrix::~MomentMatrix() noexcept = default;
 
-    const OperatorSequenceGenerator& MomentMatrix::Generators() const {
-        return this->context.operator_sequence_generator(this->Level());
+    const OSGPair& MomentMatrix::generators() const {
+        const auto& dictionary = this->context.dictionary();
+        return dictionary.Level(this->hierarchy_level);
     }
 
     std::string MomentMatrix::description() const {

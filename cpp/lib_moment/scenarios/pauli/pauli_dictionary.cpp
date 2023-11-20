@@ -16,7 +16,7 @@ namespace Moment::Pauli {
     PauliDictionary::PauliDictionary(const Moment::Pauli::PauliContext& context_in)
         : Dictionary{context_in}, pauliContext{context_in} { }
 
-    const Dictionary::OSGPair& PauliDictionary::NearestNeighbour(const NearestNeighbourIndex& index) const {
+    const OSGPair& PauliDictionary::NearestNeighbour(const NearestNeighbourIndex& index) const {
         // If 0 neighbour mode, then default to normal OSG
         if (0 == index.neighbours) {
             return this->Level(index.moment_matrix_level);

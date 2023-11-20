@@ -60,6 +60,10 @@ namespace Moment {
 
     OperatorMatrix::~OperatorMatrix() noexcept = default;
 
+    const OSGPair& OperatorMatrix::generators() const {
+        throw std::runtime_error{"Generic OperatorMatrix does not have any attached generators."};
+    }
+
     void OperatorMatrix::set_properties(SymbolicMatrix &matrix) const {
         assert(matrix.op_mat && (matrix.op_mat.get() == this));
         matrix.description = this->description();

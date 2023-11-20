@@ -9,7 +9,9 @@
 #include "matrix/monomial_matrix.h"
 
 #include "scenarios/context.h"
+
 #include "dictionary/operator_sequence.h"
+#include "dictionary/osg_pair.h"
 
 #include "multithreading/multithreading.h"
 
@@ -114,9 +116,18 @@ namespace Moment {
             return (*(this->op_seq_matrix));
         }
 
+        /**
+         * Operator matrices usually are made in an algorithmic manner, and can provide a name to their symbolization.
+         */
         [[nodiscard]] virtual std::string description() const {
             return "Operator Matrix";
         }
+
+        /**
+         * Provide access to matrix generators
+         */
+         [[nodiscard]] virtual const OSGPair& generators() const;
+
 
         /** Apply the properties from this operator matrix to the supplied matrix. */
         void set_properties(SymbolicMatrix& matrix) const;
