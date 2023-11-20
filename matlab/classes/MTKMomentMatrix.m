@@ -7,18 +7,32 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
     end
     
     methods
-        function obj = MTKMomentMatrix(scenario, level)
+        function obj = MTKMomentMatrix(scenario, level, mm_index, mm_dim)
             %MTKMOMENTMATRIX Construct an instance of this class
             %   Detailed explanation goes here
             
             if nargin < 2
                 error("Moment matrix is defined by scenario and level.");
             end
-            
-            % Create (or find) matrix from Moment
             level = uint64(level);
-            [mm_index, mm_dim] = mtk('moment_matrix', ...
-                scenario.System.RefId, level);
+            
+            if nargin >= 3
+                assert(nargin >= 4, ...
+                    "If index supplied, dimension must be supplied");
+                assert(isnumeric(mm_index) && isscalar(mm_index), ...
+                    "Index must be scalar number.");
+                assert(isnumeric(mm_dim) && isscalar(mm_dim), ...
+                    "Dimension must be scalar number.");
+                
+                mm_index = uint64(mm_index);
+                mm_dim = uint64(mm_dim);
+            else
+                % Create (or find) matrix from Moment            
+                [mm_index, mm_dim] = mtk('moment_matrix', ...
+                    scenario.System.RefId, level);    
+            end
+            
+            
             
             % Construct as operator matrix object
             % NB: MM are monomial and hermitian by construction.

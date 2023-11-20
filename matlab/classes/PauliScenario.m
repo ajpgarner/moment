@@ -74,6 +74,52 @@ classdef PauliScenario < MTKScenario
             val = MTKMonomial(obj, (site-1)*3+3, 1.0);
         end
     end
+    
+    %% Overloaded operator matrices
+    methods
+        function val = MomentMatrix(obj, level, neighbours, wrap)
+        % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
+        %   PARAMS:
+        %       level - NPA Hierarchy level
+        %       neighbours - If positive, restrict moments to this number 
+        %                    of nearest neighbours in top row of matrix.
+        %       wrap - Set to true to treat qubit N and 1 as neighbouring.       
+        
+            % Defaults:
+            assert(nargin>=2, "Moment matrix level must be specified.");            
+            if nargin < 3
+                neighbours = 0;
+            end
+            if nargin < 4
+                wrap = false;
+            end
+            
+            val = Pauli.NNMomentMatrix(obj, level, neighbours, wrap);            
+        end
+        
+      function val = LocalizingMatrix(obj, level, expr, neighbours, wrap)
+        % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
+        %   PARAMS:
+        %       level - NPA Hierarchy level
+        %       expr - The localizing expression
+        %       neighbours - If positive, restrict moments to this number 
+        %                    of nearest neighbours in top row of matrix.
+        %       wrap - Set to true to treat qubit N and 1 as neighbouring.       
+        
+            % Defaults:
+            assert(nargin>=2, "Moment matrix level must be specified.");
+            assert(nargin>=3, "Localizing expression must be specified.");
+            if nargin < 4
+                neighbours = 0;
+            end
+            if nargin < 5
+                wrap = false;
+            end
+            
+            val = Pauli.NNLocalizingMatrix(obj, level, expr, ...
+                                           neighbours, wrap);            
+        end
+    end
            
     %% Virtual methods    
     methods(Access={?MTKScenario,?MTKMatrixSystem})    

@@ -34,6 +34,12 @@ namespace Moment::mex::functions  {
         /** Matrix level. */
         unsigned long hierarchy_level = 0;
 
+        /** Extra information about OSG */
+        struct extra_data_t {
+            size_t nearest_neighbours = 0;
+            bool wrap = false;
+        } extra_data;
+
     protected:
         /** Matrix word. */
         raw_word_storage_t localizing_expression;
@@ -89,6 +95,7 @@ namespace Moment::mex::functions  {
         explicit LocalizingMatrixParams(SortedInputs&& inputs);
 
         ~LocalizingMatrixParams() noexcept;
+
         /**
          * Use the supplied context to create an index for the requested localizing matrix.
          */
@@ -103,6 +110,8 @@ namespace Moment::mex::functions  {
         void extra_parse_params() final;
 
         void extra_parse_inputs() final;
+
+        void parse_optional_params();
 
         [[nodiscard]] bool any_param_set() const final;
 

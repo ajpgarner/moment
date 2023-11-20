@@ -135,13 +135,25 @@ namespace Moment::mex {
 
         virtual ~SortedInputs() = default;
 
-        [[nodiscard]] matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
+
 
         [[nodiscard]] std::optional<size_t> get_index_of_matched_flag(const NameSet& matches) const;
 
         [[nodiscard]] virtual std::string to_string() const;
 
+        /** Get named parameter, or throw an error */
+        [[nodiscard]] matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
 
+        /** Execute provided functor if named parameter is set */
+        template<typename functor_t>
+        bool find_and_parse(const ParamNameStr& paramName, functor_t action) {
+            auto find_iter = this->params.find(paramName);
+            if (find_iter == this->params.cend()) {
+                return false;
+            }
+            action(find_iter->second);
+            return true;
+        }
 
     };
 

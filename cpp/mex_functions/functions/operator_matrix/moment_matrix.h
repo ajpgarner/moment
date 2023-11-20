@@ -17,13 +17,20 @@ namespace Moment::mex::functions  {
     struct MomentMatrixParams : public OperatorMatrixParams {
     public:
         size_t hierarchy_level = 0;
+        struct extra_data_t {
+            size_t nearest_neighbours = 0;
+            bool wrap = false;
+        } extra_data;
     public:
+
         explicit MomentMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }
 
     protected:
         void extra_parse_params() final;
 
         void extra_parse_inputs() final;
+
+        void parse_optional_params();
 
         [[nodiscard]] bool any_param_set() const final;
 
