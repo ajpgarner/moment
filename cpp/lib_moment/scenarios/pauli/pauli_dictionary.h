@@ -8,6 +8,9 @@
 #pragma once
 #include "dictionary/dictionary.h"
 
+#include "nearest_neighbour_index.h"
+#include <map>
+
 namespace Moment::Pauli {
     class PauliContext;
 
@@ -15,7 +18,19 @@ namespace Moment::Pauli {
     public:
         const PauliContext& pauliContext;
 
+    private:
+        mutable std::map<NearestNeighbourIndex, size_t> nn_indices{};
+
+    public:
+
         explicit PauliDictionary(const PauliContext& context);
+
+        /**
+         * Gets a nearest neighbour partial-NPA hierarchy level generator.
+         * @param npa_level The maximum word length.
+         */
+        [[nodiscard]] const Dictionary::OSGPair& NearestNeighbour(const NearestNeighbourIndex& index) const;
+
 
     };
 }

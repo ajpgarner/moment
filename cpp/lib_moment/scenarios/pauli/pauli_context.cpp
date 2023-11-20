@@ -371,10 +371,11 @@ namespace Moment::Pauli {
     }
 
     const OperatorSequenceGenerator&
-    PauliContext::operator_sequence_generator(const NearestNeighbourIndex& index, bool conjugated) const {
+    PauliContext::operator_sequence_generator(const NearestNeighbourIndex& index, bool /**/) const {
+        // NB: Ignore conjugate because everything is Hermitian in this scenario
         const auto& dictionary = dynamic_cast<const PauliDictionary&>(this->dictionary());
-        const auto& osg_pair = dictionary.Level(index.moment_matrix_level);
-        return conjugated ? osg_pair.conjugate() : osg_pair();
+        const auto& osg_pair = dictionary.NearestNeighbour(index);
+        return osg_pair();
     }
 
     std::unique_ptr<OperatorSequenceGenerator> PauliContext::new_osg(const size_t word_length) const {

@@ -164,7 +164,7 @@ namespace Moment::Tests {
         const auto& context = system.pauliContext;
 
         const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
-        ASSERT_EQ(pMM.Dimension(), 37);
+        ASSERT_EQ(pMM.Dimension(), 28);
         ASSERT_TRUE(pMM.is_monomial());
         ASSERT_TRUE(pMM.has_operator_matrix());
 
