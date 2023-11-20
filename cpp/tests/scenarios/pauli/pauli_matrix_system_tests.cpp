@@ -157,7 +157,19 @@ namespace Moment::Tests {
             EXPECT_EQ(symbol.sequence().get_sign(), SequenceSignType::Positive) << "Symbol = " << symbol;
             EXPECT_EQ(symbol.sequence_conj().get_sign(), SequenceSignType::Positive) << "Symbol = " << symbol;
         }
+    }
 
+    TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourMM) {
+        PauliMatrixSystem system{3};
+        const auto& context = system.pauliContext;
+
+        const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
+        ASSERT_EQ(pMM.Dimension(), 37);
+        ASSERT_TRUE(pMM.is_monomial());
+        ASSERT_TRUE(pMM.has_operator_matrix());
+
+        const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
+        EXPECT_EQ(&pMM, &pMM_alias);
 
     }
 

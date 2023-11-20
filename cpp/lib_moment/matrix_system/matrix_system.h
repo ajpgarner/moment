@@ -286,12 +286,15 @@ namespace Moment {
     public:
         friend RulebookStorage;
         friend MomentMatrixFactory;
-        friend MomentMatrixIndices;
         friend LocalizingMatrixFactory;
-        friend LocalizingMatrixIndices;
         friend PolynomialLocalizingMatrixFactory;
-        friend PolynomialLMIndices;
         friend SubstitutedMatrixFactory;
-        friend SubstitutedMatrixIndices;
+
+        /** Matrix index classes. */
+        template<typename matrix_t, typename index_t, stores_indices<index_t> index_storage_t,
+                makes_matrices<matrix_t, index_t> factory_t,
+                typename matrix_system_t>
+        friend class MatrixIndices;
+
     };
 }
