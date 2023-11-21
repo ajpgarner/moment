@@ -19,14 +19,13 @@ namespace Moment::Pauli {
         : MatrixSystem{std::move(contextPtr), tolerance},
           pauliContext{dynamic_cast<class PauliContext&>(this->Context())},
           PauliMomentMatrices{*this}, PauliLocalizingMatrices{*this}, PauliPolynomialLocalizingMatrices{*this} {
+
+        // Set index factory...
+        this->PauliPolynomialLocalizingMatrices.indices.set_factory(this->polynomial_factory());
     }
 
     PauliMatrixSystem::PauliMatrixSystem(const oper_name_t qubit_count, const double tolerance)
-        : MatrixSystem(std::make_unique<PauliContext>(qubit_count), tolerance),
-          pauliContext{dynamic_cast<class PauliContext&>(this->Context())},
-          PauliMomentMatrices{*this}, PauliLocalizingMatrices{*this}, PauliPolynomialLocalizingMatrices{*this} {
-
-    }
+        : PauliMatrixSystem{std::make_unique<PauliContext>(qubit_count), tolerance} { }
 
     std::unique_ptr<SymbolicMatrix>
     PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
