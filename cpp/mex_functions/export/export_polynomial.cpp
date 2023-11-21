@@ -224,7 +224,7 @@ namespace Moment::mex {
             for (const auto& poly : poly_list) {
                 assert(poly.is_monomial());
                 if (poly.empty()) {
-                    *write_iter = functor(Monomial{0});
+                    *write_iter = functor(Monomial{0, 0.0});
                 } else {
                     *write_iter = functor(poly.back());
                 }
@@ -236,7 +236,7 @@ namespace Moment::mex {
             for (const auto& poly : poly_list) {
                 assert(poly.is_monomial());
                 if (poly.empty()) {
-                    *write_iter = functor(Monomial{0});
+                    *write_iter = functor(Monomial{0, 0.0});
                 } else {
                     *write_iter = functor(poly.back());
                 }

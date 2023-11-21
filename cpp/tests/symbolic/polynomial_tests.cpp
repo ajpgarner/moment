@@ -812,4 +812,12 @@ namespace Moment::Tests {
         EXPECT_EQ(lhs, Polynomial(Monomial{2, 1.0}));
     }
 
+    TEST(Symbolic_Polynomial, Append_APlusMinusA) {
+        Polynomial lhs{Monomial{2, 1.0}};
+        const Polynomial rhs{Monomial{2, -1.0}};
+
+        lhs.append(rhs);
+        EXPECT_EQ(lhs, Polynomial::Zero());
+    }
+
 }
