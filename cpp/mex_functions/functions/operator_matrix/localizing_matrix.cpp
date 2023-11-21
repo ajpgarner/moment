@@ -107,7 +107,7 @@ namespace Moment::mex::functions {
                 if (ExpressionType::Unknown == this->expression_type) {
                     this->expression_type = ExpressionType::OperatorCell;
                 } else if (ExpressionType::OperatorSequence == this->expression_type) {
-                    throw_error(matlabEngine, errors::bad_param, "Operator sequence specified, but cell array supppliud.");
+                    throw_error(matlabEngine, errors::bad_param, "Operator sequence specified, but cell array suppplied.");
                 }
                 if (ExpressionType::SymbolCell == this->expression_type) {
                     this->localizing_expression.emplace<1>(
@@ -164,8 +164,18 @@ namespace Moment::mex::functions {
             auto lmi = params.to_monomial_index(context);
             // Inject NN and wrap info
             return Pauli::PauliLocalizingMatrixIndex{lmi.Level, params.extra_data.nearest_neighbours,
-                                                     params.extra_data.wrap,
-                                                     std::move(lmi.Word)};
+                                                     params.extra_data.wrap, std::move(lmi.Word)};
+
+        }
+
+        Pauli::PauliPolynomialLMIndex to_pauli_polynomial_index(const PolynomialFactory& factory,
+                                                                const LocalizingMatrixParams& params) {
+            // Read and check normal LMI expression
+            auto lmi = params.to_polynomial_index(factory);
+
+            // Inject NN and wrap info
+            return Pauli::PauliPolynomialLMIndex{lmi.Level, params.extra_data.nearest_neighbours,
+                                                 params.extra_data.wrap, std::move(lmi.Polynomial)};
 
         }
     }
@@ -233,25 +243,36 @@ namespace Moment::mex::functions {
     }
 
     namespace {
+
+        /** Cast to PauliMatrixSystem, or throw matlab error. */
+        [[nodiscard]] Pauli::PauliMatrixSystem& pms_or_throw(matlab::engine::MATLABEngine& matlabEngine,
+                                                             MatrixSystem& system) {
+            auto* pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system);
+            if (pms_ptr == nullptr) {
+                throw_error(matlabEngine, errors::bad_param,
+                            "Nearest neighbours can only be set in Pauli scenario.");
+            }
+            return *pms_ptr;
+        }
+
+
+
+
         std::pair<size_t, const Moment::SymbolicMatrix &>
         getMonoLM(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem &system,
                   LocalizingMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
             if (input.extra_data.nearest_neighbours != 0) {
-                auto* pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system);
-                if (pms_ptr == nullptr) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "Nearest neighbours can only be set in Pauli scenario.");
-                }
+                auto& pauli_system = pms_or_throw(matlabEngine, system);
                 auto read_lock = system.get_read_lock();
-                auto plmi = to_pauli_monomial_index(pms_ptr->pauliContext, input);
-                auto offset = pms_ptr->PauliLocalizingMatrices.find_index(plmi);
+                auto plmi = to_pauli_monomial_index(pauli_system.pauliContext, input);
+                auto offset = pauli_system.PauliLocalizingMatrices.find_index(plmi);
                 if (offset >= 0) {
                     return {offset, system[offset]};
                 }
 
                 // Try to create
                 read_lock.unlock();
-                return pms_ptr->PauliLocalizingMatrices.create(plmi, mt_policy);
+                return pauli_system.PauliLocalizingMatrices.create(plmi, mt_policy);
             } else {
                 // Try to get via read-lock only
                 auto read_lock = system.get_read_lock();
@@ -268,23 +289,54 @@ namespace Moment::mex::functions {
         }
 
         std::pair<size_t, const Moment::SymbolicMatrix &>
-        getPolySymbolLM(MatrixSystem &system, LocalizingMatrixParams& input,
-                        Multithreading::MultiThreadPolicy mt_policy) {
-            // Try to get in read-only mode
-            auto read_lock = system.get_read_lock();
-            auto plmi = input.to_polynomial_index(system.polynomial_factory());
-            auto offset = system.PolynomialLocalizingMatrix.find_index(plmi);
-            if (offset >= 0) {
-                return {offset, system[offset]};
-            }
+        getPolySymbolLMExistingSymbols(
+                matlab::engine::MATLABEngine& matlabEngine,
+                MaintainsMutex::ReadLock&& read_lock,
+                MatrixSystem &system, LocalizingMatrixParams& input,
+                Multithreading::MultiThreadPolicy mt_policy) {
+            assert(system.is_locked_read_lock(read_lock));
 
-            // Try to create polynomial matrix
-            read_lock.unlock();
-            return system.PolynomialLocalizingMatrix.create(plmi, mt_policy);
+            if (0 == input.extra_data.nearest_neighbours) {
+                // Try to get in read-only mode
+                auto plmi = input.to_polynomial_index(system.polynomial_factory());
+                auto offset = system.PolynomialLocalizingMatrix.find_index(plmi);
+                if (offset >= 0) {
+                    return {offset, system[offset]};// ~read_lock
+                }
+
+                // Try to create polynomial matrix
+                read_lock.unlock();
+                return system.PolynomialLocalizingMatrix.create(std::move(plmi), mt_policy);
+            } else {
+                // Get Pauli NN index
+                auto& pauliMatrixSystem = pms_or_throw(matlabEngine, system);
+                const auto& factory = pauliMatrixSystem.polynomial_factory();
+                auto plmi = to_pauli_polynomial_index(factory, input);
+
+                // Try to get in read-only mode
+                auto offset = pauliMatrixSystem.PauliPolynomialLocalizingMatrices.find_index(plmi);
+                if (offset >= 0) {
+                    return {offset, system[offset]}; // ~read_lock
+                }
+
+                // Try to create polynomial matrix
+                read_lock.unlock();
+                return pauliMatrixSystem.PauliPolynomialLocalizingMatrices.create(std::move(plmi), mt_policy);
+            }
         }
 
         std::pair<size_t, const Moment::SymbolicMatrix &>
-        getPolyOpLM(MatrixSystem &system, LocalizingMatrixParams& input,
+        getPolySymbolLM(matlab::engine::MATLABEngine& matlabEngine,
+                        MatrixSystem &system, LocalizingMatrixParams& input,
+                        Multithreading::MultiThreadPolicy mt_policy) {
+            auto read_lock = system.get_read_lock();
+            return getPolySymbolLMExistingSymbols(matlabEngine, std::move(read_lock), system, input, mt_policy);
+        }
+
+
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getPolyOpLM(matlab::engine::MATLABEngine& matlabEngine,
+                    MatrixSystem &system, LocalizingMatrixParams& input,
                     Multithreading::MultiThreadPolicy mt_policy) {
             // Can expression be parsed without new symbols?
             auto read_lock = system.get_read_lock();
@@ -294,7 +346,7 @@ namespace Moment::mex::functions {
 
             auto& staging_poly = *input.localizing_operator_cell();
             staging_poly.supply_context(context);
-            const bool found_all = staging_poly.find_symbols( symbol_table, true);
+            const bool found_all = staging_poly.find_symbols(symbol_table, true);
 
             // Not all symbols found, so switch to write lock
             if (!found_all) {
@@ -302,20 +354,20 @@ namespace Moment::mex::functions {
 
                 auto write_lock = system.get_write_lock();
                 staging_poly.find_or_register_symbols(symbol_table);
-                auto index = input.to_polynomial_index(factory);
-                return system.PolynomialLocalizingMatrix.create(write_lock, index, mt_policy);
+
+                if (0 == input.extra_data.nearest_neighbours) {
+                    auto index = input.to_polynomial_index(factory);
+                    return system.PolynomialLocalizingMatrix.create(write_lock, index, mt_policy);
+                } else {
+                    auto& pauliMatrixSystem = pms_or_throw(matlabEngine, system);
+                    auto index = to_pauli_polynomial_index(factory, input);
+                    return pauliMatrixSystem.PauliPolynomialLocalizingMatrices.create(write_lock, std::move(index),
+                                                                                      mt_policy);
+                }
             }
 
-            // Try to read LM entirely in read only mode
-            auto index = input.to_polynomial_index(factory);
-            auto offset = system.PolynomialLocalizingMatrix.find_index(index);
-            if (offset >= 0) {
-                return {offset, system[offset]};
-            }
-
-            // Otherwise, create (implicitly acquiring write lock)
-            read_lock.unlock();
-            return system.PolynomialLocalizingMatrix.create(index, mt_policy);
+            // Fall-back to normal
+            return getPolySymbolLMExistingSymbols(matlabEngine, std::move(read_lock), system, input, mt_policy);
         }
     }
 
@@ -329,9 +381,9 @@ namespace Moment::mex::functions {
                 case LocalizingMatrixParams::ExpressionType::OperatorSequence:
                     return getMonoLM(matlabEngine, system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixParams::ExpressionType::SymbolCell:
-                    return getPolySymbolLM(system, input, this->settings->get_mt_policy());
+                    return getPolySymbolLM(matlabEngine, system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixParams::ExpressionType::OperatorCell:
-                    return getPolyOpLM(system, input, this->settings->get_mt_policy());
+                    return getPolyOpLM(matlabEngine, system, input, this->settings->get_mt_policy());
                 default:
                 case LocalizingMatrixParams::ExpressionType::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");

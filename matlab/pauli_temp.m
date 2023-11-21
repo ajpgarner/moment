@@ -16,6 +16,4 @@ p = X1+Z1;
 
 lmX1 = setting.LocalizingMatrix(base_mm_level, X1, 1, false);
 lmZ1 = setting.LocalizingMatrix(base_mm_level, Z1, 1, false);
-
 lmP = setting.LocalizingMatrix(base_mm_level, p, 1, false);
-%a = X1 * MM;
