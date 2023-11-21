@@ -114,14 +114,16 @@ namespace Moment::Tests {
                 const auto& poly_elem = plm.SymbolMatrix(row, col);
                 const auto& monoA_elem = lmA.SymbolMatrix(row, col);
                 const auto& monoB_elem = lmB.SymbolMatrix(row, col);
+                const bool swap_order = monoB_elem.id < monoA_elem.id;
+
                 ASSERT_EQ(poly_elem.size(), 2) << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[0].id, monoA_elem.id) << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[0].factor, monoA_elem.factor*-2.0) << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[0].conjugated, monoA_elem.conjugated)
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].id, monoA_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].factor, monoA_elem.factor*-2.0) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].conjugated, monoA_elem.conjugated)
                                     << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[1].id, monoB_elem.id) << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[1].factor, monoB_elem.factor) << "col = " << col << ", row = " << row;
-                EXPECT_EQ(poly_elem[1].conjugated, monoB_elem.conjugated)
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].id, monoB_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].factor, monoB_elem.factor) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].conjugated, monoB_elem.conjugated)
                                     << "col = " << col << ", row = " << row;
             }
         }
