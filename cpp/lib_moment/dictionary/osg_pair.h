@@ -34,7 +34,7 @@ namespace Moment {
         /**
          * True if there is no conjugate OSG.
          */
-        [[nodiscard]] constexpr bool self_adjoint() const noexcept {
+        [[nodiscard]] inline bool self_adjoint() const noexcept {
             return (conjugate_osg == nullptr);
         }
 

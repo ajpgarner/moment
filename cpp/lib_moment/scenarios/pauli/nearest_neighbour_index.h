@@ -8,6 +8,7 @@
 #pragma once
 
 #include <compare>
+#include <cstddef>
 
 namespace Moment::Pauli {
 
