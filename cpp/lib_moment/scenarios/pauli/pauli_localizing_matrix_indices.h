@@ -58,8 +58,8 @@ namespace Moment::Pauli {
             return this->WordHash < pmmi.WordHash;
         }
 
-        [[nodiscard]] LocalizingMatrixIndex lmi() const {
-            return LocalizingMatrixIndex{this->Index.moment_matrix_level, this->Word};
+        [[nodiscard]] operator LocalizingMatrixIndex() const {
+            return {this->Index.moment_matrix_level, this->Word};
         }
 
     };

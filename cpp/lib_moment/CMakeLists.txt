@@ -21,8 +21,6 @@ add_library(lib_moment
         matrix/substituted_matrix.cpp
         matrix_system/matrix_factories.cpp
         matrix_system/matrix_system.cpp
-        matrix_system/polynomial_index_storage.cpp
-        matrix_system/polynomial_localizing_matrix_index.cpp
         matrix_system/rulebook_storage.cpp
         multithreading/multithreading.cpp
         probability/collins_gisin.cpp
@@ -80,10 +78,12 @@ add_library(lib_moment
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_matrix_system.cpp
         scenarios/pauli/pauli_localizing_matrix.cpp
+        scenarios/pauli/pauli_localizing_matrix_indices.cpp
         scenarios/pauli/pauli_moment_matrix.cpp
         scenarios/pauli/pauli_moment_matrix_indices.cpp
-        scenarios/pauli/pauli_localizing_matrix_indices.cpp
         scenarios/pauli/pauli_osg.cpp
+        scenarios/pauli/pauli_polynomial_lm_indices.cpp
+        scenarios/pauli/pauli_polynomial_localizing_matrix.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp

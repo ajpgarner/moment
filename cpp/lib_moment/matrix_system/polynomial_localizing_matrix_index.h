@@ -8,6 +8,7 @@
 #pragma once
 
 #include "localizing_matrix_index.h"
+#include "symbolic/symbol_table.h"
 #include "symbolic/polynomial.h"
 
 #include <cassert>
@@ -16,26 +17,37 @@
 namespace Moment {
     class SymbolTable;
 
-    struct PolynomialLMIndex {
+    template<typename base_index_t = size_t,
+            typename element_index_t = LocalizingMatrixIndex>
+    struct PolynomialLMIndexBase {
     public:
-        size_t Level;
+        using BaseIndex = base_index_t;
+
+        BaseIndex Level;
         class Polynomial Polynomial;
 
     public:
         class MonomialLMIterator {
         public:
             using internal_iter_t = decltype(Polynomial.begin());
-            using value_type = LocalizingMatrixIndex;
+            using value_type = std::pair<element_index_t, std::complex<double>>;
 
         private:
             const SymbolTable* symbolPtr;
             internal_iter_t iter;
-            size_t level;
+            BaseIndex level;
         public:
-            explicit MonomialLMIterator(const SymbolTable& symbols, size_t level,  internal_iter_t iter) noexcept
+            explicit MonomialLMIterator(const SymbolTable& symbols, BaseIndex level, internal_iter_t iter) noexcept
                 : symbolPtr{&symbols}, iter{iter}, level{level} { }
 
-            [[nodiscard]] std::pair<LocalizingMatrixIndex, std::complex<double>> operator*() const noexcept;
+            [[nodiscard]] value_type operator*() const noexcept {
+                assert(symbolPtr);
+                const auto& monomial = *this->iter;
+                assert(monomial.id >= 0 && monomial.id < symbolPtr->size());
+                const auto& symbolInfo = (*this->symbolPtr)[monomial.id];
+                const auto& opSeqRef = monomial.conjugated ? symbolInfo.sequence_conj() : symbolInfo.sequence();
+                return {element_index_t(this->level, opSeqRef), monomial.factor};
+            }
 
             [[nodiscard]] std::complex<double> factor() const noexcept {
                 return iter->factor;
@@ -60,14 +72,14 @@ namespace Moment {
         class MLMRange {
         private:
             const SymbolTable& symbols;
-            size_t level;
+            BaseIndex level;
             const class Polynomial& polynomial;
 
         public:
-            MLMRange(const SymbolTable& symbols, size_t level, const class Polynomial& poly) noexcept
+            MLMRange(const SymbolTable& symbols, BaseIndex level, const class Polynomial& poly) noexcept
                         : symbols{symbols}, level{level}, polynomial{poly} { }
 
-            MLMRange(const SymbolTable& symbols, size_t level, class Polynomial&& poly) = delete;
+            MLMRange(const SymbolTable& symbols, BaseIndex level, class Polynomial&& poly) = delete;
 
             [[nodiscard]] inline auto begin() const noexcept {
                 return MonomialLMIterator{this->symbols, this->level, this->polynomial.begin()};
@@ -81,8 +93,7 @@ namespace Moment {
         [[nodiscard]] MLMRange MonomialIndices(const SymbolTable& symbols) const noexcept {
             return MLMRange{symbols, this->Level, this->Polynomial};
         }
-
-
-
     };
+
+    using PolynomialLMIndex = PolynomialLMIndexBase<size_t, LocalizingMatrixIndex>;
 }

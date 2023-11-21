@@ -103,9 +103,6 @@ namespace Moment::mex::functions  {
 
         [[nodiscard]] PolynomialLMIndex to_polynomial_index(const PolynomialFactory& factory) const;
 
-        [[nodiscard]] PolynomialLMIndex to_polynomial_index(const PolynomialFactory& factory,
-                                                            const Context& context);
-
     protected:
         void extra_parse_params() final;
 

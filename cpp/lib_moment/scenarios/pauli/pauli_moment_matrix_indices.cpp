@@ -32,7 +32,7 @@ namespace Moment::Pauli {
 
     std::string PauliMomentMatrixFactory::not_found_msg(const PauliMomentMatrixFactory::Index &index) const {
         std::stringstream errSS;
-        errSS << "Could not find moment matrix for moment matrix level " << index.moment_matrix_level;
+        errSS << "Could not find moment matrix for level " << index.moment_matrix_level;
         if (index.neighbours > 0 ) {
             errSS << ", restricted to " << index.neighbours
                   << " nearest neighbour" << ((index.neighbours != 1) ? "s" : "");

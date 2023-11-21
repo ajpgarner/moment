@@ -29,11 +29,6 @@ namespace Moment {
         PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols, const PolynomialFactory& factory,
                                    PolynomialLMIndex index, Constituents&& constituents);
 
-
-        /** Constructor for empty polynomial localizing matrix */
-        PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols, const PolynomialFactory& factory,
-                                   size_t level, size_t dimension);
-
     };
 
 }

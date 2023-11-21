@@ -27,7 +27,7 @@ namespace Moment::Pauli {
     PauliLocalizingMatrix::PauliLocalizingMatrix(const PauliContext& context,
                                                  const PauliLocalizingMatrixIndex& plmi,
                                                  std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-            : LocalizingMatrix{context, plmi.lmi(), std::move(op_seq_mat)},
+            : LocalizingMatrix{context, static_cast<LocalizingMatrixIndex>(plmi), std::move(op_seq_mat)},
               pauliContext{context}, PauliIndex{plmi} {
 
     }
