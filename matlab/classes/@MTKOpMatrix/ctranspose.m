@@ -4,6 +4,7 @@ function val = ctranspose(obj)
     % Hermitian object does not change.
     if obj.IsHermitian
         val = obj;
+        return
     end
     
     % Degrade to mono/poly and call
