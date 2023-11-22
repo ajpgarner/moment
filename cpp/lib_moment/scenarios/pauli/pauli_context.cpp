@@ -381,6 +381,10 @@ namespace Moment::Pauli {
         ss << "Pauli context over "
            << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"))
            << " (" << this->operator_count << " operators)";
+        if (this->is_lattice()) {
+            ss << " in " << this->row_width << " x " << this->col_width << " lattice";
+        }
+
         if (this->wrap) {
             ss << " with wrapping";
         }

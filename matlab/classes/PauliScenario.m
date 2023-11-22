@@ -9,6 +9,12 @@ classdef PauliScenario < MTKScenario
         QubitCount
         % True, if system should wrap / tile
         Wrapped
+        % True, if the system is a lattice
+        IsLattice;
+        % Number of columns in lattice, or just number of qubits in chain.
+        NumberOfColumns;
+        % Number of rows in lattice, or just 1 if a chain.
+        NumberOfRows;
     end
     
     %% Construction and initialization
@@ -32,19 +38,47 @@ classdef PauliScenario < MTKScenario
             
             % Extract arguments of interest
             [pauli_options, other_options] = ...
-                MTKUtil.split_varargin_keys(["wrap"], varargin);  
+                MTKUtil.split_varargin_keys( ...
+                    ["wrap", "lattice", "columns"], varargin);
             other_options = MTKUtil.check_varargin_keys(["tolerance"],...
                                                         other_options);
             other_options = [other_options, {"hermitian"}, true];
             
             % Check specific Pauli scenario arguments
             wrap = false;
+            set_lattice = false;
+            lattice = false;
+            columns = 0;
             for idx = 1:2:numel(pauli_options)
                 switch pauli_options{idx}
                     case 'wrap'
                        wrap = logical(pauli_options{idx+1});
+                    case 'lattice'
+                       set_lattice = true;
+                       lattice = logical(pauli_options{idx+1});
+                    case 'columns'
+                       columns = uint64(pauli_options{idx+1});
                 end
             end
+            
+            % Check for inconsistencies with lattice specification
+            if lattice
+                if columns == 0
+                    columns = uint64(sqrt(double(qubits)));
+                    assert(columns * columns == qubits, ...
+                        "If lattice mode is set and no column number is provided," ...
+                       + " number of qubits should be a square number.");
+                    
+                end
+            elseif columns > 1
+                if (set_lattice && ~lattice)
+                    assert(columns~=0, ...
+                        "If lattice is false, no column parameter should be set.");
+                end
+                lattice = true;
+            end            
+            assert(~lattice || (mod(qubits, columns) == 0), ...
+                "Number of qubits should be divisible by number of columns");
 
             % Call Superclass c'tor
             obj = obj@MTKScenario(other_options{:});
@@ -52,6 +86,14 @@ classdef PauliScenario < MTKScenario
             % Save number of qubits
             obj.QubitCount = qubits;
             obj.Wrapped = wrap;
+            obj.IsLattice = lattice;
+            if obj.IsLattice
+                obj.NumberOfColumns = columns;
+                obj.NumberOfRows = uint64(obj.QubitCount / columns);
+            else
+                obj.NumberOfColumns = obj.QubitCount;
+                obj.NumberOfRows = 1;
+            end
             
         end
     end
@@ -183,6 +225,10 @@ classdef PauliScenario < MTKScenario
             end
             if obj.Wrapped
                 named_args{end+1} = 'wrap';
+            end
+            if obj.IsLattice
+                named_args{end+1} = 'columns';
+                named_args{end+1} = obj.NumberOfColumns;
             end
             % Call for matrix system
             ref_id = mtk('pauli_matrix_system', ...

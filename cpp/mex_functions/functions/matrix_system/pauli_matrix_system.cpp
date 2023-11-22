@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
         std::unique_ptr<Pauli::PauliContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                 const PauliMatrixSystemParams &input) {
             return std::make_unique<Pauli::PauliContext>(
-                    static_cast<oper_name_t>(input.qubit_count), input.wrap
+                    static_cast<oper_name_t>(input.qubit_count), input.wrap, input.row_width
             );
         }
     }
@@ -46,8 +46,31 @@ namespace Moment::mex::functions {
             this->wrap = true;
         }
 
-        // TODO: Lattice specification
-
+        // What about lattice?
+        auto col_iter = this->params.find(u"columns");
+        const bool has_columns_value = col_iter != this->params.cend();
+        if (this->flags.contains(u"lattice") || has_columns_value) {
+            if (has_columns_value) {
+                this->row_width = read_positive_integer(matlabEngine, "Parameter 'columns'", col_iter->second, 1);
+                auto remainder = this->qubit_count % this->row_width;
+                if (remainder != 0) {
+                    throw_error(matlabEngine, errors::bad_param,
+                                "If the 'columns' parameter is set,"
+                                " then it must be a factor of the number of qubits.");
+                }
+            } else {
+                double sqrt_qubits = std::sqrt(static_cast<double>(this->qubit_count));
+                auto rounded_qubits = static_cast<size_t>(sqrt_qubits);
+                if ((rounded_qubits * rounded_qubits) != this->qubit_count) {
+                    throw_error(matlabEngine, errors::bad_param,
+                                "If 'lattice' flag is set, but column size is not provided,"
+                                " then the number of qubits should be a square number.");
+                }
+                this->row_width = rounded_qubits;
+            }
+        } else {
+            this->row_width = 0;
+        }
     }
 
     PauliMatrixSystem::PauliMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
