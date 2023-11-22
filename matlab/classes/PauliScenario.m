@@ -75,8 +75,63 @@ classdef PauliScenario < MTKScenario
         end
     end
     
-    %% Overloaded operator matrices
+    %% Overloaded operator matrices and dictionaries
     methods
+        function val = WordList(obj, length, nn, wrap, register)
+            default_wl = false;
+            if nargin < 2 || ~isnumeric(length) || length < 0
+                error("Must specify a positive integer length.");
+            else
+                length = uint64(length);
+            end
+
+            % Special 'overload' if nn is true or false, or not specified
+            if nargin < 3
+                register = false;
+                default_wl = true;
+            elseif islogical(nn)
+                register = nn;
+                default_wl = true;
+            end
+            
+            if default_wl
+                val = WordList@MTKScenario(obj, length, register);
+                return;                
+            end
+            
+            if nargin < 4
+                wrap = false;
+            else
+                assert(numel(wrap) == 1 && islogical(wrap), ...
+                   "Wrap flag must be logical scalar (true or false).");
+            end
+            
+            if nargin < 5
+                register = false;
+            else
+                assert(numel(register) == 1 && islogical(register), ...
+                    "Register flag must be logical scalar (true or false).");
+                register = logical(register);
+            end
+            
+            if register
+                [ops, coefs, hashes, symbols, conj, real, im] = ...
+                    mtk('word_list', 'register_symbols', 'monomial', ...
+                    obj.System.RefId, length, ...
+                    'neighbours', nn, 'wrap', wrap);
+                
+                obj.System.UpdateSymbolTable();
+                
+                val = MTKMonomial.InitAllInfo(obj, ops, coefs, hashes, ...
+                    symbols, conj, real, im);
+            else
+                [ops, coefs, hashes] = mtk('word_list', 'monomial',...
+                    obj.System.RefId, length, ...
+                    'neighbours', nn, 'wrap', wrap);
+                val = MTKMonomial.InitDirect(obj, ops, coefs, hashes);
+            end
+        end
+            
         function val = MomentMatrix(obj, level, neighbours, wrap)
         % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
         %   PARAMS:
@@ -97,7 +152,7 @@ classdef PauliScenario < MTKScenario
             val = Pauli.NNMomentMatrix(obj, level, neighbours, wrap);            
         end
         
-      function val = LocalizingMatrix(obj, level, expr, neighbours, wrap)
+      function val = LocalizingMatrix(obj, expr, level, neighbours, wrap)
         % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
         %   PARAMS:
         %       level - NPA Hierarchy level
@@ -117,7 +172,7 @@ classdef PauliScenario < MTKScenario
             end
             
             val = Pauli.NNLocalizingMatrix(obj, level, expr, ...
-                                           neighbours, wrap);            
+                                           neighbours, wrap);
         end
     end
            

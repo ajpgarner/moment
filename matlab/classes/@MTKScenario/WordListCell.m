@@ -14,6 +14,10 @@ function output = WordListCell(obj, length, register)
 	
 	if nargin < 3
 		register = false;
+    else
+        assert(numel(register) == 1 && islogical(register), ...
+               "Register flag must be logical scalar (true or false).");
+        register = logical(register);    
 	end
 	
 

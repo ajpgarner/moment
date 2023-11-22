@@ -19,6 +19,11 @@ namespace Moment::mex::functions  {
 
         size_t word_length = 0;
 
+        struct extra_data_t {
+            size_t nearest_neighbours = 0;
+            bool wrap = false;
+        } extra_data;
+
         enum class OutputType {
             OperatorCell,
             Monomial,

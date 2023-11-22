@@ -8,11 +8,13 @@
 #include "word_list.h"
 
 #include "scenarios/context.h"
+#include "scenarios/pauli/pauli_dictionary.h"
 #include "dictionary/dictionary.h"
 
 #include "storage_manager.h"
 
 #include "export/export_osg.h"
+
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
@@ -27,6 +29,18 @@ namespace Moment::mex::functions {
 
         this->word_length = read_positive_integer<uint64_t>(matlabEngine, "Word length",
                                                             this->inputs[1], 0);
+
+        // Optional parameters for nearest-neighbour mode
+        this->find_and_parse(u"neighbours", [this](const matlab::data::Array& param) {
+            this->extra_data.nearest_neighbours
+                = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'neighbours'", param, 0);
+        });
+        this->find_and_parse(u"wrap", [this](const matlab::data::Array& param) {
+            this->extra_data.wrap
+                = read_as_boolean(matlabEngine, param);
+        });
+
+
 
         if (this->flags.contains(u"register_symbols")) {
             this->register_symbols = true;
@@ -50,15 +64,36 @@ namespace Moment::mex::functions {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->flag_names.insert(u"register_symbols");
-
         this->flag_names.insert(u"operators");
         this->flag_names.insert(u"monomial");
+
+        this->param_names.emplace(u"neighbours");
+        this->param_names.emplace(u"wrap");
+
         this->mutex_params.add_mutex(u"operators", u"monomial");
     }
 
     void WordList::extra_input_checks(WordListParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
             throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
+        }
+    }
+
+    namespace {
+        const OperatorSequenceGenerator& query_for_osg(matlab::engine::MATLABEngine& engine,
+                                                       const Dictionary& dictionary, const WordListParams& params) {
+            if (params.extra_data.nearest_neighbours != 0) {
+                const auto* pauli_dict_ptr = dynamic_cast<const Pauli::PauliDictionary*>(&dictionary);
+                if (nullptr == pauli_dict_ptr) {
+                    throw_error(engine, errors::bad_param, "Only Pauli scenarios support nearest neighbours.");
+                }
+
+                Pauli::NearestNeighbourIndex nni{params.word_length, params.extra_data.nearest_neighbours,
+                                                 params.extra_data.wrap};
+                return pauli_dict_ptr->NearestNeighbour(nni)();
+            }
+
+            return dictionary.Level(params.word_length)();
         }
     }
 
@@ -107,7 +142,7 @@ namespace Moment::mex::functions {
         const auto& dictionary = matrixSystemPtr->Context().dictionary();
 
         // Get (or make) unique word list.
-        const auto &osg = dictionary.Level(input.word_length)();
+        const auto &osg = query_for_osg(this->matlabEngine, dictionary, input);
 
         // Output list of words
         OSGExporter exporter(this->matlabEngine, symbols);
