@@ -146,7 +146,7 @@
 % MULTIPLY Combine two monomial arrays
     len_lhs = numel(lhs);
     len_rhs = numel(rhs);
-    if len_lhs == 0 || len_rhs ==0
+    if len_lhs == 0 || len_rhs == 0
         val = MTKMonomial.empty(0, 1);
         return;
     end
@@ -163,7 +163,7 @@
         end                
     elseif numel(rhs) == 1
         opers = cellfun(@(x) [x, rhs.Operators], ...
-                        rhs.Operators, ...
+                        lhs.Operators, ...
                         'UniformOutput', false);
         coefs = lhs.Coefficient .* rhs.Coefficient;
     else
