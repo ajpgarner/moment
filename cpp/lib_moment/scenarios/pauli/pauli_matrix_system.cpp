@@ -24,14 +24,15 @@ namespace Moment::Pauli {
         this->PauliPolynomialLocalizingMatrices.indices.set_factory(this->polynomial_factory());
     }
 
-    PauliMatrixSystem::PauliMatrixSystem(const oper_name_t qubit_count, const double tolerance)
-        : PauliMatrixSystem{std::make_unique<PauliContext>(qubit_count), tolerance} { }
+    PauliMatrixSystem::PauliMatrixSystem(const oper_name_t qubit_count, const oper_name_t lattice_row,
+                                         const double tolerance)
+        : PauliMatrixSystem{std::make_unique<PauliContext>(qubit_count, lattice_row), tolerance} { }
 
     std::unique_ptr<SymbolicMatrix>
     PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
                                             Multithreading::MultiThreadPolicy mt_policy) {
         // Upcast index and call
-        return this->create_nearest_neighbour_moment_matrix(lock, NearestNeighbourIndex{level, 0, false}, mt_policy);
+        return this->create_nearest_neighbour_moment_matrix(lock, NearestNeighbourIndex{level, 0}, mt_policy);
     }
 
     std::unique_ptr<MonomialMatrix>
@@ -123,7 +124,7 @@ namespace Moment::Pauli {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add index with NN info
-        PauliMomentMatrixIndex pmmi{moment_matrix_level, 0, false};
+        PauliMomentMatrixIndex pmmi{moment_matrix_level, 0};
         assert(!this->PauliMomentMatrices.contains(pmmi));
         [[maybe_unused]] auto actual_offset =
                 this->PauliMomentMatrices.insert_alias(write_lock, pmmi, matrix_offset);

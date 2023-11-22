@@ -47,9 +47,10 @@ namespace Moment::Pauli {
         /**
          * Construct a system of matrices with shared operators representing Pauli matrices.
          * @param qubit_count The number of qubits.
+         * @param lattice_row The number of qubits in one row, if a lattice; set to 0 to create a 1D chain.
          * @param tolerance Floating point equivalence factor.
          */
-        explicit PauliMatrixSystem(oper_name_t qubit_count, double tolerance = 1.0);
+        explicit PauliMatrixSystem(oper_name_t qubit_count, oper_name_t lattice_row = 0, double tolerance = 1.0);
 
 
     protected:

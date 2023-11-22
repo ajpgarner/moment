@@ -115,7 +115,7 @@ classdef (Abstract) MTKScenario < handle
         end
     end
     
-    %% Help class
+    %% Helper functions
     methods(Static, Access = protected)
         function val = ctorArgNames()
         % CTORARGNAMES List of named parameters for the constructor.

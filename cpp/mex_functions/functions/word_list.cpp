@@ -35,10 +35,6 @@ namespace Moment::mex::functions {
             this->extra_data.nearest_neighbours
                 = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'neighbours'", param, 0);
         });
-        this->find_and_parse(u"wrap", [this](const matlab::data::Array& param) {
-            this->extra_data.wrap
-                = read_as_boolean(matlabEngine, param);
-        });
 
 
 
@@ -68,7 +64,6 @@ namespace Moment::mex::functions {
         this->flag_names.insert(u"monomial");
 
         this->param_names.emplace(u"neighbours");
-        this->param_names.emplace(u"wrap");
 
         this->mutex_params.add_mutex(u"operators", u"monomial");
     }
@@ -88,8 +83,7 @@ namespace Moment::mex::functions {
                     throw_error(engine, errors::bad_param, "Only Pauli scenarios support nearest neighbours.");
                 }
 
-                Pauli::NearestNeighbourIndex nni{params.word_length, params.extra_data.nearest_neighbours,
-                                                 params.extra_data.wrap};
+                Pauli::NearestNeighbourIndex nni{params.word_length, params.extra_data.nearest_neighbours};
                 return pauli_dict_ptr->NearestNeighbour(nni)();
             }
 

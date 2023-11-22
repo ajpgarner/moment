@@ -50,9 +50,6 @@ namespace Moment::Pauli {
             if (nn_info.neighbours != 1) {
                 ss << "s";
             }
-            if (nn_info.wrapped) {
-                ss << " (wrapped)";
-            }
         }
         ss << ", Word " << this->PauliIndex.Word;
         return ss.str();

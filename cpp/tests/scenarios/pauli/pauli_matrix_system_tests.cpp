@@ -145,7 +145,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_MatrixSystem, FiveQubitSymbolTable) {
         // Test replicating weird bug found by Mateus whereby anti-Hermitian symbols are erroneously generated.
 
-        PauliMatrixSystem system{5};
+        PauliMatrixSystem system{5, false};
         const auto& context = system.pauliContext;
         const auto& symbols = system.Symbols();
 
@@ -162,10 +162,10 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourMM) {
-        PauliMatrixSystem system{3};
+        PauliMatrixSystem system{3, false};
         const auto& context = system.pauliContext;
 
-        const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
+        const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
         ASSERT_EQ(pMM.Dimension(), 28);
         ASSERT_TRUE(pMM.is_monomial());
         ASSERT_TRUE(pMM.has_operator_matrix());
@@ -177,18 +177,18 @@ namespace Moment::Tests {
         EXPECT_EQ(asMM.Level(), 2);
         EXPECT_EQ(asMM.NNIndex.moment_matrix_level, 2);
         EXPECT_EQ(asMM.NNIndex.neighbours, 1);
-        EXPECT_EQ(asMM.NNIndex.wrapped, false);
 
-        const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1, false});
+        const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
         EXPECT_EQ(&pMM, &pMM_alias);
 
     }
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourLM) {
-        PauliMatrixSystem system{3};
+        PauliMatrixSystem system{3, false};
         const auto& context = system.pauliContext;
+        EXPECT_FALSE(context.wrap);
 
         const auto x1 = context.sigmaX(0);
-        const PauliLocalizingMatrixIndex plmi{2, 1, false, x1};
+        const PauliLocalizingMatrixIndex plmi{2, 1, x1};
 
         const auto& pLM_x = system.PauliLocalizingMatrices(plmi);
         ASSERT_EQ(pLM_x.Dimension(), 28);
@@ -201,7 +201,6 @@ namespace Moment::Tests {
         EXPECT_EQ(asLM.Level(), 2);
         EXPECT_EQ(asLM.PauliIndex.Index.moment_matrix_level, 2);
         EXPECT_EQ(asLM.PauliIndex.Index.neighbours, 1);
-        EXPECT_EQ(asLM.PauliIndex.Index.wrapped, false);
         EXPECT_EQ(asLM.Word(), x1);
 
         const auto& pLM_x_alias = system.PauliLocalizingMatrices(plmi);

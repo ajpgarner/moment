@@ -16,6 +16,12 @@ namespace Moment::mex::functions {
         /** The number of qubit sites. */
         size_t qubit_count = 0;
 
+        /** The row size, if a 2D lattice; 0 for a chain */
+        size_t row_width = 0;
+
+        /** True to wrap or tile the qubits for the purpose of identifying neighbours */
+        bool wrap = false;
+
         /** The 'precision' limit, such that if a value is less than eps * [this value] it is treated as zero. */
         double zero_tolerance = 1.0;
 

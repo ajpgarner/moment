@@ -21,7 +21,6 @@ namespace Moment::mex::functions  {
 
         struct extra_data_t {
             size_t nearest_neighbours = 0;
-            bool wrap = false;
         } extra_data;
 
         enum class OutputType {

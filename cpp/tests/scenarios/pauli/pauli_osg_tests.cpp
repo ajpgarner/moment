@@ -25,9 +25,9 @@ namespace Moment::Tests {
 
         }
 
-        void check_and_advance(const OperatorSequence& reference) {
-            ASSERT_NE(iter, iter_end);
-            EXPECT_EQ(*iter, reference);
+        void check_and_advance(const OperatorSequence& reference, const std::string& ctx = "") {
+            ASSERT_NE(iter, iter_end) << ctx << "Reference sequence: " << reference;
+            EXPECT_EQ(*iter, reference) << ctx;
             ++iter;
         }
 
@@ -39,16 +39,19 @@ namespace Moment::Tests {
         }
 
         void test_pauli_pairs(const size_t party_A, const size_t party_B) {
+            std::string added_context = std::string("Qubit ") + std::to_string(party_A)
+                                        + " with " + std::to_string(party_B) + "\n";
+
             const auto& pauli_context = dynamic_cast<const Pauli::PauliContext&>(context);
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaX(party_B));
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaY(party_B));
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaZ(party_B));
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaX(party_B));
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaY(party_B));
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaZ(party_B));
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaX(party_B));
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaY(party_B));
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaZ(party_B));
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaX(party_B), added_context);
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaY(party_B), added_context);
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaZ(party_B), added_context);
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaX(party_B), added_context);
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaY(party_B), added_context);
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaZ(party_B), added_context);
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaX(party_B), added_context);
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaY(party_B), added_context);
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaZ(party_B), added_context);
         }
 
         void expected_finished() {
@@ -134,13 +137,13 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, ThreeQubits_NearestNeighbours) {
-        PauliContext context{3};
+        PauliContext context{3, false};
         ASSERT_EQ(context.size(), 9);
+        ASSERT_FALSE(context.wrap);
 
-        PauliSequenceGenerator psg{context, 2, 1, false};
+        PauliSequenceGenerator psg{context, 2, 1};
         
         EXPECT_TRUE(psg.limited());
-        EXPECT_FALSE(psg.nearest_neighbour_index.wrapped);
         EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
         EXPECT_EQ(psg.size(), 28); // L0: 1, L1: 9; L2: 18
 
@@ -159,12 +162,12 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, ThreeQubits_NearestNeighboursWrapped) {
-        PauliContext context{3};
+        PauliContext context{3, true};
         ASSERT_EQ(context.size(), 9);
+        ASSERT_TRUE(context.wrap);
 
-        PauliSequenceGenerator psg{context, 2, 1, true};
+        PauliSequenceGenerator psg{context, 2, 1};
         EXPECT_TRUE(psg.limited());
-        EXPECT_TRUE(psg.nearest_neighbour_index.wrapped);
         EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
         EXPECT_EQ(psg.size(), 37); // L0: 1, L1: 9; L2: 27
 
@@ -184,12 +187,12 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, FiveQubits_NextNearestNeighbours) {
-        PauliContext context{5};
+        PauliContext context{5, false};
         ASSERT_EQ(context.size(), 15);
+        EXPECT_FALSE(context.wrap);
 
-        PauliSequenceGenerator psg{context, 2, 2, false};
+        PauliSequenceGenerator psg{context, 2, 2};
         EXPECT_TRUE(psg.limited());
-        EXPECT_FALSE(psg.nearest_neighbour_index.wrapped);
         EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 2);
         EXPECT_EQ(psg.size(), 79); // L0: 1, L1: 15; L2: 63
 
@@ -215,12 +218,13 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, FiveQubits_NextNearestNeighboursWrapped) {
-        PauliContext context{5};
+        PauliContext context{5, true};
         ASSERT_EQ(context.size(), 15);
+        EXPECT_TRUE(context.wrap);
 
-        PauliSequenceGenerator psg{context, 2, 2, true};
+        PauliSequenceGenerator psg{context, 2, 2};
         EXPECT_TRUE(psg.limited());
-        EXPECT_TRUE(psg.nearest_neighbour_index.wrapped);
+
         EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 2);
         EXPECT_EQ(psg.size(), 106); // L0: 1, L1: 15; L2: 90
 
@@ -246,5 +250,84 @@ namespace Moment::Tests {
         tester.test_pauli_pairs(4, 1);
 
         tester.expected_finished();
+    }
+
+    TEST(Scenarios_Pauli_OSG, NineQubits_LatticeUnwrapped) {
+        PauliContext context{9, false, 3};
+        ASSERT_EQ(context.size(), 27);
+        ASSERT_FALSE(context.wrap);
+        ASSERT_EQ(context.row_width, 3);
+        ASSERT_EQ(context.col_width, 3);
+        ASSERT_TRUE(context.is_lattice());
+
+        PauliSequenceGenerator psg{context, 2, 1};
+        EXPECT_TRUE(psg.limited());
+
+        EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
+        EXPECT_EQ(psg.size(), 136); // L0: 1, L1: 27; L2: 108
+
+        OSGTester tester{psg};
+
+        tester.check_and_advance(OperatorSequence(context));
+
+        for (size_t qubit = 0; qubit < 9; ++qubit) {
+            tester.test_pauli_single(qubit);
+        }
+
+        tester.test_pauli_pairs(0, 1);
+        tester.test_pauli_pairs(0, 3);
+        tester.test_pauli_pairs(1, 2);
+        tester.test_pauli_pairs(1, 4);
+        tester.test_pauli_pairs(2, 5);
+        tester.test_pauli_pairs(3, 4);
+        tester.test_pauli_pairs(3, 6);
+        tester.test_pauli_pairs(4, 5);
+        tester.test_pauli_pairs(4, 7);
+        tester.test_pauli_pairs(5, 8);
+        tester.test_pauli_pairs(6, 7);
+        tester.test_pauli_pairs(7, 8);
+    }
+
+    TEST(Scenarios_Pauli_OSG, NineQubits_LatticeWrapped) {
+        PauliContext context{9, true, 3};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_EQ(context.size(), 27);
+        ASSERT_EQ(context.row_width, 3);
+        ASSERT_EQ(context.col_width, 3);
+        ASSERT_TRUE(context.is_lattice());
+
+        PauliSequenceGenerator psg{context, 2, 1};
+        EXPECT_TRUE(psg.limited());
+        EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
+        EXPECT_EQ(psg.size(), 190); // L0: 1, L1: 27; L2: 162
+
+        OSGTester tester{psg};
+
+        tester.check_and_advance(OperatorSequence(context));
+
+        for (size_t qubit = 0; qubit < 9; ++qubit) {
+            tester.test_pauli_single(qubit);
+        }
+
+        tester.test_pauli_pairs(0, 1);
+        tester.test_pauli_pairs(0, 3);
+        tester.test_pauli_pairs(1, 2);
+        tester.test_pauli_pairs(1, 4);
+        tester.test_pauli_pairs(2, 0);
+        tester.test_pauli_pairs(2, 5);
+
+        tester.test_pauli_pairs(3, 4);
+        tester.test_pauli_pairs(3, 6);
+        tester.test_pauli_pairs(4, 5);
+        tester.test_pauli_pairs(4, 7);
+        tester.test_pauli_pairs(5, 3);
+        tester.test_pauli_pairs(5, 8);
+
+        tester.test_pauli_pairs(6, 7);
+        tester.test_pauli_pairs(6, 0);
+        tester.test_pauli_pairs(7, 8);
+        tester.test_pauli_pairs(7, 1);
+        tester.test_pauli_pairs(8, 6);
+        tester.test_pauli_pairs(8, 2);
     }
 }

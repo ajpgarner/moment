@@ -7,6 +7,8 @@ classdef PauliScenario < MTKScenario
     properties(GetAccess = public, SetAccess = private)
         % The number of qubits
         QubitCount
+        % True, if system should wrap / tile
+        Wrapped
     end
     
     %% Construction and initialization
@@ -28,19 +30,28 @@ classdef PauliScenario < MTKScenario
                 qubits = uint64(qubits);
             end
             
-            % Other options
-            if ~isempty(varargin)
-                options = MTKUtil.check_varargin_keys(["tolerance"], varargin);
-            else
-                options = cell(1,0);
+            % Extract arguments of interest
+            [pauli_options, other_options] = ...
+                MTKUtil.split_varargin_keys(["wrap"], varargin);  
+            other_options = MTKUtil.check_varargin_keys(["tolerance"],...
+                                                        other_options);
+            other_options = [other_options, {"hermitian"}, true];
+            
+            % Check specific Pauli scenario arguments
+            wrap = false;
+            for idx = 1:2:numel(pauli_options)
+                switch pauli_options{idx}
+                    case 'wrap'
+                       wrap = logical(pauli_options{idx+1});
+                end
             end
-            options = [options, {"hermitian"}, true];
 
             % Call Superclass c'tor
-            obj = obj@MTKScenario(options{:});
+            obj = obj@MTKScenario(other_options{:});
             
             % Save number of qubits
             obj.QubitCount = qubits;
+            obj.Wrapped = wrap;
             
         end
     end
@@ -77,7 +88,7 @@ classdef PauliScenario < MTKScenario
     
     %% Overloaded operator matrices and dictionaries
     methods
-        function val = WordList(obj, length, nn, wrap, register)
+        function val = WordList(obj, length, nn, register)
             default_wl = false;
             if nargin < 2 || ~isnumeric(length) || length < 0
                 error("Must specify a positive integer length.");
@@ -98,15 +109,8 @@ classdef PauliScenario < MTKScenario
                 val = WordList@MTKScenario(obj, length, register);
                 return;                
             end
-            
+             
             if nargin < 4
-                wrap = false;
-            else
-                assert(numel(wrap) == 1 && islogical(wrap), ...
-                   "Wrap flag must be logical scalar (true or false).");
-            end
-            
-            if nargin < 5
                 register = false;
             else
                 assert(numel(register) == 1 && islogical(register), ...
@@ -118,7 +122,7 @@ classdef PauliScenario < MTKScenario
                 [ops, coefs, hashes, symbols, conj, real, im] = ...
                     mtk('word_list', 'register_symbols', 'monomial', ...
                     obj.System.RefId, length, ...
-                    'neighbours', nn, 'wrap', wrap);
+                    'neighbours', nn);
                 
                 obj.System.UpdateSymbolTable();
                 
@@ -127,39 +131,34 @@ classdef PauliScenario < MTKScenario
             else
                 [ops, coefs, hashes] = mtk('word_list', 'monomial',...
                     obj.System.RefId, length, ...
-                    'neighbours', nn, 'wrap', wrap);
+                    'neighbours', nn);
                 val = MTKMonomial.InitDirect(obj, ops, coefs, hashes);
             end
         end
             
-        function val = MomentMatrix(obj, level, neighbours, wrap)
+        function val = MomentMatrix(obj, level, neighbours)
         % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
         %   PARAMS:
         %       level - NPA Hierarchy level
         %       neighbours - If positive, restrict moments to this number 
-        %                    of nearest neighbours in top row of matrix.
-        %       wrap - Set to true to treat qubit N and 1 as neighbouring.       
+        %                    of nearest neighbours in top row of matrix.     
         
             % Defaults:
             assert(nargin>=2, "Moment matrix level must be specified.");            
             if nargin < 3
                 neighbours = 0;
             end
-            if nargin < 4
-                wrap = false;
-            end
             
-            val = Pauli.NNMomentMatrix(obj, level, neighbours, wrap);            
+            val = Pauli.NNMomentMatrix(obj, level, neighbours);            
         end
         
-      function val = LocalizingMatrix(obj, expr, level, neighbours, wrap)
+      function val = LocalizingMatrix(obj, expr, level, neighbours)
         % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
         %   PARAMS:
         %       level - NPA Hierarchy level
         %       expr - The localizing expression
         %       neighbours - If positive, restrict moments to this number 
         %                    of nearest neighbours in top row of matrix.
-        %       wrap - Set to true to treat qubit N and 1 as neighbouring.       
         
             % Defaults:
             assert(nargin>=2, "Moment matrix level must be specified.");
@@ -167,12 +166,8 @@ classdef PauliScenario < MTKScenario
             if nargin < 4
                 neighbours = 0;
             end
-            if nargin < 5
-                wrap = false;
-            end
             
-            val = Pauli.NNLocalizingMatrix(obj, level, expr, ...
-                                           neighbours, wrap);
+            val = Pauli.NNLocalizingMatrix(obj, level, expr, neighbours);
         end
     end
            
@@ -186,7 +181,9 @@ classdef PauliScenario < MTKScenario
                 named_args{end+1} = 'tolerance';
                 named_args{end+1} = double(obj.ZeroTolerance);
             end
-            
+            if obj.Wrapped
+                named_args{end+1} = 'wrap';
+            end
             % Call for matrix system
             ref_id = mtk('pauli_matrix_system', ...
                 obj.QubitCount, named_args{:});            

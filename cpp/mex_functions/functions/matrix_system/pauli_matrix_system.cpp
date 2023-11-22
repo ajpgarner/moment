@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
         std::unique_ptr<Pauli::PauliContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                 const PauliMatrixSystemParams &input) {
             return std::make_unique<Pauli::PauliContext>(
-                    static_cast<oper_name_t>(input.qubit_count)
+                    static_cast<oper_name_t>(input.qubit_count), input.wrap
             );
         }
     }
@@ -34,13 +34,20 @@ namespace Moment::mex::functions {
         this->qubit_count = read_positive_integer<size_t>(matlabEngine, "Qubit count", this->inputs[0], 0);
 
         // Optional parameters
-        auto tolerance_param_iter = this->params.find(u"tolerance");
-        if (tolerance_param_iter != this->params.cend()) {
-            this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
+        this->find_and_parse(u"tolerance", [this](matlab::data::Array& tol_param) {
+            this->zero_tolerance = read_as_double(this->matlabEngine, tol_param);
             if (this->zero_tolerance < 0) {
                 throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
             }
+        });
+
+        // Do we wrap?
+        if (this->flags.contains(u"wrap")) {
+            this->wrap = true;
         }
+
+        // TODO: Lattice specification
+
     }
 
     PauliMatrixSystem::PauliMatrixSystem(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
@@ -48,6 +55,10 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
+        this->flag_names.emplace(u"lattice");
+        this->flag_names.emplace(u"wrap");
+
+        this->param_names.emplace(u"columns");
         this->param_names.emplace(u"tolerance");
 
         this->min_inputs = 1;

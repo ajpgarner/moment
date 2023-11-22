@@ -37,7 +37,6 @@ namespace Moment::mex::functions  {
         /** Extra information about OSG */
         struct extra_data_t {
             size_t nearest_neighbours = 0;
-            bool wrap = false;
         } extra_data;
 
     protected:

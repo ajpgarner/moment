@@ -164,7 +164,7 @@ namespace Moment::mex::functions {
             auto lmi = params.to_monomial_index(context);
             // Inject NN and wrap info
             return Pauli::PauliLocalizingMatrixIndex{lmi.Level, params.extra_data.nearest_neighbours,
-                                                     params.extra_data.wrap, std::move(lmi.Word)};
+                                                     std::move(lmi.Word)};
 
         }
 
@@ -175,7 +175,7 @@ namespace Moment::mex::functions {
 
             // Inject NN and wrap info
             return Pauli::PauliPolynomialLMIndex{lmi.Level, params.extra_data.nearest_neighbours,
-                                                 params.extra_data.wrap, std::move(lmi.Polynomial)};
+                                                 std::move(lmi.Polynomial)};
 
         }
     }
@@ -212,13 +212,6 @@ namespace Moment::mex::functions {
             this->extra_data.nearest_neighbours =
                     read_positive_integer<size_t>(matlabEngine, "Parameter 'neighbours'", nn_param, 0);
         });
-        // Get wrap status, if any
-        if (this->extra_data.nearest_neighbours > 0) {
-            this->find_and_parse(u"wrap", [this](const matlab::data::Array& wrap_param) {
-                this->extra_data.wrap =
-                        read_as_boolean(matlabEngine, wrap_param);
-            });
-        }
     }
 
 
@@ -229,7 +222,6 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"word");
         this->param_names.emplace(u"neighbours");
-        this->param_names.emplace(u"wrap");
 
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"operators");

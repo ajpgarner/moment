@@ -2,13 +2,15 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
     NNMomentMatrix < MTKMomentMatrix
 %NNMOMENTMATRIX Nearest neighbour moment matrix.
     
+%% Properties
     properties(GetAccess=public,SetAccess=private)
-        Neighbours
-        Wrap        
+        Neighbours 
     end
     
+    
+%% Constructor    
     methods
-        function obj = NNMomentMatrix(scenario, level, nn, wrap)
+        function obj = NNMomentMatrix(scenario, level, nn)
             
             % Input validation
             assert(nargin>=1 && isa(scenario, 'PauliScenario'), ...
@@ -22,21 +24,15 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 assert(isnumeric(nn) && isscalar(nn))
                 nn = uint64(nn);
             end
-            if nargin < 4
-                wrap = false;
-            else
-                assert(isscalar(wrap));
-                wrap = logical(wrap);
-            end
+
             
             % Create (or find) matrix from Moment            
             [mm_index, mm_dim] = mtk('moment_matrix', ...
                     scenario.System.RefId, level, ...
-                    'neighbours', nn, 'wrap', wrap);
+                    'neighbours', nn);
             
             obj = obj@MTKMomentMatrix(scenario, level, mm_index, mm_dim);
-            obj.Neighbours = nn;
-            obj.Wrap = wrap;            
+            obj.Neighbours = nn;      
         end       
     end
 end

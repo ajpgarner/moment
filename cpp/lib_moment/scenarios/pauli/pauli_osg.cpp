@@ -13,6 +13,8 @@
 
 namespace Moment::Pauli {
     namespace {
+
+
         /** Adds all 'sequences' consisting of just a single operator. */
         size_t add_length_one_sequences(std::vector<OperatorSequence>& output, const PauliContext& context) {
             // Add length-1 operators directly
@@ -26,7 +28,68 @@ namespace Moment::Pauli {
             return context.size();
         }
 
-        /** Calculates nearest neighbour sequences, without wrapping */
+        /** Adds all 'sequences' between a pair of qubits */
+        size_t add_correlators_for_pair(std::vector<OperatorSequence>& output, const PauliContext& context,
+                                        oper_name_t qubitA, oper_name_t qubitB) {
+            // Add length-1 operators directly
+            const oper_name_t baseA = 3 * qubitA;
+            const oper_name_t baseB = 3 * qubitB;
+            for (oper_name_t sigmaA = 0; sigmaA < 3; ++sigmaA) {
+                for (oper_name_t sigmaB = 0; sigmaB < 3; ++sigmaB) {
+                    output.emplace_back(sequence_storage_t{static_cast<oper_name_t>(baseA + sigmaA),
+                                                           static_cast<oper_name_t>(baseB + sigmaB)}, context);
+                }
+            }
+            return 9;
+        }
+
+
+        /** Calculates all sequences in OSG */
+        [[nodiscard]] std::vector<OperatorSequence> compute_all_sequences(const PauliContext& context,
+                                                                          size_t word_length) {
+            // Cap word length at number of qubits
+            word_length = std::min(word_length, static_cast<size_t>(context.qubit_size));
+
+            // Create sequence vector, with ID element.
+            std::vector<OperatorSequence> sequences;
+            sequences.emplace_back(context);
+
+            // Early exit if no non-trivial sequences
+            if (word_length < 1) {
+                return sequences;
+            }
+
+            // Add 1-operator sequences first (using fast algorithm)
+            add_length_one_sequences(sequences, context);
+
+            // Then iterate through all ordered multi-partite combinations.
+            for (size_t parties = 2; parties <= word_length; ++parties) {
+                PartitionIterator partition{static_cast<size_t>(context.qubit_size), parties};
+                while (!partition.done()) {
+                    MultiOperatorIterator pauliIter{context, parties, 3, 0};
+                    while (pauliIter) {
+
+                        auto& raw = pauliIter.raw();
+                        sequence_storage_t seq_data;
+                        seq_data.reserve(parties);
+
+                        for (size_t p_index = 0; p_index < parties; ++p_index) {
+                            seq_data.emplace_back(static_cast<oper_name_t >((partition.primary(p_index)*3)
+                                                                            + raw[p_index]));
+                        }
+                        sequences.emplace_back(std::move(seq_data), context);
+
+                        ++pauliIter;
+                    }
+                    ++partition;
+                }
+            }
+            return sequences;
+        }
+
+
+
+        /** Calculates nearest neighbour sequences, with and without wrapping */
         template<bool wrapped>
         size_t add_adjacent_sequences(std::vector<OperatorSequence>& sequences, const PauliContext& context,
                                       const size_t word_length) {
@@ -55,8 +118,6 @@ namespace Moment::Pauli {
             }
             return sequences.size() - init_size;
         }
-
-
 
         /**
          * Calculates next-N nearest neighbour sequences.
@@ -126,57 +187,77 @@ namespace Moment::Pauli {
         }
 
 
-        /** Calculates all sequences in OSG */
-        [[nodiscard]] std::vector<OperatorSequence> compute_all_sequences(const PauliContext& context,
-                                                                          size_t word_length) {
-            // Cap word length at number of qubits
-            word_length = std::min(word_length, static_cast<size_t>(context.qubit_size));
 
-            // Create sequence vector, with ID element.
-            std::vector<OperatorSequence> sequences;
-            sequences.emplace_back(context);
+        /** Calculates nearest neighbour sequences, with and without wrapping for pairs */
+        template<bool wrapped>
+        size_t add_lattice_neighbour_pairs(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
+            const auto init_size = sequences.size();
 
-            // Early exit if no non-trivial sequences
-            if (word_length < 1) {
-                return sequences;
-            }
 
-            // Add 1-operator sequences first (using fast algorithm)
-            add_length_one_sequences(sequences, context);
-
-            // Then iterate through all ordered multi-partite combinations.
-            for (size_t parties = 2; parties <= word_length; ++parties) {
-                PartitionIterator partition{static_cast<size_t>(context.qubit_size), parties};
-                while (!partition.done()) {
-                    MultiOperatorIterator pauliIter{context, parties, 3, 0};
-                    while (pauliIter) {
-
-                        auto& raw = pauliIter.raw();
-                        sequence_storage_t seq_data;
-                        seq_data.reserve(parties);
-
-                        for (size_t p_index = 0; p_index < parties; ++p_index) {
-                            seq_data.emplace_back(static_cast<oper_name_t >((partition.primary(p_index)*3)
-                                                                            + raw[p_index]));
-                        }
-                        sequences.emplace_back(std::move(seq_data), context);
-
-                        ++pauliIter;
-                    }
-                    ++partition;
+            // Iterate over all qubits in lattice
+            oper_name_t qubit_index = 0;
+            for (oper_name_t row_id = 0, max_row = context.col_width - 1; row_id < max_row; ++row_id) {
+                for (oper_name_t col_id = 0, max_col = context.row_width - 1; col_id < max_col; ++col_id) {
+                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1);
+                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.row_width);
+                    ++qubit_index;
                 }
+
+                if constexpr (wrapped) { // Add extra wrapped neighbours in row
+                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.row_width);
+                };
+                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.row_width);
+                ++qubit_index;
             }
-            return sequences;
+
+            // Add extra wraps around from bottom to top:
+            for (oper_name_t col_id = 0, max_col = context.row_width - 1; col_id < max_col; ++col_id) {
+                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1);
+                if constexpr (wrapped) { // Add extra neighbours wrapped vertically
+                    add_correlators_for_pair(sequences, context, qubit_index, col_id);
+                }
+                ++qubit_index;
+            }
+            if constexpr (wrapped) { // Add final neighbours for bottom right element
+                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.row_width);
+                add_correlators_for_pair(sequences, context, qubit_index, context.row_width-1);
+            }
+            ++qubit_index;
+
+            // Make sure we've covered every lattice site
+            assert(qubit_index  == context.qubit_size);
+            return sequences.size() - init_size;
         }
 
+        /** Calculates nearest neighbour sequences, with and without wrapping */
+        template<bool wrapped>
+        size_t add_lattice_neighbours(std::vector<OperatorSequence>& sequences, const PauliContext& context,
+                                      const size_t word_length) {
+            const auto init_size = sequences.size();
 
+            assert(word_length >= 2);
+            add_lattice_neighbour_pairs<wrapped>(sequences, context);
 
+            if (word_length >= 3) {
+                throw std::runtime_error{"Currently only nearest-neighbour pairs are supported in 2D."};
+            }
+
+            return sequences.size() - init_size;
+        }
+
+        /** Calculates nearest-neighbours in OSG */
         [[nodiscard]] std::vector<OperatorSequence>
         compute_nn_sequences(const PauliContext& context, size_t word_length,
-                             const size_t nearest_neighbours, const bool wrap) {
+                             const size_t nearest_neighbours) {
             // Case 0 defaults to all sequences
             if (0 == nearest_neighbours) {
                 return compute_all_sequences(context, word_length);
+            }
+
+            const bool wrap = context.wrap;
+
+            if (context.is_lattice() && (nearest_neighbours>1)) {
+                throw std::runtime_error{"Only nearest-neighbour and glass mode are supported for 2D lattices."};
             }
 
             // Cap word length at number of qubits
@@ -202,12 +283,23 @@ namespace Moment::Pauli {
             // Sequences of length-2 and higher require careful treatment:
             if (1 == nearest_neighbours) {
                 // Special case for nearest neighbours:
-                if (wrap) {
-                    add_adjacent_sequences<true>(sequences, context, word_length);
+                if (context.is_lattice()) {
+                    if (wrap) {
+                        add_lattice_neighbours<true>(sequences, context, word_length);
+                    } else {
+                        add_lattice_neighbours<false>(sequences, context, word_length);
+                    }
                 } else {
-                    add_adjacent_sequences<false>(sequences, context, word_length);
+                    if (wrap) {
+                        add_adjacent_sequences<true>(sequences, context, word_length);
+                    } else {
+                        add_adjacent_sequences<false>(sequences, context, word_length);
+                    }
                 }
             } else {
+                // Should have already thrown exception...
+                assert(!context.is_lattice());
+
                 // General N-nearest cases:
                 if (wrap) {
                     add_nontrival_nnn_sequences<true>(sequences, context, word_length, nearest_neighbours);
@@ -221,16 +313,14 @@ namespace Moment::Pauli {
 
     PauliSequenceGenerator::PauliSequenceGenerator(const PauliContext& pauli_context, const size_t word_length)
         : OperatorSequenceGenerator{pauli_context, word_length, compute_all_sequences(pauli_context, word_length)},
-            pauliContext{pauli_context}, nearest_neighbour_index{word_length, 0, false} { }
+            pauliContext{pauli_context}, nearest_neighbour_index{word_length, 0} { }
 
 
     PauliSequenceGenerator::PauliSequenceGenerator(const PauliContext& pauli_context,
                                                    const NearestNeighbourIndex& index)
        : OperatorSequenceGenerator{pauli_context, index.moment_matrix_level,
-                                   compute_nn_sequences(pauli_context, index.moment_matrix_level,
-                                                        index.neighbours, index.wrapped)},
-            pauliContext{pauli_context}, nearest_neighbour_index{index.moment_matrix_level, index.neighbours,
-                                                                 index.wrapped ? (index.neighbours > 0) : false} {
+                                   compute_nn_sequences(pauli_context, index.moment_matrix_level, index.neighbours)},
+            pauliContext{pauli_context}, nearest_neighbour_index{index.moment_matrix_level, index.neighbours} {
 
     }
 

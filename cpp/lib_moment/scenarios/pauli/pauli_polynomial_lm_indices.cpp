@@ -43,9 +43,6 @@ namespace Moment::Pauli {
             errSS << " restricted to " << pmi.Level.neighbours
                   << " nearest neighbour" << ((pmi.Level.neighbours != 1) ? "s" : "");
         }
-        if (pmi.Level.wrapped) {
-            errSS << " with wrapping";
-        }
         cErrSS << " for polynomial \"" << pmi.Polynomial
                << "\" has not yet been generated.";
 

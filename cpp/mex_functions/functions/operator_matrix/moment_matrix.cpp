@@ -25,7 +25,6 @@ namespace Moment::mex::functions {
         this->param_names.erase(u"index");
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"neighbours");
-        this->param_names.emplace(u"wrap");
 
         this->max_inputs = 2;
     }
@@ -55,13 +54,6 @@ namespace Moment::mex::functions {
             this->extra_data.nearest_neighbours =
                     read_positive_integer<size_t>(matlabEngine, "Parameter 'neighbours'", nn_param, 0);
         });
-        // Get wrap status, if any
-        if (this->extra_data.nearest_neighbours > 0) {
-            this->find_and_parse(u"wrap", [this](const matlab::data::Array& wrap_param) {
-                this->extra_data.wrap =
-                        read_as_boolean(matlabEngine, wrap_param);
-            });
-        }
     }
 
     bool MomentMatrixParams::any_param_set() const {
@@ -79,10 +71,9 @@ namespace Moment::mex::functions {
             if (pms_ptr == nullptr) {
                 throw_error(matlabEngine, errors::bad_param, "Nearest neighbours can only be set in Pauli scenario.");
             }
-            return pms_ptr->PauliMomentMatrices.create(Pauli::NearestNeighbourIndex{input.hierarchy_level,
-                                                                                    input.extra_data.nearest_neighbours,
-                                                                                    input.extra_data.wrap},
-                                                       mt_policy);
+            return pms_ptr->PauliMomentMatrices.create(
+                    Pauli::NearestNeighbourIndex{input.hierarchy_level, input.extra_data.nearest_neighbours},
+                    mt_policy);
         } else {
             return system.MomentMatrix.create(input.hierarchy_level, mt_policy);
         }

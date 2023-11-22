@@ -22,10 +22,9 @@ namespace Moment::Pauli {
         const PauliContext& pauliContext;
 
         /**
-         * The OSG index
+         * The index labelling this OSG (NPA level, and nearest neighbour filter).
          */
         const NearestNeighbourIndex nearest_neighbour_index;
-
 
     public:
         /**
@@ -41,10 +40,8 @@ namespace Moment::Pauli {
         /**
          * Generate only nearest neighbour operators up to word length.
          */
-        PauliSequenceGenerator(const PauliContext& context, size_t word_length, size_t neighbours, bool wrap = false)
-            : PauliSequenceGenerator{context,
-                                     NearestNeighbourIndex{word_length, neighbours, wrap ? (neighbours > 0) : false}} {
-        }
+        PauliSequenceGenerator(const PauliContext& context, const size_t word_length, const size_t neighbours)
+            : PauliSequenceGenerator{context, NearestNeighbourIndex{word_length, neighbours}} { }
 
 
         /** True, if only a limited subset of sequences are considered (i.e. nearest neighbour mode). */

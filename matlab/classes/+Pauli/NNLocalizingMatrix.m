@@ -1,15 +1,15 @@
 classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
         NNLocalizingMatrix < MTKLocalizingMatrix
-    %NNLOCALIZINGMATRIX Nearest neighbour localizing matrix.
+%NNLOCALIZINGMATRIX Nearest neighbour localizing matrix.
     
-    %
+%% Properties
     properties(GetAccess=public,SetAccess=private)
         Neighbours
-        Wrap
     end
     
+%% Constructor    
     methods
-        function obj = NNLocalizingMatrix(scenario, level, expr, nn, wrap)
+        function obj = NNLocalizingMatrix(scenario, level, expr, nn)
             
             % Input validation
             assert(nargin>=1 && isa(scenario, 'PauliScenario'), ...
@@ -23,14 +23,7 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 assert(isnumeric(nn) && isscalar(nn))
                 nn = uint64(nn);
             end
-            
-            if nargin < 5
-                wrap = false;
-            else
-                assert(isscalar(wrap));
-                wrap = logical(wrap);
-            end
-            
+                        
             % Handle expression
             if isa(expr, "MTKObject")
                 if ~expr.IsScalar
@@ -63,18 +56,18 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 [lm_index, lm_dim, actually_mono, is_hermitian] ...
                     = mtk('localizing_matrix', scenario.System.RefId, ...
                           level, monomial_expr, ...
-                          'neighbours', nn, 'wrap', wrap);
+                          'neighbours', nn);
             else
                 if expr.FoundAllSymbols
                     [lm_index, lm_dim, actually_mono, is_hermitian] ...
                         = mtk('localizing_matrix', scenario.System.RefId,...
                               level, 'symbols', expr.SymbolCell{1}, ...
-                              'neighbours', nn, 'wrap', wrap);
+                              'neighbours', nn);
                 else
                     [lm_index, lm_dim, actually_mono, is_hermitian] ...
                         = mtk('localizing_matrix', scenario.System.RefId,...
                               level, 'operators', expr.OperatorCell, ...
-                              'neighbours', nn, 'wrap', wrap);
+                              'neighbours', nn);
                 end                
             end
 
@@ -83,8 +76,7 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 {level, lm_index, lm_dim, actually_mono, is_hermitian},...
                 expr);
             
-            obj.Neighbours = nn;
-            obj.Wrap = wrap;            
+            obj.Neighbours = nn;          
         end
     end
 end

@@ -19,7 +19,6 @@ namespace Moment::mex::functions  {
         size_t hierarchy_level = 0;
         struct extra_data_t {
             size_t nearest_neighbours = 0;
-            bool wrap = false;
         } extra_data;
     public:
 

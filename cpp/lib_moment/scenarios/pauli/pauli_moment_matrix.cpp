@@ -49,9 +49,6 @@ namespace Moment::Pauli {
             if (this->NNIndex.neighbours != 1) {
                 ss << "s";
             }
-            if (this->NNIndex.wrapped) {
-                ss << " (wrapped)";
-            }
         }
         return ss.str();
     }

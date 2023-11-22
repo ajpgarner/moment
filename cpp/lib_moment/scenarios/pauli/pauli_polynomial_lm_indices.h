@@ -33,15 +33,15 @@ namespace Moment {
                                                                                                std::move(poly)} { }
 
             /** Construct Pauli-scenario polynomial localizing matrix by initiating nearest neighbour info.. */
-            PauliPolynomialLMIndex(const size_t level, const size_t neighbours, const bool wrap,
+            PauliPolynomialLMIndex(const size_t level, const size_t neighbours,
                                    class Polynomial poly) noexcept
                     : PolynomialLMIndexBase<NearestNeighbourIndex, PauliLocalizingMatrixIndex>{
-                            NearestNeighbourIndex{level, neighbours, wrap}, std::move(poly)} { }
+                            NearestNeighbourIndex{level, neighbours}, std::move(poly)} { }
 
             /** Upcast, set nearest neighbour info to 0. */
             explicit PauliPolynomialLMIndex(PolynomialLMIndex no_neighbour_index) noexcept
                     : PolynomialLMIndexBase<NearestNeighbourIndex, PauliLocalizingMatrixIndex>{
-                    NearestNeighbourIndex{no_neighbour_index.Level, 0, false},
+                    NearestNeighbourIndex{no_neighbour_index.Level, 0},
                                           std::move(no_neighbour_index.Polynomial)} {}
 
 

@@ -58,8 +58,23 @@ namespace Moment::Pauli {
 
     }
 
-    PauliContext::PauliContext(const oper_name_t qubits) noexcept
-        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits} {
+    PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const oper_name_t row_width_in)
+        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, wrap{is_wrapped},
+            row_width{row_width_in},
+            col_width{(row_width_in > 0) ? static_cast<oper_name_t>(qubits / row_width_in)
+                                         : static_cast<oper_name_t>(0)} {
+        // Check validity of row_width
+        if (row_width != 0) {
+            if (row_width < 0) {
+                throw errors::bad_pauli_context{"Row width must be a positive integer or zero."};
+            }
+            auto remainder = qubits % row_width;
+            if (remainder != 0) {
+                throw errors::bad_pauli_context{"Row width must be a divisor of the number of qubits."};
+            }
+            assert((row_width * col_width) == qubit_size);
+        }
+
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
     }
@@ -365,7 +380,11 @@ namespace Moment::Pauli {
         std::stringstream ss;
         ss << "Pauli context over "
            << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"))
-           << " (" << this->operator_count << " operators).\n";
+           << " (" << this->operator_count << " operators)";
+        if (this->wrap) {
+            ss << " with wrapping";
+        }
+        ss << ".\n";
 
         return ss.str();
     }
