@@ -463,7 +463,7 @@ namespace Moment::Tests {
         const auto &table = ams.Symbols();
         ams.generate_dictionary(2); // 0, 1, a, b, aa, ab, (ba), bb
 
-        ByHashPolynomialFactory factory{table, 1.0, table};
+        ByHashPolynomialFactory factory{table, 1.0};
 
         MomentRule msr{5, factory({Monomial{2, 0.5}})}; // #5 -> 0.5#2 (<ab> -> <a>).
         ASSERT_EQ(msr.LHS(), 5);

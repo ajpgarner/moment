@@ -38,6 +38,7 @@ add_library(lib_moment
         scenarios/algebraic/ostream_rule_logger.cpp
         scenarios/algebraic/operator_rulebook.cpp
         scenarios/derived/derived_context.cpp
+        scenarios/derived/derived_matrix_indices.cpp
         scenarios/derived/derived_matrix_system.cpp
         scenarios/derived/lu_map_core_processor.cpp
         scenarios/derived/map_core.cpp

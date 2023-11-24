@@ -116,6 +116,12 @@ namespace Moment {
         /** End iteration over monomials within polynomial. */
         [[nodiscard]] auto end() const noexcept { return this->data.cend(); }
 
+        /** Begin reverse iteration over monomials within polynomial. */
+        [[nodiscard]] auto rbegin() const noexcept { return this->data.crbegin(); }
+
+        /** End reverse iteration over monomials within polynomial. */
+        [[nodiscard]] auto rend() const noexcept { return this->data.crend(); }
+
         /**
          * Gets the monomial at position index within polynomial.
          * Undefined behaviour if index >= size().

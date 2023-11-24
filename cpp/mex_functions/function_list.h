@@ -61,6 +61,7 @@ namespace Moment::mex::functions {
         SuggestExtensions,
         SymbolTable,
         SymmetrizedMatrixSystem,
+        TransformMatrix,
         TransformSymbols,
         Version,
         WordList

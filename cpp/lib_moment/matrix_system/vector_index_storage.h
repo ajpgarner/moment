@@ -1,5 +1,5 @@
 /**
- * moment_matrix_index_storage.h
+ * vector_index_storage.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -15,12 +15,15 @@
 
 namespace Moment {
 
-    /** Stores moment matrix indices as a vector */
-    class MomentMatrixIndexStorage {
+    /**
+     * Stores matrix indices as a vector.
+     * Useful when index is guaranteed to be a small number (e.g. NPA hierarchy level), providing constant time access.
+     */
+    class VectorIndexStorage {
     public:
         using Index = size_t;
 
-        constexpr MomentMatrixIndexStorage() = default;
+        constexpr VectorIndexStorage() = default;
 
     private:
         std::vector<ptrdiff_t> the_indices;

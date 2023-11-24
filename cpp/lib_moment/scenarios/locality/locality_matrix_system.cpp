@@ -24,7 +24,7 @@ namespace Moment::Locality {
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
         this->replace_polynomial_factory(
-                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
+                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance)
         );
     }
 
@@ -34,7 +34,7 @@ namespace Moment::Locality {
               localityContext{dynamic_cast<const LocalityContext&>(this->Context())} {
 
         this->replace_polynomial_factory(
-                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance, this->Symbols())
+                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), tolerance)
         );
     }
 

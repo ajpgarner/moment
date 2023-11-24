@@ -11,7 +11,7 @@
 #include "localizing_matrix_index.h"
 #include "polynomial_localizing_matrix_index.h"
 
-#include "moment_matrix_index_storage.h"
+#include "vector_index_storage.h"
 #include "polynomial_index_storage.h"
 
 #include "matrix_factories.h"
@@ -25,7 +25,7 @@ namespace Moment {
     /**
      * Stores moment matrices by integer hierarchy depth.
      */
-    using MomentMatrixIndices = MatrixIndices<SymbolicMatrix, size_t, MomentMatrixIndexStorage,
+    using MomentMatrixIndices = MatrixIndices<SymbolicMatrix, size_t, VectorIndexStorage,
                                               MomentMatrixFactory, MatrixSystem>;
 
     /**

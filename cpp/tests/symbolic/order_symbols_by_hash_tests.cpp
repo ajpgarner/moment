@@ -69,4 +69,27 @@ namespace Moment::Tests {
         EXPECT_TRUE(combo.is_conjugate(symbols, cc_combo));
         EXPECT_TRUE(cc_combo.is_conjugate(symbols, combo));
     }
+
+    TEST(Symbolic_OrderByHash, MaximumDegree) {
+        Algebraic::AlgebraicMatrixSystem ams{std::make_unique<Algebraic::AlgebraicContext>(2)};
+        const auto& context = ams.AlgebraicContext();
+        const auto& symbols = ams.Symbols();
+        ASSERT_EQ(context.size(), 2);
+        ams.generate_dictionary(2);
+        ASSERT_EQ(symbols.size(), 7);  // 0, 1, a, b, aa, ab, (ba), bb
+
+        ByHashPolynomialFactory factory{symbols, 1.0};
+
+        Polynomial empty = Polynomial::Zero();
+        EXPECT_EQ(factory.maximum_degree(empty), 0);
+        Polynomial a = Polynomial{Monomial{2, 1.0}};
+        EXPECT_EQ(factory.maximum_degree(a), 1);
+        Polynomial id_plus_a = Polynomial{{Monomial{1, 1.0}, Monomial{2, 1.0}}};
+        EXPECT_EQ(factory.maximum_degree(id_plus_a), 1);
+        Polynomial id_plus_a_plus_aa = Polynomial{{Monomial{1, 1.0}, Monomial{2, 1.0}, Monomial{4, 1.0}}};
+        EXPECT_EQ(factory.maximum_degree(id_plus_a_plus_aa), 2);
+
+
+
+    }
 }

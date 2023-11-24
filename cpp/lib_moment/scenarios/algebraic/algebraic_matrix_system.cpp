@@ -17,7 +17,7 @@ namespace Moment::Algebraic {
               algebraicContext{dynamic_cast<class AlgebraicContext&>(this->Context())} {
 
         this->replace_polynomial_factory(
-            std::make_unique<ByHashPolynomialFactory>(this->Symbols(), zero_tolerance, this->Symbols())
+            std::make_unique<ByHashPolynomialFactory>(this->Symbols(), zero_tolerance)
         );
     }
 
@@ -26,7 +26,7 @@ namespace Moment::Algebraic {
             : MatrixSystem{std::move(contextIn)},
               algebraicContext{dynamic_cast<class AlgebraicContext&>(this->Context())} {
         this->replace_polynomial_factory(
-                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), zero_tolerance, this->Symbols())
+                std::make_unique<ByHashPolynomialFactory>(this->Symbols(), zero_tolerance)
         );
     }
 }

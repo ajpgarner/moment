@@ -38,5 +38,12 @@ namespace Moment {
     /**
      * Factory, construct polynomial using op-hash ordering.
      */
-     using ByHashPolynomialFactory = PolynomialFactoryImpl<CompareByOpHash, ByHashPolynomialFactory_Name>;
+     class ByHashPolynomialFactory : public PolynomialFactoryImpl<CompareByOpHash, ByHashPolynomialFactory_Name> {
+     public:
+
+         explicit ByHashPolynomialFactory(const SymbolTable& symbols, double zero_tolerance = 1.0)
+                 : PolynomialFactoryImpl{symbols, zero_tolerance, symbols} { }
+
+         [[nodiscard]] size_t maximum_degree(const Polynomial& poly) const override;
+     };
 }

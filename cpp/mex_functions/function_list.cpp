@@ -14,6 +14,7 @@
 #include "functions/settings.h"
 #include "functions/suggest_extensions.h"
 #include "functions/symbol_table.h"
+#include "functions/transform_matrix.h"
 #include "functions/transform_symbols.h"
 #include "functions/word_list.h"
 #include "functions/algebraic/conjugate.h"
@@ -94,6 +95,7 @@ namespace Moment::mex::functions {
             output.emplace("suggest_extensions", MTKEntryPointID::SuggestExtensions);
             output.emplace("symmetrized_matrix_system", MTKEntryPointID::SymmetrizedMatrixSystem);
             output.emplace("symbol_table",       MTKEntryPointID::SymbolTable);
+            output.emplace("transform_matrix",   MTKEntryPointID::TransformMatrix);
             output.emplace("transform_symbols",  MTKEntryPointID::TransformSymbols);
             output.emplace("version",            MTKEntryPointID::Version);
             output.emplace("word_list",          MTKEntryPointID::WordList);
@@ -246,6 +248,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::SymmetrizedMatrixSystem:
                 the_function = std::make_unique<functions::SymmetrizedMatrixSystem>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::TransformMatrix:
+                the_function = std::make_unique<functions::TransformMatrix>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::TransformSymbols:
                 the_function = std::make_unique<functions::TransformSymbols>(engine, storageManager);

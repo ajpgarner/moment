@@ -31,6 +31,36 @@ namespace Moment {
         using iterator = value_t *;
         using const_iterator = const value_t *;
 
+        /**
+         * Iterater for going backwards over vector contents.
+         */
+        class const_reverse_iterator {
+        public:
+            using value_type = SmallVector::value_type;
+        private:
+            value_type const * ptr;
+            explicit constexpr const_reverse_iterator(value_type const * start_ptr) noexcept : ptr{start_ptr} {}
+
+        public:
+            constexpr const_reverse_iterator(const const_reverse_iterator& rhs) noexcept = default;
+
+            constexpr const_reverse_iterator& operator++() noexcept {
+                --ptr;
+                return *this;
+            }
+
+            [[nodiscard]] constexpr const value_type operator*() const noexcept {
+                return *ptr;
+            }
+
+            [[nodiscard]] constexpr value_type const * operator->() const noexcept {
+                return ptr;
+            }
+
+            [[nodiscard]] constexpr bool operator==(const const_reverse_iterator& rhs) const noexcept = default;
+            friend SmallVector;
+        };
+
     private:
         std::unique_ptr<value_t[]> heap_data{nullptr};
         std::array<value_t, SmallN> stack_data;
@@ -395,6 +425,34 @@ namespace Moment {
          */
         constexpr const_iterator cend() const noexcept {
             return this->data_start + this->_size;
+        }
+
+        /**
+         * Constant iterator to beginning of vector
+         */
+        constexpr const_reverse_iterator rbegin() const noexcept {
+            return const_reverse_iterator{static_cast<value_t const*>(this->data_start + this->_size - 1)};
+        }
+
+        /**
+         * Iterator to point past end of vector
+         */
+        constexpr const_reverse_iterator crbegin() const noexcept {
+            return const_reverse_iterator{static_cast<value_t const*>(this->data_start + this->_size - 1)};
+        }
+
+        /**
+         * Constant iterator to point past end of vector
+         */
+        constexpr const_reverse_iterator rend() const noexcept {
+            return const_reverse_iterator{static_cast<value_t const*>(this->data_start - 1)};
+        }
+
+        /**
+         * Constant iterator to point past end of vector
+         */
+        constexpr const_reverse_iterator crend() const noexcept {
+            return const_reverse_iterator{static_cast<value_t const*>(this->data_start - 1)};
         }
 
 

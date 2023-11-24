@@ -40,6 +40,11 @@ namespace Moment {
 
         [[nodiscard]] virtual bool less(const Monomial& lhs, const Monomial& rhs) const = 0;
 
+        /**
+         * Gets the maximum degree of a polynomial.
+         */
+        [[nodiscard]] virtual size_t maximum_degree(const Polynomial& poly) const;
+
         virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;
 
         [[nodiscard]] Polynomial sum(const Monomial& lhs, const Monomial& rhs) const;

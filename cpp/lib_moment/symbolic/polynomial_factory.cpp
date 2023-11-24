@@ -7,6 +7,8 @@
 
 #include "polynomial_factory.h"
 
+#include "symbol_table.h"
+
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -60,6 +62,21 @@ namespace Moment {
             return Polynomial{Polynomial::init_raw_tag{}, Polynomial::storage_t{rhs, lhs}};
         }
     }
+
+    size_t PolynomialFactory::maximum_degree(const Polynomial& poly) const {
+        size_t largest_monomial = 0;
+        for (auto& mono : poly) {
+            if (mono.id > 1) {
+                assert(mono.id < this->symbols.size());
+                const auto& symbol = this->symbols[mono.id];
+                if (symbol.has_sequence()) [[likely]] {
+                    largest_monomial = std::max(symbol.sequence().size(), largest_monomial);
+                }
+            }
+        }
+        return largest_monomial;
+    }
+
 
     Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Monomial& rhs) const {
         // TODO: Efficient addition assuming LHS is sorted

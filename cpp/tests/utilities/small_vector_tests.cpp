@@ -715,6 +715,32 @@ namespace Moment::Tests {
         EXPECT_EQ(iter, small.cend());
     }
 
+    TEST(Utilities_SmallVector, ConstReverseIterator) {
+        SmallVector<double, 4> small{1.0, 2.0, 3.0};
+
+        auto iter = small.crbegin();
+        ASSERT_NE(iter, small.crend());
+        EXPECT_EQ(*iter, 3.0);
+
+        ++iter;
+        ASSERT_NE(iter, small.crend());
+        EXPECT_EQ(*iter, 2.0);
+
+        ++iter;
+        ASSERT_NE(iter, small.crend());
+        EXPECT_EQ(*iter, 1.0);
+
+        ++iter;
+        EXPECT_EQ(iter, small.crend());
+    }
+
+    TEST(Utilities_SmallVector, ConstReverseIterator_Empty) {
+        SmallVector<double, 4> small{};
+
+        auto iter = small.crbegin();
+        EXPECT_EQ(iter, small.crend());
+    }
+
     TEST(Utilities_SmallVector, Front_Stack) {
         SmallVector<std::string, 3> small{"hello", "there!"};
         EXPECT_FALSE(small.empty());

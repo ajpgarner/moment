@@ -7,12 +7,26 @@
 
 #pragma once
 
+#include "derived_matrix_indices.h"
+
 #include "matrix_system/matrix_system.h"
-#include "../derived/derived_matrix_system.h"
 
 #include "multithreading/multithreading.h"
 
 #include <memory>
+#include <stdexcept>
+
+namespace Moment::errors {
+    class bad_transformation_error : public std::runtime_error {
+    public:
+        explicit bad_transformation_error(const std::string& what) : std::runtime_error{what} { }
+    };
+
+    class too_large_to_transform_error : public bad_transformation_error {
+    public:
+        too_large_to_transform_error(size_t max_size, size_t requested_size, const std::string& object_name);
+    };
+}
 
 namespace Moment::Derived {
     class DerivedContext;
@@ -47,6 +61,10 @@ namespace Moment::Derived {
 
         /** Map that defines the system */
         std::unique_ptr<Derived::SymbolTableMap> map_ptr;
+
+    public:
+        /** Index to derived matrices, by source matrix index */
+        DerivedMatrixIndices DerivedMatrices;
 
     public:
         explicit DerivedMatrixSystem(std::shared_ptr<MatrixSystem>&& base_system, STMFactory&& stmf,
@@ -110,7 +128,31 @@ namespace Moment::Derived {
         create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
                                             Multithreading::MultiThreadPolicy mt_policy) override;
 
+        /**
+         * Generically create symmetrization of a matrix.
+         */
+        [[nodiscard]] virtual std::unique_ptr<class SymbolicMatrix>
+        create_derived_matrix(WriteLock& lock, ptrdiff_t source_offset, Multithreading::MultiThreadPolicy mt_policy);
+
+        void on_new_moment_matrix(const WriteLock& write_lock, size_t level, ptrdiff_t matrix_offset,
+                                  const SymbolicMatrix& mm) override;
+
+        void on_new_localizing_matrix(const WriteLock& write_lock, const LocalizingMatrixIndex& lmi,
+                                      ptrdiff_t matrix_offset, const SymbolicMatrix& lm) override;
+
+        void on_new_polynomial_localizing_matrix(const WriteLock& write_lock, const PolynomialLMIndex& lmi,
+                                                 ptrdiff_t matrix_offset, const PolynomialMatrix& plm) override;
+
+        /**
+         * Called when a symmetrized matrix is generically created.
+         */
+        virtual void on_new_derived_matrix(const WriteLock& write_lock,
+                                           ptrdiff_t source_offset, ptrdiff_t  target_offset,
+                                           const SymbolicMatrix& target_matrix);
+
     protected:
         static std::unique_ptr<class Context> make_derived_context(const MatrixSystem& source_system);
+
+        friend class DerivedMatrixFactory;
     };
 }

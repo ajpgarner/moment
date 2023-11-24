@@ -50,6 +50,20 @@ namespace Moment::Tests {
             throw std::runtime_error{errSS.str()};
         };
 
+        // Find  symbols:
+        Monomial find_monomial(const Context& context, const SymbolTable& symbols,
+                                    std::initializer_list<oper_name_t> ops) {
+            OperatorSequence opSeq{ops, context};
+            auto symPtr = symbols.where(opSeq);
+            if (symPtr != nullptr) {
+                return Monomial{symPtr->Id(), 1.0, symPtr.is_conjugated};
+            }
+
+            std::stringstream errSS;
+            errSS << "Could not find symbol for " << opSeq;
+            throw std::runtime_error{errSS.str()};
+        };
+
 
         std::array<symbol_name_t, 10> get_chsh_symbol_ids(const Locality::LocalityContext& context,
                                                          const SymbolTable& symbols) {
@@ -103,7 +117,6 @@ namespace Moment::Tests {
             }
             return output;
         }
-
 
     }
 
@@ -188,6 +201,47 @@ namespace Moment::Tests {
         EXPECT_EQ(mono_sm.SymbolMatrix(2, 0), Monomial(2, 1.0));
         EXPECT_EQ(mono_sm.SymbolMatrix(2, 1), Monomial(4, 1.0));
         EXPECT_EQ(mono_sm.SymbolMatrix(2, 2), Monomial(3, 1.0));
+
+    }
+
+    TEST(Scenarios_Symmetry_MatrixSystem, Algebraic_Z2_PolynomialMap) {
+        // Two variables, a & b
+        auto amsPtr = std::make_shared<Algebraic::AlgebraicMatrixSystem>(
+                Algebraic::AlgebraicContext::FromNameList({"a", "b"})
+        );
+        auto& ams = *amsPtr;
+        auto& context = ams.Context();
+        const auto& algebraic_symbols = ams.Symbols();
+        ams.generate_dictionary(3);
+
+        // Algebraic symbols
+        const auto [a, b, aa, ab, bb] = get_algebraic_symbol_ids(context, algebraic_symbols);
+
+        // Z2 symmetry; e.g. max "a + b" subject to "a + b < 10"
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse<double>(3, {1, 0, 0,
+                                                        0, 0, 1,
+                                                        0, 1, 0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        auto group = std::make_unique<Group>(context, std::move(base_rep));
+        ASSERT_EQ(group->size, 2); // I, X
+        SymmetrizedMatrixSystem sms{amsPtr, std::move(group), 3, std::make_unique<Derived::LUMapCoreProcessor>()};
+
+        const auto& src_factory = ams.polynomial_factory();
+        const Polynomial a_plus_b = src_factory({Monomial{a, 1.0}, Monomial{b, 1.0}});
+        ASSERT_EQ(a_plus_b.size(), 2);
+
+        const auto& symmetrized_lm = sms.PolynomialLocalizingMatrix(PolynomialLMIndex{1, a_plus_b});
+        ASSERT_EQ(symmetrized_lm.Dimension(), 3);
+        EXPECT_EQ((symmetrized_lm.SymbolMatrix(0,0)), Polynomial(Monomial(2, 2.0))); // 'a+b' symbol
+
+    }
+
+    TEST(Scenarios_Symmetry_MatrixSystem, Algebraic_Z2_DerivedIndex) {
+        // TODO: Write DerivedMatrixIndex unit tests.
 
     }
 

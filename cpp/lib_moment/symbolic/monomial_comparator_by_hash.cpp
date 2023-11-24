@@ -34,4 +34,23 @@ namespace Moment {
         return {std::numeric_limits<uint64_t>::max(), tx_id};
     }
 
+    size_t ByHashPolynomialFactory::maximum_degree(const Polynomial& poly) const {
+        // Iterate backwards, and return degree of first defined symbol
+        auto rev_iter = poly.rbegin();
+        const auto rev_iter_end = poly.rend();
+        while (rev_iter != rev_iter_end) {
+            auto id = rev_iter->id;
+            if (id <= 1) {
+                return 0;
+            }
+            assert(id < this->symbols.size());
+            const auto& symbol = this->symbols[id];
+            if (symbol.has_sequence()) {
+                return symbol.sequence().size();
+            }
+        }
+
+        // Nothing found; 0 degree
+        return 0;
+    }
 }

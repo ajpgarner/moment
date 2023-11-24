@@ -19,14 +19,43 @@
 
 #include <cassert>
 
+#include <sstream>
 #include <tuple>
+
+namespace Moment::errors {
+    std::string make_tltte_msg(size_t max_size, size_t requested_size,
+                               const std::string& object_name) {
+        std::stringstream errSS;
+        errSS << "Map defining derived matrix system acts on operator strings of up to length " << max_size
+              << ", but words of up to length " << requested_size
+              << " are required to generate " << object_name << ".";
+        return errSS.str();
+    }
+
+    too_large_to_transform_error::too_large_to_transform_error(size_t max_size, size_t requested_size,
+                                                               const std::string& object_name)
+        : bad_transformation_error(make_tltte_msg(max_size, requested_size, object_name)) {  }
+}
 
 namespace Moment::Derived {
 
     namespace {
+        std::unique_ptr<PolynomialMatrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
+                                                                       double zero_tolerance,
+                                                                       const SymbolTableMap& map,
+                                                                       const PolynomialMatrix& source_matrix) {
+            // Otherwise, resultant matrix is Polynomial
+            auto symbol_mat_ptr = map(source_matrix.SymbolMatrix());
+
+            // Create matrix
+            return std::make_unique<PolynomialMatrix>(context, symbols, zero_tolerance, std::move(symbol_mat_ptr));
+
+        }
+
         std::unique_ptr<SymbolicMatrix> do_create_transformed_matrix(const Context& context, SymbolTable& symbols,
                                                                      double zero_tolerance,
-                                                                     const SymbolTableMap& map, const SymbolicMatrix& source_matrix) {
+                                                                     const SymbolTableMap& map,
+                                                                     const SymbolicMatrix& source_matrix) {
             // Monomial map on monomial matrix creates monomial matrix
             if (map.is_monomial_map() && source_matrix.is_monomial()) {
                 auto mono_sym_mat_ptr = map.monomial(dynamic_cast<const MonomialMatrix &>(source_matrix).SymbolMatrix());
@@ -54,7 +83,7 @@ namespace Moment::Derived {
         : MatrixSystem(DerivedMatrixSystem::make_derived_context(*base_system),
                        tolerance > 0 ? tolerance : base_system->polynomial_factory().zero_tolerance),
           derived_context{dynamic_cast<class DerivedContext&>(this->Context())},
-          base_ms_ptr{std::move(base_system)}
+          base_ms_ptr{std::move(base_system)}, DerivedMatrices{*this}
     {
         // Avoid deadlock. Should never occur...!
         assert(this->base_ms_ptr.get() != this);
@@ -80,11 +109,9 @@ namespace Moment::Derived {
         // First check if map is capable of defining this MM.
         const auto lsw = this->longest_supported_word();
         if ((level*2) > lsw) {
-            std::stringstream errSS;
-            errSS << "Map defining derived matrix system acts on operator strings of up to length " << lsw
-                << ", but words of up to length " << (level*2)
-                << " are required to generate a moment matrix of level " << level << ".";
-            throw errors::bad_map{errSS.str()};
+            std::string bad_object_name{"a moment matrix of level "};
+            bad_object_name.append(std::to_string(level));
+            throw errors::too_large_to_transform_error{lsw, level*2, bad_object_name};
         }
 
         // Check source moment matrix exists, create it if it doesn't
@@ -120,12 +147,10 @@ namespace Moment::Derived {
         const auto lsw = this->longest_supported_word();
         const auto size_req = lmi.Level*2 + lmi.Word.size();
         if (size_req > lsw) {
-            std::stringstream errSS;
-            errSS << "Map defining derived matrix system acts on operator strings of up to length " << lsw
-                  << ", but words of up to length " << size_req
-                  << " are required to generate a localizing matrix of level " << lmi.Level
-                  << " for a word of length " << lmi.Word.size() << ".";
-            throw errors::bad_map{errSS.str()};
+            std::stringstream badNameSS;
+            badNameSS << "a localizing matrix of level " << lmi.Level
+                  << " for a word of length " << lmi.Word.size();
+            throw errors::too_large_to_transform_error{lsw, size_req, badNameSS.str()};
         }
 
         // Check if source localizing matrix exists, create it if it doesn't
@@ -154,13 +179,73 @@ namespace Moment::Derived {
 
 
     std::unique_ptr<class PolynomialMatrix>
-    DerivedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+    DerivedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock& lock,
+                                                             const PolynomialLMIndex& lmi,
                                                              Multithreading::MultiThreadPolicy mt_policy) {
-        // NB: Cannot create new symbols.
+        // Check if we can convert this matrix
+        const auto lsw = this->longest_supported_word();
+        const auto max_degree = this->base_system().polynomial_factory().maximum_degree(lmi.Polynomial);
+        const size_t size_req = 2 * lmi.Level + max_degree;
+        if (size_req > lsw) {
+            std::stringstream badNameSS;
+            badNameSS << "a localizing matrix of level " << lmi.Level
+                      << " for a polynomial of degree " << max_degree;
+            throw errors::too_large_to_transform_error{lsw, size_req, badNameSS.str()};
+        }
 
-        throw std::runtime_error{"DerivedMatrixSystem::create_polynomial_localizing_matrix not yet implemented."};
+        // Ensure source localizing matrix exists
+        const auto& source_matrix = [&]() -> const class PolynomialMatrix& {
+            auto read_source_lock = this->base_system().get_read_lock();
+            // Get, if exists
+            auto offset = this->base_system().PolynomialLocalizingMatrix.find_index(lmi);
+            if (offset >= 0) {
+                return dynamic_cast<const PolynomialMatrix&>(this->base_system()[offset]); // ~read_source_lock
+            }
+            read_source_lock.unlock();
+
+            // Create LM; will call write lock on base system
+            auto [mm_index, mm] = this->base_system().PolynomialLocalizingMatrix.create(lmi, mt_policy);
+
+            return mm;
+        }();
+
+        // Create transformation of this matrix
+        return do_create_transformed_matrix(this->Context(), this->Symbols(), this->polynomial_factory().zero_tolerance,
+                                            this->map(), source_matrix);
     }
 
+    std::unique_ptr<class SymbolicMatrix>
+    DerivedMatrixSystem::create_derived_matrix(MaintainsMutex::WriteLock& lock, ptrdiff_t source_offset,
+                                               Multithreading::MultiThreadPolicy mt_policy) {
+        // TODO: implement this
+        throw std::runtime_error{
+            "DerivedMatrixSystem::create_derived_matrix for generic matrices not yet implemented."
+        };
+    }
+
+
+    void DerivedMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
+                                                   ptrdiff_t matrix_offset, const SymbolicMatrix& mm) {
+
+    }
+
+    void DerivedMatrixSystem::on_new_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                       const LocalizingMatrixIndex& lmi, ptrdiff_t matrix_offset,
+                                                       const SymbolicMatrix& lm) {
+
+    }
+
+    void DerivedMatrixSystem::on_new_polynomial_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                                  const PolynomialLMIndex& lmi, ptrdiff_t matrix_offset,
+                                                                  const PolynomialMatrix& plm) {
+    }
+
+    void DerivedMatrixSystem::on_new_derived_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                    ptrdiff_t source_offset, ptrdiff_t target_offset,
+                                                    const SymbolicMatrix& target_matrix) {
+        // TODO: Check src is moment matrix, localizing matrix, or P-LM.
+
+    }
 
     std::string DerivedMatrixSystem::describe_map() const {
         std::stringstream msgSS;
@@ -184,6 +269,5 @@ namespace Moment::Derived {
 
         return msgSS.str();
     }
-
 
 }

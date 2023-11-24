@@ -24,8 +24,6 @@ namespace Moment {
     class PolynomialMatrix;
     class MatrixSystem;
 
-
-
     /**
      * Factory: makes moment matrices
      */
