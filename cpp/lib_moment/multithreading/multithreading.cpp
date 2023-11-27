@@ -140,7 +140,7 @@ namespace Moment::Multithreading {
                 if (group_elements <= 1) {
                     return false;
                 }
-                return (raw_dim * raw_dim * group_elements) >= minimum_rule_difficulty;
+                return (raw_dim * raw_dim * group_elements) >= minimum_group_rep_difficulty;
             }
         }
     }

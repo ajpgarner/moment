@@ -41,7 +41,7 @@ namespace Moment::Multithreading {
             // Wait until bundle signals it is time to work
             while (global_index < local_index) {
                 this->bundle.global_index.wait(global_index, std::memory_order_relaxed);
-                global_index = this->last_generated_index.load(std::memory_order_acquire);
+                global_index = this->bundle.global_index.load(std::memory_order_acquire);
             }
 
             // Get parents, which are guaranteed after wait, to exist
