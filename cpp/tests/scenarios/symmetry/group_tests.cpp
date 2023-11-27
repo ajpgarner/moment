@@ -9,6 +9,7 @@
 #include "../sparse_utils.h"
 
 #include "scenarios/algebraic/algebraic_context.h"
+#include "scenarios/algebraic/name_table.h"
 #include "scenarios/locality/locality_context.h"
 #include "scenarios/symmetrized/group.h"
 
@@ -288,5 +289,51 @@ namespace Moment::Tests {
         EXPECT_EQ(rep10.word_length, 10);
         EXPECT_FALSE(rep10[0].isApprox(rep10[1]));
         EXPECT_TRUE(rep10[0].isApprox(rep10[1] * rep10[1]));
+    }
+
+    TEST(Scenarios_Symmetry_Group, CreateRepresentation_SwapAlgebraic) {
+        using namespace Algebraic;
+        AlgebraicPrecontext apc{8, AlgebraicPrecontext::ConjugateMode::SelfAdjoint};
+        auto namePtr = std::make_unique<NameTable>(apc, std::vector<std::string>{"A0", "A1", "A2", "A3",
+                                                                                 "B1", "B2", "B3", "B4"});
+        std::vector<OperatorRule> rulesList;
+
+        AlgebraicContext context{apc, std::move(namePtr), false, false, std::move(rulesList)};
+
+        // Z2
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse<double>(9, {1, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                        0, 0, 0, 0, 0, 1 ,0 ,0, 0,
+                                                        0, 0, 0, 0, 0, 0 ,1 ,0, 0,
+                                                        0, 0, 0, 0, 0, 0 ,0 ,1, 0,
+                                                        0, 0, 0, 0, 0, 0 ,0 ,0, 1,
+                                                        0, 1, 0, 0, 0, 0 ,0 ,0, 0,
+                                                        0, 0, 1, 0, 0, 0 ,0 ,0, 0,
+                                                        0, 0, 0, 1, 0, 0 ,0 ,0, 0,
+                                                        0, 0, 0, 0, 1, 0 ,0 ,0, 0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+        ASSERT_EQ(group_elems.size(), 2);
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        Group group{context, std::move(base_rep)};
+        ASSERT_EQ(group.size, 2);
+
+        // Test Z2 for fundamental representation
+        auto& rep1 = group.representation(1);
+        ASSERT_EQ(rep1.size(), 2);
+        EXPECT_EQ(rep1.word_length, 1);
+        EXPECT_FALSE(rep1[0].isApprox(rep1[1]));
+        EXPECT_EQ(rep1[0].nonZeros(), 9);
+
+        EXPECT_TRUE(rep1[0].isApprox(rep1[1] * rep1[1]));
+        EXPECT_EQ(rep1[1].nonZeros(), 9);
+
+        // Test Z2 for L4 representation
+        auto& rep4 = group.create_representation(4);
+        ASSERT_EQ(rep4.size(), 2);
+        EXPECT_EQ(rep4.word_length, 4);
+        EXPECT_FALSE(rep4[0].isApprox(rep4[1]));
+        EXPECT_TRUE(rep4[0].isApprox(rep4[1] * rep4[1]));
+
     }
 }

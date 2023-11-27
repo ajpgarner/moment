@@ -13,3 +13,10 @@ add_executable(stresstest_inflation
 )
 target_link_libraries(stresstest_inflation
     lib_moment)
+
+# Add symmetrizatoin stress test
+add_executable(stresstest_symmetrization
+    test_symmetrized_i4422.cpp
+)
+target_link_libraries(stresstest_symmetrization
+    lib_moment)
