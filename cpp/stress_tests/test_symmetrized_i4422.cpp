@@ -168,6 +168,10 @@ int main() {
             report_failure(before_sms, e);
             return -1;
         }
+        const size_t base_symbols = i4422.lms().Symbols().size();
+        const size_t translated_symbols = sms_ptr->Symbols().size();
+        std::cout << "\tSymbol reduction: " << base_symbols << " -> " << translated_symbols << std::endl;
+
     }
 
     return 0;

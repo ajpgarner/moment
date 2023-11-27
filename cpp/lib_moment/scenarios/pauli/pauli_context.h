@@ -14,6 +14,7 @@
 
 namespace Moment {
     class ContextualOS;
+    class OperatorSequenceGenerator;
 
     namespace errors {
         /**
@@ -27,7 +28,7 @@ namespace Moment {
 
     namespace Pauli {
 
-        class NearestNeighbourIndex;
+        struct NearestNeighbourIndex;
         class PauliSequenceGenerator;
 
         class PauliContext : public Context {
@@ -86,6 +87,7 @@ namespace Moment {
             [[nodiscard]] std::string to_string() const final;
 
             using Context::operator_sequence_generator;
+
             [[nodiscard]] const OperatorSequenceGenerator&
             operator_sequence_generator(const NearestNeighbourIndex& index, bool conjugated=false) const;
 

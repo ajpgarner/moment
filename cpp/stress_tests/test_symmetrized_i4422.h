@@ -33,6 +33,10 @@ namespace Moment::StressTests {
         [[nodiscard]] std::unique_ptr<Symmetrized::SymmetrizedMatrixSystem>
         make_symmetrized_system(std::unique_ptr<Symmetrized::Group>, size_t mm_level) const ;
 
+        [[nodiscard]] const Locality::LocalityMatrixSystem& lms() const noexcept {
+            return *lms_ptr;
+        }
+
     private:
         [[nodiscard]] Eigen::SparseMatrix<double> make_z2_generator() const;
     };

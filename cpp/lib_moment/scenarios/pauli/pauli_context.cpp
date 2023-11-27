@@ -393,8 +393,8 @@ namespace Moment::Pauli {
         return ss.str();
     }
 
-    const OperatorSequenceGenerator&
-    PauliContext::operator_sequence_generator(const NearestNeighbourIndex& index, bool /**/) const {
+    const Moment::OperatorSequenceGenerator&
+    PauliContext::operator_sequence_generator(const NearestNeighbourIndex& index, bool conjugate) const {
         // NB: Ignore conjugate because everything is Hermitian in this scenario
         const auto& dictionary = dynamic_cast<const PauliDictionary&>(this->dictionary());
         const auto& osg_pair = dictionary.NearestNeighbour(index);
