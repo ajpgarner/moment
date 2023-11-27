@@ -224,6 +224,44 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Symmetry_Group, CreateRepresentation_CHSH_1to4_MT) {
+
+        // CHSH
+        Locality::LocalityContext context{Locality::Party::MakeList(2, 2, 2)};
+
+        // Dihedral-8 group <-> symmetries of CHSH inequality.
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        1, 0, 0, 0,-1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 1, 0, 0 ,0,
+                                                        0, 0, 1, 0 ,0}));
+        generators.emplace_back(make_sparse<double>(5, {1, 0, 0, 0, 0,
+                                                        0, 0, 0, 0, 1,
+                                                        0, 0, 0, 1, 0,
+                                                        0, 0, 1, 0 ,0,
+                                                        0, 1, 0, 0 ,0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        Group group{context, std::move(base_rep)};
+        auto& rep1 = group.representation(1);
+        ASSERT_EQ(rep1.size(), 16);
+        EXPECT_EQ(rep1.word_length, 1);
+
+        auto& rep2 = group.create_representation(4, Multithreading::MultiThreadPolicy::Always);
+        ASSERT_NE(&rep1, &rep2);
+
+        EXPECT_EQ(rep2.size(), 16);
+        EXPECT_EQ(rep2.word_length, 4);
+        EXPECT_EQ(rep2.dimension, 41);
+        for (const auto& mat : rep2) {
+            EXPECT_EQ(mat.rows(), 41);
+            EXPECT_EQ(mat.cols(), 41);
+        }
+
+    }
+
     TEST(Scenarios_Symmetry_Group, CreateRepresentation_Z2_1to10) {
 
         // CHSH
