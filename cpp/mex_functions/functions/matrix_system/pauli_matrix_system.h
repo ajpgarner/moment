@@ -22,6 +22,9 @@ namespace Moment::mex::functions {
         /** True to wrap or tile the qubits for the purpose of identifying neighbours */
         bool wrap = false;
 
+        /** True to automatically symmetrize */
+        bool symmetrized = false;
+
         /** The 'precision' limit, such that if a value is less than eps * [this value] it is treated as zero. */
         double zero_tolerance = 1.0;
 

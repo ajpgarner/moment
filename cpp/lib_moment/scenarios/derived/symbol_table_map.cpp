@@ -44,6 +44,12 @@ namespace Moment::Derived {
     }
 
 
+
+    SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target)
+            : origin_symbols{origin}, target_symbols{target} {
+
+    }
+
     SymbolTableMap::SymbolTableMap(const SymbolTable& origin, SymbolTable& target,
                                    std::unique_ptr<MapCore> core_in,
                                    std::unique_ptr<SolvedMapCore> solution_in)

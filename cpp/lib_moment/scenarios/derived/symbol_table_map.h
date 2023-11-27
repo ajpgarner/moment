@@ -38,7 +38,7 @@ namespace Moment {
         class SolvedMapCore;
 
         class SymbolTableMap {
-        private:
+        protected:
             const SymbolTable& origin_symbols;
             SymbolTable& target_symbols;
 
@@ -46,10 +46,14 @@ namespace Moment {
             std::vector<Polynomial> inverse_map;
             bool _is_monomial_map = false;
 
+        private:
             std::unique_ptr<MapCore> core;
             std::unique_ptr<SolvedMapCore> core_solution;
 
 
+        protected:
+            /** Partial construction, for derived symbol table maps */
+            SymbolTableMap(const SymbolTable& origin, SymbolTable& target);
 
         public:
 
@@ -63,7 +67,7 @@ namespace Moment {
                        std::unique_ptr<MapCore> core,
                        std::unique_ptr<SolvedMapCore> solution);
 
-        private:
+        protected:
             /**
              * Use core and solution to build map.
              * @param osg_to_symbols The symbol IDs in the origin table corresponding to the OSG indices.
@@ -77,7 +81,7 @@ namespace Moment {
              void populate_target_symbols();
 
         public:
-            ~SymbolTableMap() noexcept;
+            virtual ~SymbolTableMap() noexcept;
 
             /**
              * Get symbol/symbol combo in target, associated with symbol in source.
@@ -169,11 +173,11 @@ namespace Moment {
              */
             [[nodiscard]] const SolvedMapCore& raw_solution() const noexcept { return *this->core_solution; }
 
-            const SymbolTable& Origin() const noexcept {
+            [[nodiscard]] const SymbolTable& Origin() const noexcept {
                 return this->origin_symbols;
             }
 
-            const SymbolTable& Target() const noexcept {
+            [[nodiscard]] const SymbolTable& Target() const noexcept {
                 return this->target_symbols;
             }
 

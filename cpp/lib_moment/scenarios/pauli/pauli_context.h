@@ -22,7 +22,7 @@ namespace Moment {
          */
         class bad_pauli_context : std::runtime_error {
         public:
-            bad_pauli_context(const std::string& what) : std::runtime_error{what} { }
+            explicit bad_pauli_context(const std::string& what) : std::runtime_error{what} { }
         };
     }
 
@@ -56,6 +56,13 @@ namespace Moment {
              */
              const bool wrap = false;
 
+            /**
+             * Does the system have translational symmetry?
+             * Undefined (probably mathematically meaningless!) results if set to true when wrap is set to false.
+             */
+             const bool translational_symmetry = false;
+
+
         public:
             /**
              * Construct a context for Pauli matrices
@@ -64,7 +71,8 @@ namespace Moment {
              * @param lattice_row_size The number of qubits in one row of a 2D lattice, or 0 for a 1D chain.
              * @throws bad_pauli_context If the lattice row size is not valid (0, or divisor of qubits).
              */
-            explicit PauliContext(oper_name_t qubits, bool wrap = false, oper_name_t lattice_row_size = 0);
+            explicit PauliContext(oper_name_t qubits, bool wrap = false, bool translational_symmetry = false,
+                                  oper_name_t lattice_row_size = 0);
 
             [[nodiscard]] bool can_be_nonhermitian() const noexcept final {
                 return false;
@@ -73,6 +81,15 @@ namespace Moment {
             [[nodiscard]] inline bool is_lattice() const noexcept {
                 return this->row_width != 0;
             }
+
+            [[nodiscard]] bool can_have_aliases() const noexcept final {
+                // If we have symmetry, then things like <X3> -> <X1>, <X2Y5> -> <X1Y4>, etc.
+                return this->translational_symmetry;
+            }
+
+            OperatorSequence simplify_as_moment(OperatorSequence&& seq) const override;
+
+            bool can_be_simplified_as_moment(const OperatorSequence& seq) const final;
 
             bool additional_simplification(sequence_storage_t &op_sequence, SequenceSignType &sign) const final;
 

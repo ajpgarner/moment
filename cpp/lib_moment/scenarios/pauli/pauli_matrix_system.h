@@ -44,15 +44,6 @@ namespace Moment::Pauli {
          */
         explicit PauliMatrixSystem(std::unique_ptr<class PauliContext> context, double tolerance = 1.0);
 
-        /**
-         * Construct a system of matrices with shared operators representing Pauli matrices.
-         * @param qubit_count The number of qubits.
-         * @param lattice_row The number of qubits in one row, if a lattice; set to 0 to create a 1D chain.
-         * @param tolerance Floating point equivalence factor.
-         */
-        explicit PauliMatrixSystem(oper_name_t qubit_count, oper_name_t lattice_row = 0, double tolerance = 1.0);
-
-
     protected:
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;

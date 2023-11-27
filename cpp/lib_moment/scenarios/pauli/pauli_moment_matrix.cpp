@@ -58,14 +58,25 @@ namespace Moment::Pauli {
     PauliMomentMatrix::create_matrix(const PauliContext& context, class SymbolTable& symbols,
                                      const NearestNeighbourIndex& nn_index,
                                      Multithreading::MultiThreadPolicy mt_policy) {
-        const auto mm_functor = [](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-            return lhs * rhs;
-        };
+        if (context.can_have_aliases()) {
+            const auto mm_functor = [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return context.simplify_as_moment(lhs * rhs);
+            };
 
-        OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
-                creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
+            OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
+                    creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
 
-        return creation_context.execute(nn_index);
+            return creation_context.execute(nn_index);
+        } else {
+            const auto mm_functor = [](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return lhs * rhs;
+            };
+
+            OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
+                    creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
+
+            return creation_context.execute(nn_index);
+        }
     }
 
 }

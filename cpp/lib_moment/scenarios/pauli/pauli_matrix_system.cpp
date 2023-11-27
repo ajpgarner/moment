@@ -24,10 +24,6 @@ namespace Moment::Pauli {
         this->PauliPolynomialLocalizingMatrices.indices.set_factory(this->polynomial_factory());
     }
 
-    PauliMatrixSystem::PauliMatrixSystem(const oper_name_t qubit_count, const oper_name_t lattice_row,
-                                         const double tolerance)
-        : PauliMatrixSystem{std::make_unique<PauliContext>(qubit_count, lattice_row), tolerance} { }
-
     std::unique_ptr<SymbolicMatrix>
     PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
                                             Multithreading::MultiThreadPolicy mt_policy) {

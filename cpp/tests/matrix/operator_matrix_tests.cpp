@@ -31,7 +31,9 @@ namespace Moment::Tests {
 
     public:
         Matrix_OperatorMatrix()
-            : ::testing::Test{}, ms_ptr{std::make_unique<Pauli::PauliMatrixSystem>(1)}, context{ms_ptr->pauliContext},
+            : ::testing::Test{},
+                ms_ptr{std::make_unique<Pauli::PauliMatrixSystem>(std::make_unique<Pauli::PauliContext>(1))},
+                context{ms_ptr->pauliContext},
                 I{OperatorSequence{context}},
                 iI{OperatorSequence{{}, context, SequenceSignType::Imaginary}},
                 mI{OperatorSequence{{}, context, SequenceSignType::Negative}},

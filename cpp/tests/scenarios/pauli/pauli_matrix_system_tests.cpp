@@ -25,21 +25,21 @@ namespace Moment::Tests {
     using namespace Moment::Pauli;
 
     TEST(Scenarios_Pauli_MatrixSystem, Construct_Empty) {
-        PauliMatrixSystem system{0};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(0)};
         const auto& context = system.pauliContext;
         EXPECT_EQ(context.size(), 0);
         EXPECT_EQ(context.qubit_size, 0);
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, Construct_TwoQubit) {
-        PauliMatrixSystem system{2};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(2)};
         const auto& context = system.pauliContext;
         EXPECT_EQ(context.size(), 6);
         EXPECT_EQ(context.qubit_size, 2);
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, MomentMatrix_Qubit) {
-        PauliMatrixSystem system{1};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
         const auto& symbols = system.Symbols();
 
@@ -91,7 +91,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, MomentMatrix_QubitMT) {
-        PauliMatrixSystem system{1};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
         const auto& symbols = system.Symbols();
 
@@ -145,7 +145,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_MatrixSystem, FiveQubitSymbolTable) {
         // Test replicating weird bug found by Mateus whereby anti-Hermitian symbols are erroneously generated.
 
-        PauliMatrixSystem system{5, false};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(5, false)};
         const auto& context = system.pauliContext;
         const auto& symbols = system.Symbols();
 
@@ -162,7 +162,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourMM) {
-        PauliMatrixSystem system{3, false};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, false)};
         const auto& context = system.pauliContext;
 
         const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
@@ -183,7 +183,7 @@ namespace Moment::Tests {
 
     }
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourLM) {
-        PauliMatrixSystem system{3, false};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, false)};
         const auto& context = system.pauliContext;
         EXPECT_FALSE(context.wrap);
 

@@ -421,4 +421,17 @@ namespace Moment::Tests {
             }
         }
     }
+
+    TEST(Scenarios_Pauli_Context, Symmetrized_FiveQubit) {
+        PauliContext context{5, true, true};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_EQ(context.qubit_size, 5);
+        ASSERT_EQ(context.size(), 15);
+
+        const auto x1z3 = context.sigmaX(0) * context.sigmaZ(2);
+        EXPECT_EQ(context.simplify_as_moment(context.sigmaX(1) * context.sigmaZ(3)), x1z3);
+
+
+    }
 }

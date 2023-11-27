@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
         std::unique_ptr<Pauli::PauliContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                 const PauliMatrixSystemParams &input) {
             return std::make_unique<Pauli::PauliContext>(
-                    static_cast<oper_name_t>(input.qubit_count), input.wrap, input.row_width
+                    static_cast<oper_name_t>(input.qubit_count), input.wrap, input.symmetrized, input.row_width
             );
         }
     }
@@ -44,6 +44,14 @@ namespace Moment::mex::functions {
         // Do we wrap?
         if (this->flags.contains(u"wrap")) {
             this->wrap = true;
+        }
+
+        // Are we symmetrized
+        if (this->flags.contains(u"symmetrized")) {
+            if (!this->wrap) {
+                throw_error(this->matlabEngine, errors::bad_param, "Symmetrization requires wrapping.");
+            }
+            this->symmetrized = true;
         }
 
         // What about lattice?
@@ -80,6 +88,7 @@ namespace Moment::mex::functions {
 
         this->flag_names.emplace(u"lattice");
         this->flag_names.emplace(u"wrap");
+        this->flag_names.emplace(u"symmetrized");
 
         this->param_names.emplace(u"columns");
         this->param_names.emplace(u"tolerance");

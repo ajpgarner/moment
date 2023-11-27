@@ -58,8 +58,9 @@ namespace Moment::Pauli {
 
     }
 
-    PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const oper_name_t row_width_in)
-        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, wrap{is_wrapped},
+    PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const bool tx_sym,
+                               const oper_name_t row_width_in)
+        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, wrap{is_wrapped}, translational_symmetry{tx_sym},
             row_width{row_width_in},
             col_width{(row_width_in > 0) ? static_cast<oper_name_t>(qubits / row_width_in)
                                          : static_cast<oper_name_t>(0)} {
@@ -74,6 +75,15 @@ namespace Moment::Pauli {
             }
             assert((row_width * col_width) == qubit_size);
         }
+        if (translational_symmetry) {
+            if (!wrap) {
+                throw errors::bad_pauli_context{"Translational symmetry cannot be imposed on non-wrapping scenarios"};
+            }
+            if (col_width != 0) {
+                throw errors::bad_pauli_context{"Translational symmetry not implemented for 2D lattices."};
+            }
+        }
+
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
@@ -387,7 +397,11 @@ namespace Moment::Pauli {
 
         if (this->wrap) {
             ss << " with wrapping";
+            if (this->translational_symmetry) {
+                ss << " and translational symmetry";
+            }
         }
+
         ss << ".\n";
 
         return ss.str();
@@ -403,5 +417,38 @@ namespace Moment::Pauli {
 
     std::unique_ptr<OperatorSequenceGenerator> PauliContext::new_osg(const size_t word_length) const {
         return std::make_unique<PauliSequenceGenerator>(*this, word_length);
+    }
+
+    OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
+        // If no symmetry, just return
+        if (!this->translational_symmetry) [[unlikely]] {
+            return seq;
+        }
+
+        // Empty sequences, and sequences starting on qubit 1 do not change
+        if (seq.empty()) {
+            return seq;
+        }
+        const oper_name_t first_op = *seq.begin();
+        if (first_op < 3) {
+            return seq;
+        }
+
+        const oper_name_t operator_offset = (first_op / 3) * 3; // Looks redundant, but actually does a floor.
+
+        sequence_storage_t output_data;
+        output_data.reserve(seq.size());
+        for (auto op : seq) {
+            output_data.emplace_back(op - operator_offset);
+        }
+
+        return OperatorSequence{std::move(output_data), *this};
+    }
+
+    bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
+        if (seq.empty()) {
+            return false;
+        }
+        return (*seq.begin() >= 3);
     }
 }

@@ -9,6 +9,8 @@ classdef PauliScenario < MTKScenario
         QubitCount
         % True, if system should wrap / tile
         Wrapped
+        % True, if system has translational symmetry
+        Symmetrized
         % True, if the system is a lattice
         IsLattice;
         % Number of columns in lattice, or just number of qubits in chain.
@@ -39,13 +41,15 @@ classdef PauliScenario < MTKScenario
             % Extract arguments of interest
             [pauli_options, other_options] = ...
                 MTKUtil.split_varargin_keys( ...
-                    ["wrap", "lattice", "columns"], varargin);
+                    ["wrap", "symmetrized", "lattice", "columns"], ...
+                    varargin);
             other_options = MTKUtil.check_varargin_keys(["tolerance"],...
                                                         other_options);
             other_options = [other_options, {"hermitian"}, true];
             
             % Check specific Pauli scenario arguments
             wrap = false;
+            symmetrized = false;
             set_lattice = false;
             lattice = false;
             columns = 0;
@@ -53,6 +57,8 @@ classdef PauliScenario < MTKScenario
                 switch pauli_options{idx}
                     case 'wrap'
                        wrap = logical(pauli_options{idx+1});
+                    case 'symmetrized'
+                        symmetrized = logical(pauli_options{idx+1});
                     case 'lattice'
                        set_lattice = true;
                        lattice = logical(pauli_options{idx+1});
@@ -86,6 +92,7 @@ classdef PauliScenario < MTKScenario
             % Save number of qubits
             obj.QubitCount = qubits;
             obj.Wrapped = wrap;
+            obj.Symmetrized = symmetrized;
             obj.IsLattice = lattice;
             if obj.IsLattice
                 obj.NumberOfColumns = columns;
@@ -225,6 +232,9 @@ classdef PauliScenario < MTKScenario
             end
             if obj.Wrapped
                 named_args{end+1} = 'wrap';
+            end
+            if obj.Symmetrized
+                named_args{end+1} = 'symmetrized';
             end
             if obj.IsLattice
                 named_args{end+1} = 'columns';

@@ -18,7 +18,7 @@
 
 namespace Moment::Tests {
     TEST(Matrix_MonomialMatrix, PreMultiply) {
-        Pauli::PauliMatrixSystem system{1};
+        Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
         auto& symbols = system.Symbols();
 
@@ -77,7 +77,7 @@ namespace Moment::Tests {
     }
 
     TEST(Matrix_MonomialMatrix, PostMultiply) {
-        Pauli::PauliMatrixSystem system{1};
+        Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
         auto& symbols = system.Symbols();
 

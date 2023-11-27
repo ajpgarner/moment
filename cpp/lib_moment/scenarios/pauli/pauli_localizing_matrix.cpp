@@ -64,16 +64,31 @@ namespace Moment::Pauli {
         // Check word sign type
         const bool should_be_hermitian = !is_imaginary(plmi.Word.get_sign());
 
-        // Define localizing matrix element functor
-        const auto lm_functor = [&plmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-            return lhs * (plmi.Word * rhs);
-        };
+        // Check if symmetrized
+        const bool has_aliases = context.can_have_aliases();
 
-        // Do creation
-        OperatorMatrixFactory<PauliLocalizingMatrix, class PauliContext, NearestNeighbourIndex, decltype(lm_functor)>
-                creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, mt_policy};
-        return creation_context.execute(plmi);
+        if (has_aliases) {
+            // Define localizing matrix element functor with aliases
+            const auto lm_functor = [&context, &plmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return context.simplify_as_moment(lhs * (plmi.Word * rhs));
+            };
 
+            // Do creation
+            OperatorMatrixFactory<PauliLocalizingMatrix, class PauliContext, NearestNeighbourIndex, decltype(lm_functor)>
+                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, mt_policy};
+            return creation_context.execute(plmi);
+        } else {
+
+            // Define localizing matrix element functor
+            const auto lm_functor = [&plmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+                return lhs * (plmi.Word * rhs);
+            };
+
+            // Do creation
+            OperatorMatrixFactory<PauliLocalizingMatrix, class PauliContext, NearestNeighbourIndex, decltype(lm_functor)>
+                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, mt_policy};
+            return creation_context.execute(plmi);
+        }
     }
 
 }

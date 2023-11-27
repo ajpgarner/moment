@@ -253,7 +253,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeUnwrapped) {
-        PauliContext context{9, false, 3};
+        PauliContext context{9, false, false, 3};
         ASSERT_EQ(context.size(), 27);
         ASSERT_FALSE(context.wrap);
         ASSERT_EQ(context.row_width, 3);
@@ -289,7 +289,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeWrapped) {
-        PauliContext context{9, true, 3};
+        PauliContext context{9, true, false, 3};
         ASSERT_TRUE(context.wrap);
         ASSERT_EQ(context.size(), 27);
         ASSERT_EQ(context.row_width, 3);
