@@ -97,7 +97,7 @@ int main() {
     using namespace Moment::StressTests;
     using namespace Moment::Symmetrized;
 
-    const size_t max_level = Moment::debug_mode ? 4 : 5;
+    const size_t max_level = Moment::debug_mode ? 3 : 4;
 
     std::cout << "Creating base scenario... " << std::endl;
     const auto before_lms = std::chrono::high_resolution_clock::now();

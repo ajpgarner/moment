@@ -217,33 +217,61 @@ namespace Moment::Derived {
     std::unique_ptr<class SymbolicMatrix>
     DerivedMatrixSystem::create_derived_matrix(MaintainsMutex::WriteLock& lock, ptrdiff_t source_offset,
                                                Multithreading::MultiThreadPolicy mt_policy) {
-        // TODO: implement this
-        throw std::runtime_error{
-            "DerivedMatrixSystem::create_derived_matrix for generic matrices not yet implemented."
-        };
+        // Read from source
+        auto read_source_lock = this->base_system().get_read_lock();
+        if ((source_offset < 0) || (source_offset >= this->base_system().size())) {
+            throw errors::bad_transformation_error{"Cannot transform matrix that does not exist in base system."};
+            // ~read_source_lock
+        }
+        const auto& src_matrix = this->base_system()[source_offset];
+
+        // Do transformation
+        if (src_matrix.is_monomial()) {
+            const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(src_matrix);
+            return do_create_transformed_matrix(this->Context(), this->Symbols(),
+                                                this->polynomial_factory().zero_tolerance,
+                                                this->map(), mono_matrix);
+        } else {
+            const auto& poly_matrix = dynamic_cast<const PolynomialMatrix&>(src_matrix);
+            return do_create_transformed_matrix(this->Context(), this->Symbols(),
+                                                this->polynomial_factory().zero_tolerance,
+                                                this->map(), poly_matrix);
+        }
     }
 
 
     void DerivedMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
-                                                   ptrdiff_t matrix_offset, const SymbolicMatrix& mm) {
+                                                   ptrdiff_t sym_offset, const SymbolicMatrix& mm) {
+
+        auto base_offset = this->base_system().MomentMatrix.find_index(level);
+        assert(base_offset >= 0);
+        auto actual_offset = this->DerivedMatrices.insert_alias(write_lock, base_offset, sym_offset);
+        assert(actual_offset == sym_offset);
 
     }
 
     void DerivedMatrixSystem::on_new_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                       const LocalizingMatrixIndex& lmi, ptrdiff_t matrix_offset,
+                                                       const LocalizingMatrixIndex& lmi, ptrdiff_t sym_offset,
                                                        const SymbolicMatrix& lm) {
-
+        auto base_offset = this->base_system().LocalizingMatrix.find_index(lmi);
+        assert(base_offset >= 0);
+        auto actual_offset = this->DerivedMatrices.insert_alias(write_lock, base_offset, sym_offset);
+        assert(actual_offset == sym_offset);
     }
 
     void DerivedMatrixSystem::on_new_polynomial_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                                  const PolynomialLMIndex& lmi, ptrdiff_t matrix_offset,
+                                                                  const PolynomialLMIndex& lmi, ptrdiff_t sym_offset,
                                                                   const PolynomialMatrix& plm) {
+        auto base_offset = this->base_system().PolynomialLocalizingMatrix.find_index(lmi);
+        assert(base_offset >= 0);
+        auto actual_offset = this->DerivedMatrices.insert_alias(write_lock, base_offset, sym_offset);
+        assert(actual_offset == sym_offset);
     }
 
     void DerivedMatrixSystem::on_new_derived_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                     ptrdiff_t source_offset, ptrdiff_t target_offset,
                                                     const SymbolicMatrix& target_matrix) {
-        // TODO: Check src is moment matrix, localizing matrix, or P-LM.
+        // TODO: Reflection to determine if source matrix is a moment matrix, localizing matrix, or P-LM, etc.
 
     }
 

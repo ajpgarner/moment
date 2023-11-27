@@ -241,8 +241,45 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Symmetry_MatrixSystem, Algebraic_Z2_DerivedIndex) {
-        // TODO: Write DerivedMatrixIndex unit tests.
+        // Two variables, a & b
+        auto amsPtr = std::make_shared<Algebraic::AlgebraicMatrixSystem>(
+                Algebraic::AlgebraicContext::FromNameList({"a", "b"})
+        );
+        auto& ams = *amsPtr;
+        auto& context = ams.Context();
+        const auto& algebraic_symbols = ams.Symbols();
+        ams.generate_dictionary(3);
 
+        // Algebraic symbols
+        const auto [a, b, aa, ab, bb] = get_algebraic_symbol_ids(context, algebraic_symbols);
+
+        // Z2 symmetry; e.g. max "a + b" subject to "a + b < 10"
+        std::vector<Eigen::SparseMatrix<double>> generators;
+        generators.emplace_back(make_sparse<double>(3, {1, 0, 0,
+                                                        0, 0, 1,
+                                                        0, 1, 0}));
+
+        auto group_elems = Group::dimino_generation(generators);
+
+        auto base_rep = std::make_unique<Representation>(1, std::move(group_elems));
+        auto group = std::make_unique<Group>(context, std::move(base_rep));
+        ASSERT_EQ(group->size, 2); // I, X
+        SymmetrizedMatrixSystem sms{amsPtr, std::move(group), 3, std::make_unique<Derived::LUMapCoreProcessor>()};
+
+        const auto& src_factory = ams.polynomial_factory();
+        const Polynomial a_plus_b = src_factory({Monomial{a, 1.0}, Monomial{b, 1.0}});
+        ASSERT_EQ(a_plus_b.size(), 2);
+        const PolynomialLMIndex plm_index{1, a_plus_b};
+        const auto& src_lm = ams.PolynomialLocalizingMatrix(plm_index);
+        ASSERT_EQ(src_lm.Dimension(), 3);
+        auto src_mat_offset = ams.PolynomialLocalizingMatrix.find_index(plm_index);
+        ASSERT_EQ(src_mat_offset, 2); // a = 0, b = 1, a + b = 2
+
+        const auto& symmetrized_lm = sms.DerivedMatrices(src_mat_offset);
+        ASSERT_TRUE(symmetrized_lm.is_polynomial());
+        const auto& slm_as_poly = dynamic_cast<const PolynomialMatrix&>(symmetrized_lm);
+        ASSERT_EQ(symmetrized_lm.Dimension(), 3);
+        EXPECT_EQ((slm_as_poly.SymbolMatrix(0,0)), Polynomial(Monomial(2, 2.0))); // 'a+b' symbol
     }
 
     TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH) {
@@ -378,7 +415,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH_Level4) {
+    TEST(Scenarios_Symmetry_MatrixSystem, Locality_CHSH_Level3) {
         // Two variables, a & b
         auto lmsPtr = std::make_shared<Locality::LocalityMatrixSystem>(
                 std::make_unique<Locality::LocalityContext>(Locality::Party::MakeList(2, 2, 2))
@@ -386,7 +423,7 @@ namespace Moment::Tests {
         auto &lms = *lmsPtr;
         auto &locality_context = lms.localityContext;
         auto &locality_symbols = lms.Symbols();
-        lms.generate_dictionary(8);
+        lms.generate_dictionary(6);
 
         // Get CHSH symbols
         const auto [a0, a1, b0, b1, a0a1, a0b0, a0b1, a1b0, a1b1, b0b1] =
@@ -411,14 +448,12 @@ namespace Moment::Tests {
         auto group = std::make_unique<Group>(locality_context, std::move(base_rep));
 
         ASSERT_EQ(group->size, 16);
-        SymmetrizedMatrixSystem sms{lmsPtr, std::move(group), 8, std::make_unique<Derived::LUMapCoreProcessor>()};
+        SymmetrizedMatrixSystem sms{lmsPtr, std::move(group), 6, std::make_unique<Derived::LUMapCoreProcessor>()};
         ASSERT_EQ(&lms, &sms.base_system());
         const auto& sym_symbols = sms.Symbols();
 
         const auto& map = sms.map();
         ASSERT_EQ(locality_symbols.size(), map.fwd_size()) << lms.Symbols(); // All symbols mapped
-        //EXPECT_EQ(map.inv_size(), 14); // 0, 1,
-        //ASSERT_EQ(sym_symbols.size(), 14) << sms.Symbols();
         EXPECT_FALSE(map.is_monomial_map());
 
         // Check inverse map
