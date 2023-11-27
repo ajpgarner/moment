@@ -37,7 +37,7 @@ namespace Moment {
         /**
          * Exception to throw if multiplication is not possible for some reason.
          */
-        class cannot_multiply_exception : std::logic_error {
+        class cannot_multiply_exception : public std::logic_error {
         public:
             explicit cannot_multiply_exception(const std::string& what)
                     : std::logic_error{what} { }
@@ -46,7 +46,7 @@ namespace Moment {
         /**
          * Exception to throw if addition is not possible for some reason.
          */
-        class cannot_add_exception : std::logic_error {
+        class cannot_add_exception : public  std::logic_error {
         public:
             explicit cannot_add_exception(const std::string& what)
                     : std::logic_error{what} { }

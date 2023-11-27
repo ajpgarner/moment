@@ -388,6 +388,11 @@ namespace Moment {
             if (!matrix.has_operator_matrix()) {
                 throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
             }
+            if (matrix.context.can_have_aliases()) {
+                throw errors::cannot_multiply_exception{
+                    "Currently, multiplication will give unexpected results if aliases (i.e. symmetries) are present."
+                };
+            }
 
             // Do multiplication
             std::unique_ptr<OperatorMatrix> multiplied_op_ptr;
@@ -424,6 +429,11 @@ namespace Moment {
             // Get operator matrix
             if (!matrix.has_operator_matrix()) {
                 throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
+            }
+            if (matrix.context.can_have_aliases()) {
+                throw errors::cannot_multiply_exception{
+                        "Currently, multiplication will give unexpected results if aliases (i.e. symmetries) are present."
+                };
             }
 
             // Do multiplication of operator matrices

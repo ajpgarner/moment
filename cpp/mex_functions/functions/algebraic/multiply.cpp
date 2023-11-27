@@ -15,9 +15,12 @@
 
 #include "scenarios/context.h"
 
+#include "matrix/symbolic_matrix.h"
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
 #include "matrix/operator_matrix/operator_matrix.h"
+
+
 
 #include "export/export_operator_matrix.h"
 #include "export/export_polynomial.h"
@@ -54,12 +57,16 @@ namespace Moment::mex::functions {
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.lhs);
             const auto polynomial = input.rhs.to_polynomial(matlabEngine, matrixSystem);
 
-            if (polynomial.is_monomial() && (!polynomial.empty())) {
-                return matrix.post_multiply(polynomial.back(), matrixSystem.Symbols(),
-                                            Multithreading::MultiThreadPolicy::Optional);
-            } else {
-                return matrix.post_multiply(polynomial, matrixSystem.polynomial_factory(), matrixSystem.Symbols(),
-                                            Multithreading::MultiThreadPolicy::Optional);
+            try {
+                if (polynomial.is_monomial() && (!polynomial.empty())) {
+                    return matrix.post_multiply(polynomial.back(), matrixSystem.Symbols(),
+                                                Multithreading::MultiThreadPolicy::Optional);
+                } else {
+                    return matrix.post_multiply(polynomial, matrixSystem.polynomial_factory(), matrixSystem.Symbols(),
+                                                Multithreading::MultiThreadPolicy::Optional);
+                }
+            } catch(const Moment::errors::cannot_multiply_exception& cme) {
+                throw_error(matlabEngine, errors::internal_error, cme.what());
             }
         }
 
@@ -73,12 +80,16 @@ namespace Moment::mex::functions {
             const auto polynomial = input.lhs.to_polynomial(matlabEngine, matrixSystem);
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.rhs);
 
-            if (polynomial.is_monomial() && (!polynomial.empty())) {
-                return matrix.pre_multiply(polynomial.back(), matrixSystem.Symbols(),
-                                            Multithreading::MultiThreadPolicy::Optional);
-            } else {
-                return matrix.pre_multiply(polynomial, matrixSystem.polynomial_factory(), matrixSystem.Symbols(),
-                                            Multithreading::MultiThreadPolicy::Optional);
+            try {
+                if (polynomial.is_monomial() && (!polynomial.empty())) {
+                    return matrix.pre_multiply(polynomial.back(), matrixSystem.Symbols(),
+                                               Multithreading::MultiThreadPolicy::Optional);
+                } else {
+                    return matrix.pre_multiply(polynomial, matrixSystem.polynomial_factory(), matrixSystem.Symbols(),
+                                               Multithreading::MultiThreadPolicy::Optional);
+                }
+            } catch(const Moment::errors::cannot_multiply_exception& cme) {
+                throw_error(matlabEngine, errors::internal_error, cme.what());
             }
         }
 
