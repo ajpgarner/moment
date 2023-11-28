@@ -50,12 +50,5 @@ namespace Moment {
          * String label for this moment matrix.
          */
         [[nodiscard]] std::string description() const override;
-
-    public:
-        /**
-         * If supplied input is symbol matrix associated with a monomial moment matrix, extract that moment matrix.
-         * Otherwise, returns nullptr.
-         */
-        static const MomentMatrix* as_monomial_moment_matrix_ptr(const SymbolicMatrix& input) noexcept;
     };
 }

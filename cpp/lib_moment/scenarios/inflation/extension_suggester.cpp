@@ -31,7 +31,7 @@ namespace Moment::Inflation {
     std::set<symbol_name_t> ExtensionSuggester::operator()(const MonomialMatrix& matrix) const {
         assert(&matrix.symbols == &this->symbols);
 
-        const auto* mm_ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matrix);
+        MomentMatrix const * mm_ptr = MomentMatrix::to_operator_matrix_ptr(matrix);
         if (nullptr == mm_ptr) {
             throw std::invalid_argument{"Can only suggest extensions for monomial moment matrices."};
         }

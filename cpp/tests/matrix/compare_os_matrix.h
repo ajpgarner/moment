@@ -53,7 +53,7 @@ namespace Moment::Tests {
 
     inline void compare_mm_os_matrix(const SymbolicMatrix& theMM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
+        MomentMatrix const * mmPtr = MomentMatrix::to_operator_matrix_ptr(theMM);
         ASSERT_NE(mmPtr, nullptr) << "Was not a monomial moment matrix!";
 
 

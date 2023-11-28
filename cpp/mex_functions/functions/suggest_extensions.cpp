@@ -31,7 +31,7 @@ namespace Moment::mex::functions  {
                 }
             }();
 
-            const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(matrix);
+            const auto* mmPtr = MomentMatrix::to_operator_matrix_ptr(matrix);
             if (mmPtr == nullptr) {
                 throw_error(matlabEngine, errors::bad_param,
                             "Currently extensions can only be suggested for moment matrices.");

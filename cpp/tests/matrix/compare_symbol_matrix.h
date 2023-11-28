@@ -54,7 +54,7 @@ namespace Moment::Tests {
     inline void compare_symbol_matrix(const SymbolicMatrix &inputMM, const size_t dimension,
                                       const std::vector<Monomial>& reference) {
         ASSERT_TRUE(inputMM.is_monomial());
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(inputMM);
+        MomentMatrix const * mmPtr = MomentMatrix::to_operator_matrix_ptr(inputMM);
         if (mmPtr != nullptr) {
             const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
 

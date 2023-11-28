@@ -26,7 +26,7 @@ namespace Moment::Tests {
     inline void compare_unique_sequences(const SymbolicMatrix &theMM, std::initializer_list<unique_seq_brace_ref> reference) {
         ASSERT_EQ(theMM.symbols.size(), 2 + reference.size());
 
-        const auto* mmPtr = MomentMatrix::as_monomial_moment_matrix_ptr(theMM);
+        MomentMatrix const * mmPtr = MomentMatrix::to_operator_matrix_ptr(theMM);
         ASSERT_NE(mmPtr, nullptr) << "Not a moment matrix!";
 
 

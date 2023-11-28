@@ -400,7 +400,7 @@ namespace Moment::Tests {
 
         auto& mm1 = ams.MomentMatrix(1); // 1, A, B; A A^2 I; B I B^2 ...
         EXPECT_TRUE(mm1.Hermitian());
-        const auto& seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        auto const * seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Index, 1);
@@ -434,7 +434,7 @@ namespace Moment::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
         auto& mm1 = ams.MomentMatrix(1); // 1 (because A=1, B=1...!)
-        const auto* seqMat1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        auto const * seqMat1Ptr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMat1Ptr, nullptr);
         const auto& seqMat1 = *seqMat1Ptr;
         ASSERT_EQ(seqMat1.Index, 1);
@@ -443,7 +443,7 @@ namespace Moment::Tests {
         EXPECT_EQ(seqMat1(0, 0), OperatorSequence::Identity(ams.Context()));
 
         auto& mm3 = ams.MomentMatrix(3); // 1 (because A=1, B=1, still!)
-        const auto* seqMat3Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(mm3);
+        auto const * seqMat3Ptr = MomentMatrix::to_operator_matrix_ptr(mm3);
         ASSERT_NE(seqMat3Ptr, nullptr);
         const auto& seqMat3 = *seqMat3Ptr;
         ASSERT_EQ(seqMat3.Index, 3);
@@ -465,7 +465,7 @@ namespace Moment::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
         auto& mm2 = ams.MomentMatrix(2); // 1 a b ab ba bb
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm2);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm2);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
 
@@ -492,7 +492,7 @@ namespace Moment::Tests {
         const auto& context = dynamic_cast<const AlgebraicContext&>(ams.Context());
 
         auto& mm1 = ams.MomentMatrix(1); // 1 a b
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Index, 1);
@@ -533,7 +533,7 @@ namespace Moment::Tests {
         const auto& context = ams.AlgebraicContext();
 
         auto& mm1 = ams.MomentMatrix(1); // 1 a b
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
 
@@ -560,7 +560,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2); // a, a*
 
         auto& mm1 = ams.MomentMatrix(1); // 1 a a*
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
 
@@ -589,7 +589,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 2); // a, a*
 
         auto& mm1 = ams.MomentMatrix(1); // 1 a a*
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Index, 1);
@@ -628,7 +628,7 @@ namespace Moment::Tests {
         ASSERT_TRUE(context.is_complete());
 
         auto& mm1 = ams.MomentMatrix(1); // 1 x y
-        const auto* seqMatPtr = MomentMatrix::as_monomial_moment_matrix_ptr(mm1);
+        const auto* seqMatPtr = MomentMatrix::to_operator_matrix_ptr(mm1);
         ASSERT_NE(seqMatPtr, nullptr);
         const auto& seqMat = *seqMatPtr;
         ASSERT_EQ(seqMat.Index, 1);
@@ -726,7 +726,7 @@ namespace Moment::Tests {
                                      OperatorSequence{{2}, context},
                              });
 
-        const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(lmZ);
+        const auto* lmPtr = LocalizingMatrix::to_operator_matrix_ptr(lmZ);
 
 
         const auto& mono_lmZ = dynamic_cast<const MonomialMatrix&>(lmZ);
