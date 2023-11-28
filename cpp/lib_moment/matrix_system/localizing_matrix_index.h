@@ -42,11 +42,4 @@ namespace Moment {
         }
     };
 
-
-    template<typename t> struct OSGIndexType;
-    template<> struct OSGIndexType<LocalizingMatrixIndex> {
-        using type = size_t;
-    };
-
-
 }

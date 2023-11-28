@@ -9,7 +9,8 @@
 
 #include "operator_matrix.h"
 
-#include "dictionary/operator_sequence_generator.h"
+#include "dictionary/dictionary.h"
+#include "dictionary/osg_pair.h"
 
 #include "multithreading/multithreading.h"
 #include "multithreading/matrix_generation_worker.h"
@@ -76,8 +77,9 @@ namespace Moment {
         template<typename... Args>
         [[nodiscard]] std::unique_ptr<MonomialMatrix> execute(Args&&... args) {
             // Make or get generators
-            this->colGen = &context.operator_sequence_generator(this->Index);
-            this->rowGen = &context.operator_sequence_generator(this->Index, true);
+            const auto& osg_pair = functor_t::get_generators(context, this->Index); // index is already OSGIndex
+            this->colGen = &(osg_pair());
+            this->rowGen = &(osg_pair.conjugate());
 
             // Ascertain dimension
             this->dimension = colGen->size();

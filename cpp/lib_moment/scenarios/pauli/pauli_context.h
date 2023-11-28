@@ -30,6 +30,7 @@ namespace Moment {
 
         struct NearestNeighbourIndex;
         class PauliSequenceGenerator;
+        class PauliDictionary;
 
         class PauliContext : public Context {
         public:
@@ -62,6 +63,7 @@ namespace Moment {
              */
              const bool translational_symmetry = false;
 
+             PauliDictionary* dictionary_ptr = nullptr;
 
         public:
             /**
@@ -73,6 +75,11 @@ namespace Moment {
              */
             explicit PauliContext(oper_name_t qubits, bool wrap = false, bool translational_symmetry = false,
                                   oper_name_t lattice_row_size = 0);
+
+            inline const PauliDictionary& pauli_dictionary() const noexcept {
+                assert (dictionary_ptr);
+                return *dictionary_ptr;
+            }
 
             [[nodiscard]] bool can_be_nonhermitian() const noexcept final {
                 return false;

@@ -9,15 +9,26 @@
 #include "operator_matrix.h"
 #include "operator_matrix_impl.h"
 
+#include "scenarios/context.h"
+#include "dictionary/dictionary.h"
+
 namespace Moment {
 
+    /**
+     * Defines how a moment matrix is generated from its NPA hierarchy level.
+     */
     struct MomentMatrixGenerator {
     public:
+        using OSGIndex = size_t;
+
         const size_t index;
 
         constexpr MomentMatrixGenerator(const Context& /**/, const size_t index)
                 : index{index} { }
 
+        /**
+         * Elements of moment matrix are essentially lhs * rhs.
+         */
         [[nodiscard]] inline OperatorSequence
         operator()(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
             return lhs * rhs;
@@ -29,13 +40,22 @@ namespace Moment {
         /** Moment matrices always have a prefactor of +1. */
         [[nodiscard]] inline constexpr static std::complex<double>
         determine_prefactor(const size_t /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
+
+        /** Pass-through index to get OSG index. */
+        [[nodiscard]] inline constexpr static OSGIndex get_osg_index(const size_t input) { return input; }
+
+        /** Get normal OSGs */
+        [[nodiscard]] inline static const OSGPair& get_generators(const Context& context, const size_t input) {
+            return context.dictionary().Level(input);
+        }
     };
+    static_assert(generates_operator_matrices<MomentMatrixGenerator, size_t, Context>);
 
     /**
      * Full moment matrix of operators.
      */
     class MomentMatrix;
-    class MomentMatrix : public OperatorMatrixImpl<size_t, MomentMatrixGenerator, MomentMatrix> {
+    class MomentMatrix : public OperatorMatrixImpl<size_t, Context, MomentMatrixGenerator, MomentMatrix> {
     public:
         /**
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.

@@ -38,12 +38,16 @@ namespace Moment::Pauli {
 
         PauliLocalizingMatrixIndex(const size_t level, const size_t neighbours, OperatorSequence word)
             : PauliLocalizingMatrixIndex{NearestNeighbourIndex{level, neighbours}, std::move(word)} {
-
         }
 
         explicit PauliLocalizingMatrixIndex(LocalizingMatrixIndex lmi)
             : Index{lmi.Level, 0}, Word{std::move(lmi.Word)}, WordHash{lmi.WordHash} {
         }
+
+        PauliLocalizingMatrixIndex(const PauliLocalizingMatrixIndex& rhs) = default;
+
+        PauliLocalizingMatrixIndex(PauliLocalizingMatrixIndex&& rhs) = default;
+
 
         [[nodiscard]] bool operator<(const PauliLocalizingMatrixIndex& pmmi) const noexcept {
             // First compare indices

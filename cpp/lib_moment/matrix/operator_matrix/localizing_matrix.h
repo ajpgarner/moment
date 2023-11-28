@@ -10,11 +10,19 @@
 #include "operator_matrix.h"
 #include "operator_matrix_impl.h"
 
+#include "scenarios/context.h"
+#include "dictionary/dictionary.h"
+
 
 namespace Moment {
 
+    /**
+     * Defines how a localizing matrix is generated from its NPA hierarchy level.
+     */
     struct LocalizingMatrixGenerator {
     public:
+        using OSGIndex = size_t;
+
         const LocalizingMatrixIndex& lmi;
 
         constexpr LocalizingMatrixGenerator(const Context& /**/, const LocalizingMatrixIndex& lmi)
@@ -34,11 +42,22 @@ namespace Moment {
         [[nodiscard]] inline constexpr static std::complex<double>
         determine_prefactor(const LocalizingMatrixIndex& /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
 
+        /** Level of localizing matrix index is the OSG index. */
+        [[nodiscard]] inline constexpr static OSGIndex get_osg_index(const LocalizingMatrixIndex& input) {
+            return input.Level;
+        }
+
+        /** Get normal OSGs */
+        [[nodiscard]] inline static const OSGPair& get_generators(const Context& context, const size_t input) {
+            return context.dictionary().Level(input);
+        }
     };
+    static_assert(generates_operator_matrices<LocalizingMatrixGenerator, LocalizingMatrixIndex, Context>);
+
 
     class LocalizingMatrix;
     class LocalizingMatrix
-            : public OperatorMatrixImpl<LocalizingMatrixIndex, LocalizingMatrixGenerator, LocalizingMatrix> {
+            : public OperatorMatrixImpl<LocalizingMatrixIndex, Context, LocalizingMatrixGenerator, LocalizingMatrix> {
     public:
         /**
           * Constructs a localizing matrix at the requested hierarchy depth (level) for the supplied context,
@@ -48,7 +67,7 @@ namespace Moment {
           */
         LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
                          std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-             : OperatorMatrixImpl<LocalizingMatrixIndex, LocalizingMatrixGenerator, LocalizingMatrix>{
+             : OperatorMatrixImpl<LocalizingMatrixIndex, Context, LocalizingMatrixGenerator, LocalizingMatrix>{
                         context, std::move(lmi), std::move(op_seq_mat)} { }
 
         [[nodiscard]] std::string description() const override;

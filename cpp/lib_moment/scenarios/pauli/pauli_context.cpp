@@ -87,6 +87,8 @@ namespace Moment::Pauli {
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
+        this->dictionary_ptr = dynamic_cast<PauliDictionary*>(&this->dictionary());
+        assert(this->dictionary_ptr != nullptr);
     }
 
     bool PauliContext::additional_simplification(sequence_storage_t& op_sequence, SequenceSignType &sign) const {

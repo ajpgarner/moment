@@ -174,9 +174,8 @@ namespace Moment::Tests {
         ASSERT_NE(asMM_ptr, nullptr);
         const auto& asMM = *asMM_ptr;
 
-        EXPECT_EQ(asMM.Index, 2);
-        EXPECT_EQ(asMM.NNIndex.moment_matrix_level, 2);
-        EXPECT_EQ(asMM.NNIndex.neighbours, 1);
+        EXPECT_EQ(asMM.Index.moment_matrix_level, 2);
+        EXPECT_EQ(asMM.Index.neighbours, 1);
 
         const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
         EXPECT_EQ(&pMM, &pMM_alias);
@@ -198,9 +197,8 @@ namespace Moment::Tests {
         ASSERT_NE(asLM_ptr, nullptr);
         const auto& asLM = *asLM_ptr;
 
-        EXPECT_EQ(asLM.Index.Level, 2);
-        EXPECT_EQ(asLM.PauliIndex.Index.moment_matrix_level, 2);
-        EXPECT_EQ(asLM.PauliIndex.Index.neighbours, 1);
+        EXPECT_EQ(asLM.Index.Index.moment_matrix_level, 2);
+        EXPECT_EQ(asLM.Index.Index.neighbours, 1);
         EXPECT_EQ(asLM.Index.Word, x1);
 
         const auto& pLM_x_alias = system.PauliLocalizingMatrices(plmi);
