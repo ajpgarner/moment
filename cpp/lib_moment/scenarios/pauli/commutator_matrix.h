@@ -1,6 +1,9 @@
 /**
  * commutator_matrix.h
  *
+ * Defines methods for generating and instantiating matrices of the form [MM, x] and {MM, x} for monomial x and moment
+ * matrix MM.
+ *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
@@ -11,11 +14,13 @@
 #include "matrix/operator_matrix/operator_matrix.h"
 #include "matrix/operator_matrix/operator_matrix_impl.h"
 
+#include "matrix_system/matrix_indices.h"
+
 #include "pauli_context.h"
 #include "pauli_dictionary.h"
 
 namespace Moment::Pauli {
-    class PauliContext;
+    class PauliMatrixSystem;
 
     using CommutatorMatrixIndex = PauliLocalizingMatrixIndex;
 
@@ -120,4 +125,68 @@ namespace Moment::Pauli {
         [[nodiscard]] std::string description() const override;
 
     };
+
+    /**
+     * Factory to make commutator matrices (possibly restricted to nearest neighbours)
+     */
+    class MonomialCommutatorMatrixFactory {
+    public:
+        using Index = CommutatorMatrixIndex;
+
+    private:
+        PauliMatrixSystem& system;
+
+    public:
+        explicit MonomialCommutatorMatrixFactory(PauliMatrixSystem& system) : system{system} {}
+
+        explicit MonomialCommutatorMatrixFactory(MatrixSystem& system);
+
+        [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
+        operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+                   Multithreading::MultiThreadPolicy mt_policy);
+
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
+                    ptrdiff_t offset, MonomialMatrix& matrix);
+
+        [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
+
+        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
+    };
+
+    static_assert(makes_matrices<MonomialCommutatorMatrixFactory, MonomialMatrix, CommutatorMatrixIndex>);
+    using CommutatorMatrixIndices = MappedMatrixIndices<MonomialMatrix, CommutatorMatrixIndex,
+                                                        MonomialCommutatorMatrixFactory, PauliMatrixSystem>;
+
+    /**
+     * Factory to make anti-commutator matrices (possibly restricted to nearest neighbours)
+     */
+    class MonomialAnticommutatorMatrixFactory {
+    public:
+        using Index = CommutatorMatrixIndex;
+
+    private:
+        PauliMatrixSystem& system;
+
+    public:
+        explicit MonomialAnticommutatorMatrixFactory(PauliMatrixSystem& system) : system{system} {}
+
+        explicit MonomialAnticommutatorMatrixFactory(MatrixSystem& system);
+
+        [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
+        operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+                   Multithreading::MultiThreadPolicy mt_policy);
+
+        void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
+                    ptrdiff_t offset, MonomialMatrix& matrix);
+
+        [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
+
+        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
+    };
+
+
+    static_assert(makes_matrices<MonomialAnticommutatorMatrixFactory, MonomialMatrix, CommutatorMatrixIndex>);
+    using AnticommutatorMatrixIndices = MappedMatrixIndices<MonomialMatrix, CommutatorMatrixIndex,
+                                                            MonomialAnticommutatorMatrixFactory, PauliMatrixSystem>;
+
 }

@@ -12,6 +12,7 @@
 #include "pauli_localizing_matrix_indices.h"
 #include "pauli_moment_matrix_indices.h"
 #include "pauli_polynomial_lm_indices.h"
+#include "commutator_matrix.h"
 
 namespace Moment::Pauli {
 
@@ -34,6 +35,16 @@ namespace Moment::Pauli {
          * Polynomial localizing matrices whose first row might be limited to nearest neighbours, etc.
          */
         PauliPolynomialLMIndices PauliPolynomialLocalizingMatrices;
+
+        /**
+         * Matrices of monomial terms commuted with moment matrix.
+         */
+        CommutatorMatrixIndices CommutatorMatrices;
+
+        /**
+         * Matrices of monomial terms anti-commuted with moment matrix.
+         */
+        AnticommutatorMatrixIndices AnticommutatorMatrices;
 
 
     public:
@@ -77,6 +88,19 @@ namespace Moment::Pauli {
         create_nearest_neighbour_localizing_matrix(WriteLock& lock, const PauliPolynomialLMIndex& index,
                                                    Multithreading::MultiThreadPolicy mt_policy);
 
+        /**
+         * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
+         */
+        [[nodiscard]] std::unique_ptr<MonomialMatrix>
+        create_commutator_matrix(WriteLock& lock, const CommutatorMatrixIndex & index,
+                                 Multithreading::MultiThreadPolicy mt_policy);
+
+        /**
+         * Construct a new matrix, defined as {MM, x} for moment matrix M (maybe restricted to NN) and monomial x.
+         */
+        [[nodiscard]] std::unique_ptr<MonomialMatrix>
+        create_anticommutator_matrix(WriteLock& lock, const CommutatorMatrixIndex& index,
+                                     Multithreading::MultiThreadPolicy mt_policy);
 
 
         void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
@@ -117,6 +141,20 @@ namespace Moment::Pauli {
                                                                 ptrdiff_t matrix_offset,
                                                                 const PolynomialMatrix& lm);
 
+        /*
+         * Virtual method, called after a new commutator matrix is generated.
+         */
+        virtual void on_new_commutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                              const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
+                                              const MonomialMatrix& cm);
+
+        /*
+         * Virtual method, called after a new anti-commutator matrix is generated.
+         */
+        virtual void on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                  const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
+                                                  const MonomialMatrix& cm);
+
     public:
         ~PauliMatrixSystem();
 
@@ -124,10 +162,10 @@ namespace Moment::Pauli {
             return "Pauli Matrix System";
         }
 
-
-
         friend class PauliMomentMatrixFactory;
         friend class PauliLocalizingMatrixFactory;
         friend class PauliPolynomialLMFactory;
+        friend class MonomialCommutatorMatrixFactory;
+        friend class MonomialAnticommutatorMatrixFactory;
     };
 }

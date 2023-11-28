@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "commutator_matrix.h"
+#include "pauli_matrix_system.h"
 
 namespace Moment::Pauli {
 
@@ -36,42 +37,76 @@ namespace Moment::Pauli {
         return ss.str();
     }
 
-//
-//
-//    std::unique_ptr<MonomialMatrix>
-//    MonomialAnticommutatorMatrix::create_matrix(const PauliContext& context, class SymbolTable& symbols,
-//                                         const PauliLocalizingMatrixIndex& plmi,
-//                                         Multithreading::MultiThreadPolicy mt_policy) {
-//
-//        // Check word sign type
-//        const bool should_be_hermitian = !is_imaginary(plmi.Word.get_sign());
-//
-//        // Check if symmetrized
-//        const bool has_aliases = context.can_have_aliases();
-//
-//        if (has_aliases) {
-//            // Define localizing matrix element functor with aliases
-//            const auto lm_functor = [&context, &plmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-//                return context.simplify_as_moment(context.anticommutator(lhs * rhs, plmi.Word));
-//            };
-//
-//            // Do creation
-//            OperatorMatrixFactory<MonomialAnticommutatorMatrix, class PauliContext,
-//                                  NearestNeighbourIndex, decltype(lm_functor)>
-//                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, 2.0, mt_policy};
-//            return creation_context.execute(plmi);
-//        } else {
-//
-//            // Define localizing matrix element functor
-//            const auto lm_functor = [&context, &plmi](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-//                return context.anticommutator(lhs * rhs, plmi.Word);
-//            };
-//
-//            // Do creation
-//            OperatorMatrixFactory<MonomialAnticommutatorMatrix, class PauliContext,
-//                                  NearestNeighbourIndex, decltype(lm_functor)>
-//                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, 2.0, mt_policy};
-//            return creation_context.execute(plmi);
-//        }
-//    }
+    MonomialCommutatorMatrixFactory::MonomialCommutatorMatrixFactory(MatrixSystem& system)
+        : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
+
+    std::pair<ptrdiff_t, MonomialMatrix&>
+    MonomialCommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+                                                const MonomialCommutatorMatrixFactory::Index& index,
+                                                Multithreading::MultiThreadPolicy mt_policy) {
+        auto matrixPtr = system.create_commutator_matrix(lock, index, mt_policy);
+        MonomialMatrix& matrixRef = *matrixPtr;
+        const auto matrixIndex = system.push_back(lock, std::move(matrixPtr));
+        return std::pair<ptrdiff_t, MonomialMatrix&>{matrixIndex, matrixRef};
+    }
+
+    void MonomialCommutatorMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                                 const MonomialCommutatorMatrixFactory::Index& index,
+                                                 const ptrdiff_t offset,
+                                                 MonomialMatrix& matrix) {
+        this->system.on_new_commutator_matrix(lock, index, offset, matrix);
+    }
+
+    std::string MonomialCommutatorMatrixFactory::not_found_msg(const MonomialCommutatorMatrixFactory::Index& pmi) const {
+        std::stringstream errSS;
+        errSS << "Could not find commutator matrix of level " << pmi.Index.moment_matrix_level;
+        errSS << " for sequence \"" << this->system.Context().format_sequence(pmi.Word);
+        if (pmi.Index.neighbours > 0 ) {
+            errSS << ", restricted to " << pmi.Index.neighbours
+                  << " nearest neighbour" << ((pmi.Index.neighbours != 1) ? "s" : "");
+        }
+        errSS << ".";
+        return errSS.str();
+    }
+
+    std::unique_lock<std::shared_mutex> MonomialCommutatorMatrixFactory::get_write_lock() {
+        return this->system.get_write_lock();
+    }
+
+    MonomialAnticommutatorMatrixFactory::MonomialAnticommutatorMatrixFactory(MatrixSystem& system)
+        : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
+
+    std::pair<ptrdiff_t, MonomialMatrix&>
+    MonomialAnticommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+                                                const MonomialAnticommutatorMatrixFactory::Index& index,
+                                                Multithreading::MultiThreadPolicy mt_policy) {
+        auto matrixPtr = system.create_anticommutator_matrix(lock, index, mt_policy);
+        MonomialMatrix& matrixRef = *matrixPtr;
+        const auto matrixIndex = system.push_back(lock, std::move(matrixPtr));
+        return std::pair<ptrdiff_t, MonomialMatrix&>{matrixIndex, matrixRef};
+    }
+
+    void MonomialAnticommutatorMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
+                                                 const MonomialAnticommutatorMatrixFactory::Index& index,
+                                                 const ptrdiff_t offset, MonomialMatrix& matrix) {
+        this->system.on_new_anticommutator_matrix(lock, index, offset, matrix);
+    }
+
+    std::string
+    MonomialAnticommutatorMatrixFactory::not_found_msg(const MonomialAnticommutatorMatrixFactory::Index& pmi) const {
+        std::stringstream errSS;
+        errSS << "Could not find anticommutator matrix of level " << pmi.Index.moment_matrix_level;
+        errSS << " for sequence \"" << this->system.Context().format_sequence(pmi.Word);
+        if (pmi.Index.neighbours > 0 ) {
+            errSS << ", restricted to " << pmi.Index.neighbours
+                  << " nearest neighbour" << ((pmi.Index.neighbours != 1) ? "s" : "");
+        }
+        errSS << ".";
+        return errSS.str();
+    }
+
+    std::unique_lock<std::shared_mutex> MonomialAnticommutatorMatrixFactory::get_write_lock() {
+        return this->system.get_write_lock();
+    }
+
 }

@@ -83,30 +83,58 @@ namespace Moment::Tests {
         }
     };
 
-    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, AntiCommute_X1) {
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, Commute_Z1) {
         auto& system = this->get_system();
         const auto& factory = this->get_factory();
         const auto& context = this->get_context();
         auto& symbols = this->get_symbols();
         const PauliLocalizingMatrixIndex plmi_Z1{1, 0, context.sigmaZ(0)}; // [MM, Z1]
 
-        auto matrix = MonomialAnticommutatorMatrix::create_matrix(context, symbols, plmi_Z1,
-                                                                  Multithreading::MultiThreadPolicy::Never);
+        auto& matrix = system.CommutatorMatrices(plmi_Z1);
 
-        ASSERT_TRUE(matrix->is_monomial());
-        const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(*matrix);
-        ASSERT_TRUE(matrix->has_operator_matrix());
+        ASSERT_TRUE(matrix.is_monomial());
+        const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(matrix);
+        ASSERT_TRUE(matrix.has_operator_matrix());
+        ASSERT_NE(MonomialCommutatorMatrix::to_operator_matrix_ptr(matrix), nullptr);
         const auto& op_matrix = mono_matrix.operator_matrix();
-        compare_os_matrix("[MM, Z] + [Z, MM]", op_matrix, 4, {z,    Zero,   Zero, I,
-                                                              Zero, z,      iI,   Zero,
-                                                              Zero, miI,    z,    Zero,
-                                                              I,    Zero,   Zero, z});
+        compare_os_matrix("[MM, Z]", op_matrix, 4, {Zero,  miy,   ix,   Zero,
+                                                    miy,   Zero,  Zero, x,
+                                                    ix,    Zero,  Zero, y,
+                                                    Zero,  mx,    my,   Zero});
 
-        compare_monomial_matrix("[MM, Z] + [Z, MM]", mono_matrix, 4,
+        compare_monomial_matrix("[MM, Z]", mono_matrix, 4,
+                                {Monomial{0}, Monomial{sY, {0.0, -2.0}}, Monomial{sX, {0.0, 2.0}}, Monomial{0},
+                                 Monomial{sY, {0.0, -2.0}}, Monomial{0}, Monomial{0},  Monomial{sX, {2.0, 0.0}},
+                                 Monomial{sX, {0.0, 2.0}}, Monomial{0}, Monomial{0},  Monomial{sY, {2.0, 0.0}},
+                                 Monomial{0}, Monomial{sX, {-2.0, 0.0}}, Monomial{sY, {-2.0, 0.0}}, Monomial{0}});
+
+    }
+
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, Anticommute_Z1) {
+        auto& system = this->get_system();
+        const auto& factory = this->get_factory();
+        const auto& context = this->get_context();
+        auto& symbols = this->get_symbols();
+        const PauliLocalizingMatrixIndex plmi_Z1{1, 0, context.sigmaZ(0)}; // [MM, Z1]
+
+        auto& matrix = system.AnticommutatorMatrices(plmi_Z1);
+        ASSERT_TRUE(matrix.is_monomial());
+        const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(matrix);
+        ASSERT_TRUE(matrix.has_operator_matrix());
+        ASSERT_NE(MonomialAnticommutatorMatrix::to_operator_matrix_ptr(matrix), nullptr);
+        const auto& op_matrix = mono_matrix.operator_matrix();
+        compare_os_matrix("{MM, Z}", op_matrix, 4, {z,    Zero,   Zero, I,
+                                                    Zero, z,      iI,   Zero,
+                                                    Zero, miI,    z,    Zero,
+                                                    I,    Zero,   Zero, z});
+
+
+        compare_monomial_matrix("{MM, Z}", mono_matrix, 4,
                                 {Monomial{sZ, 2.0}, Monomial{0}, Monomial{0}, Monomial{1, 2.0},
                                  Monomial{0}, Monomial{sZ, 2.0}, Monomial{1, {0.0, 2.0}}, Monomial{0},
                                  Monomial{0}, Monomial{1, {0.0, -2.0}}, Monomial{sZ, 2.0}, Monomial{0},
                                  Monomial{1, 2.0}, Monomial{0}, Monomial{0}, Monomial{sZ, 2.0}});
 
     }
+
 }

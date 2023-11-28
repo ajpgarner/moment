@@ -18,7 +18,8 @@ namespace Moment::Pauli {
     PauliMatrixSystem::PauliMatrixSystem(std::unique_ptr<class PauliContext> contextPtr, const double tolerance)
         : MatrixSystem{std::move(contextPtr), tolerance},
           pauliContext{dynamic_cast<class PauliContext&>(this->Context())},
-          PauliMomentMatrices{*this}, PauliLocalizingMatrices{*this}, PauliPolynomialLocalizingMatrices{*this} {
+          PauliMomentMatrices{*this}, PauliLocalizingMatrices{*this}, PauliPolynomialLocalizingMatrices{*this},
+          CommutatorMatrices{*this}, AnticommutatorMatrices{*this} {
 
         // Set index factory...
         this->PauliPolynomialLocalizingMatrices.indices.set_factory(this->polynomial_factory());
@@ -112,6 +113,36 @@ namespace Moment::Pauli {
         return ptr;
     }
 
+    std::unique_ptr<MonomialMatrix>
+    PauliMatrixSystem::create_commutator_matrix(MaintainsMutex::WriteLock& write_lock,
+                                                const CommutatorMatrixIndex& cmi,
+                                                Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(write_lock));
+        auto& symbol_table = this->Symbols();
+        const size_t prev_symbol_count = symbol_table.size();
+        auto ptr = MonomialCommutatorMatrix::create_matrix(this->pauliContext, symbol_table, cmi, mt_policy);
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
+    }
+
+    std::unique_ptr<MonomialMatrix>
+    PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& write_lock,
+                                                    const CommutatorMatrixIndex& cmi,
+                                                    Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(write_lock));
+        auto& symbol_table = this->Symbols();
+        const size_t prev_symbol_count = symbol_table.size();
+        auto ptr = MonomialAnticommutatorMatrix::create_matrix(this->pauliContext, symbol_table, cmi, mt_policy);
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
+    }
+
 
     void PauliMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                  size_t moment_matrix_level,
@@ -202,6 +233,16 @@ namespace Moment::Pauli {
         }
     }
 
+    void PauliMatrixSystem::on_new_commutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                     const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
+                                                     const MonomialMatrix& cm) {
+    }
+
+    void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                         const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
+                                                         const MonomialMatrix& cm) {
+
+    }
 
 
     PauliMatrixSystem::~PauliMatrixSystem() = default;

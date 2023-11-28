@@ -1,5 +1,5 @@
 /**
- * pauli_poly_lmi.h
+ * pauli_polynomial_lm_indices.h
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
