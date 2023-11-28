@@ -37,6 +37,18 @@ namespace Moment {
         lhs.to_canonical_form();
     }
 
+    OperatorSequence Context::zero() const {
+        return OperatorSequence{*this, true};
+    }
+
+    OperatorSequence Context::identity() const {
+        return OperatorSequence{*this, false};
+    }
+
+    OperatorSequence Context::identity(const SequenceSignType the_sign) const {
+        return OperatorSequence{OperatorSequence::ConstructRawFlag{}, {}, 1, *this, the_sign};
+    }
+
     OperatorSequence Context::conjugate(const OperatorSequence& seq) const {
         // 0* = 0
         if (seq.zero()) {

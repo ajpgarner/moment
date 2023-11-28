@@ -45,6 +45,8 @@ namespace Moment {
     public:
         const index_t Index;
 
+        const std::complex<double> prefactor;
+
         Multithreading::MultiThreadPolicy mt_policy;
 
         size_t dimension = 0;
@@ -59,10 +61,10 @@ namespace Moment {
 
         explicit constexpr
         OperatorMatrixFactory(const context_t& context, SymbolTable& symbols, const index_t& matrix_index,
-                              functor_t the_functor, bool should_be_hermitian,
+                              functor_t the_functor, bool should_be_hermitian, std::complex<double> prefactor,
                               const Multithreading::MultiThreadPolicy mt_policy)
             : context{context}, symbols{symbols}, elem_functor{std::move(the_functor)},
-              should_be_hermitian{should_be_hermitian},
+              should_be_hermitian{should_be_hermitian}, prefactor{prefactor},
               Index{matrix_index}, mt_policy{mt_policy} {
         }
 
@@ -87,7 +89,7 @@ namespace Moment {
                     = Multithreading::should_multithread_matrix_creation(mt_policy, this->dimension*this->dimension);
             if (use_multithreading) {
                 this->mt_policy = Multithreading::MultiThreadPolicy::Always;
-                this->mt_bundle.emplace(this->context, this->symbols, *this->colGen, *this->rowGen);
+                this->mt_bundle.emplace(this->context, this->symbols, *this->colGen, *this->rowGen, this->prefactor);
 
                 this->make_operator_matrix_multi_thread(std::forward<Args>(args)...);
                 this->register_new_symbols_multi_thread();
@@ -124,7 +126,12 @@ namespace Moment {
 
         void make_symbolic_matrix_single_thread() {
             assert(this->operatorMatrix);
-            this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols, std::move(this->operatorMatrix));
+            if (this->prefactor != 1.0) {
+                this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
+                                                                        std::move(this->operatorMatrix), prefactor);
+            } else {
+                this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols, std::move(this->operatorMatrix));
+            }
         }
 
         template<typename... Args>

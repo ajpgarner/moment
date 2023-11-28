@@ -70,7 +70,7 @@ namespace Moment {
                 return context.simplify_as_moment(lhs * (lmi.Word * rhs));
             };
             OperatorMatrixFactory<LocalizingMatrix, class Context, size_t, decltype(alias_lm_functor)>
-                creation_context{context, symbols, lmi.Level, alias_lm_functor, should_be_hermitian, mt_policy};
+                creation_context{context, symbols, lmi.Level, alias_lm_functor, should_be_hermitian, 1.0, mt_policy};
 
             return creation_context.execute(lmi);
         } else {
@@ -78,7 +78,7 @@ namespace Moment {
                 return lhs * (lmi.Word * rhs);
             };
             OperatorMatrixFactory<LocalizingMatrix, class Context, size_t, decltype(lm_functor)>
-                    creation_context{context, symbols, lmi.Level, lm_functor, should_be_hermitian, mt_policy};
+                    creation_context{context, symbols, lmi.Level, lm_functor, should_be_hermitian, 1.0, mt_policy};
 
             return creation_context.execute(lmi);
         }

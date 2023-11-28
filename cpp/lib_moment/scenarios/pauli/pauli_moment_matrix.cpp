@@ -64,7 +64,7 @@ namespace Moment::Pauli {
             };
 
             OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
-                    creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
+                    creation_context{context, symbols, nn_index, mm_functor, true, 1.0, mt_policy};
 
             return creation_context.execute(nn_index);
         } else {
@@ -73,7 +73,7 @@ namespace Moment::Pauli {
             };
 
             OperatorMatrixFactory<PauliMomentMatrix, PauliContext, NearestNeighbourIndex, decltype(mm_functor)>
-                    creation_context{context, symbols, nn_index, mm_functor, true, mt_policy};
+                    creation_context{context, symbols, nn_index, mm_functor, true, 1.0, mt_policy};
 
             return creation_context.execute(nn_index);
         }

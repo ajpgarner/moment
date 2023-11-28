@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <atomic>
 #include <bit>
+#include <complex>
 #include <future>
 #include <memory>
 #include <stdexcept>
@@ -418,7 +419,7 @@ namespace Moment::Multithreading {
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const auto& elem = this->bundle.os_data_ptr[offset];
 
-                    const auto monomial_sign = to_scalar(elem.get_sign());
+                    const auto mono_factor = this->bundle.prefactor * to_scalar(elem.get_sign());
                     const size_t hash = elem.hash();
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
 
@@ -431,7 +432,7 @@ namespace Moment::Multithreading {
                     const auto& unique_elem = symbol_table[symbol_id];
 
                     this->bundle.sm_data_ptr[offset] = Monomial{unique_elem.Id(),
-                                                                monomial_sign,
+                                                                mono_factor,
                                                                 conjugated};
                 }
             }
@@ -466,14 +467,16 @@ namespace Moment::Multithreading {
                     const auto& unique_elem = symbol_table[symbol_id];
 
                     // Write entry
-                    write_ptr[offset] = Monomial{unique_elem.Id(), monomial_sign, conjugated};
+                    write_ptr[offset] = Monomial{unique_elem.Id(), this->bundle.prefactor * monomial_sign, conjugated};
 
                     // Write H conj entry
                     if (offset != trans_offset) {
                         if (unique_elem.is_hermitian()) {
-                            write_ptr[trans_offset] = Monomial{unique_elem.Id(), std::conj(monomial_sign), false};
+                            write_ptr[trans_offset] = Monomial{unique_elem.Id(),
+                                                               this->bundle.prefactor * std::conj(monomial_sign), false};
                         } else {
-                            write_ptr[trans_offset] = Monomial{unique_elem.Id(), std::conj(monomial_sign), !conjugated};
+                            write_ptr[trans_offset] = Monomial{unique_elem.Id(),
+                                                               this->bundle.prefactor * std::conj(monomial_sign), !conjugated};
                         }
                     }
                 }
@@ -498,6 +501,8 @@ namespace Moment::Multithreading {
         const OperatorSequenceGenerator &rowGen;
 
         const size_t dimension;
+
+        const std::complex<double> prefactor;
 
     private:
         std::vector<std::unique_ptr<worker_t>> workers;
@@ -527,8 +532,10 @@ namespace Moment::Multithreading {
     public:
         matrix_generation_worker_bundle(const Context& context, SymbolTable& symbols,
                                         const OperatorSequenceGenerator& cols,
-                                        const OperatorSequenceGenerator& rows)
-              : context{context}, symbols{symbols}, colGen{cols}, rowGen{rows}, dimension{cols.size()} {
+                                        const OperatorSequenceGenerator& rows,
+                                        std::complex<double> prefactor)
+              : context{context}, symbols{symbols}, colGen{cols}, rowGen{rows}, dimension{cols.size()},
+                prefactor{prefactor} {
 
 
             assert(rows.size() == cols.size());

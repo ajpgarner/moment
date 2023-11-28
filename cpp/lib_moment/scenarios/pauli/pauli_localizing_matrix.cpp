@@ -75,7 +75,7 @@ namespace Moment::Pauli {
 
             // Do creation
             OperatorMatrixFactory<PauliLocalizingMatrix, class PauliContext, NearestNeighbourIndex, decltype(lm_functor)>
-                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, mt_policy};
+                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, 1.0, mt_policy};
             return creation_context.execute(plmi);
         } else {
 
@@ -86,7 +86,7 @@ namespace Moment::Pauli {
 
             // Do creation
             OperatorMatrixFactory<PauliLocalizingMatrix, class PauliContext, NearestNeighbourIndex, decltype(lm_functor)>
-                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, mt_policy};
+                    creation_context{context, symbols, plmi.Index, lm_functor, should_be_hermitian, 1.0, mt_policy};
             return creation_context.execute(plmi);
         }
     }

@@ -194,13 +194,20 @@ namespace Moment {
 
         /** Recalculate sequence's hash (only required after raw access write!) */
         template<OperatorHasher hasher_t>
-        void rehash(const hasher_t& hasher) {
+        inline void rehash(const hasher_t& hasher) {
             this->the_hash = hasher(static_cast<std::span<const oper_name_t>>(this->operators));
         }
 
         /** Manually reset sequence's hash (only required after raw access write!), or recontextualizing sequence. */
-        void rehash(const uint64_t hash) {
+        inline void rehash(const uint64_t hash) {
             this->the_hash = hash;
+        }
+
+        /** Set a sequence to zero */
+        inline void set_to_zero() {
+            this->the_hash = 0;
+            this->operators.clear();
+            this->sign = SequenceSignType::Positive;
         }
 
         /** Ordering by hash value (e.g. shortlex) */

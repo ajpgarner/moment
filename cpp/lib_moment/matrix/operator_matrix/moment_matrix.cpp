@@ -69,7 +69,7 @@ namespace Moment {
                 return context.simplify_as_moment(lhs * rhs);
             };
             OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(alias_mm_functor)>
-                    creation_context{context, symbols, level, alias_mm_functor, true, mt_policy};
+                    creation_context{context, symbols, level, alias_mm_functor, true, 1.0, mt_policy};
 
             return creation_context.execute(level);
         } else {
@@ -77,7 +77,7 @@ namespace Moment {
                 return lhs * rhs;
             };
             OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(mm_functor)>
-                    creation_context{context, symbols, level, mm_functor, true, mt_policy};
+                    creation_context{context, symbols, level, mm_functor, true, 1.0, mt_policy};
 
            return creation_context.execute(level);
         }

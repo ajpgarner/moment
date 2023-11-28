@@ -302,6 +302,25 @@ namespace Moment::Pauli {
         lhs.rehash(this->hasher);
     }
 
+    OperatorSequence PauliContext::commutator(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
+        const auto prefactor_sign = lhs.get_sign() * rhs.get_sign();
+        auto result = lhs * rhs;
+        if (is_imaginary(prefactor_sign) == result.imaginary()) {
+            result.set_to_zero();
+        }
+        return result;
+    }
+
+    OperatorSequence PauliContext::anticommutator(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
+        const auto prefactor_sign = lhs.get_sign() * rhs.get_sign();
+        auto result = lhs * rhs;
+        if (is_imaginary(prefactor_sign) != result.imaginary()) {
+            result.set_to_zero();
+        }
+        return result;
+    }
+
+
     OperatorSequence PauliContext::conjugate(const OperatorSequence &seq) const {
         return OperatorSequence{OperatorSequence::ConstructRawFlag{},
                                 seq.raw(), seq.hash(), *this, Moment::conjugate(seq.get_sign())};

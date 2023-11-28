@@ -95,6 +95,19 @@ namespace Moment {
 
             void multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const final;
 
+            /**
+             * 1/2 [lhs, rhs] = (lhs * rhs - rhs * lhs)
+             * Result might be zero.
+             */
+            [[nodiscard]] OperatorSequence commutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+
+            /**
+             * 1/2 {lhs, rhs} = 1/2 * (lhs * rhs + rhs * lhs)
+             * Result might be zero.
+             */
+            [[nodiscard]] OperatorSequence anticommutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+
+
             [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;
 
             void format_sequence(ContextualOS &os, const OperatorSequence &seq) const final;

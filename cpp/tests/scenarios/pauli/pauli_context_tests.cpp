@@ -422,6 +422,104 @@ namespace Moment::Tests {
         }
     }
 
+    TEST(Scenarios_Pauli_Context, Commutator_SingleQubit) {
+        PauliContext context{1};
+        ASSERT_EQ(context.qubit_size, 1);
+        ASSERT_EQ(context.size(), 3);
+
+        OperatorSequence I = context.identity();
+        OperatorSequence x = context.sigmaX(0);
+        OperatorSequence y = context.sigmaY(0);
+        OperatorSequence z = context.sigmaZ(0);
+
+        EXPECT_EQ(context.commutator(I, I), context.zero());
+        EXPECT_EQ(context.commutator(I, x), context.zero());
+        EXPECT_EQ(context.commutator(I, y), context.zero());
+        EXPECT_EQ(context.commutator(I, z), context.zero());
+
+        EXPECT_EQ(context.commutator(x, I), context.zero());
+        EXPECT_EQ(context.commutator(x, x), context.zero());
+        EXPECT_EQ(context.commutator(x, y), context.sigmaZ(0, SequenceSignType::Imaginary));
+        EXPECT_EQ(context.commutator(x, z), context.sigmaY(0, SequenceSignType::NegativeImaginary));
+
+        EXPECT_EQ(context.commutator(y, I), context.zero());
+        EXPECT_EQ(context.commutator(y, x), context.sigmaZ(0, SequenceSignType::NegativeImaginary));
+        EXPECT_EQ(context.commutator(y, y), context.zero());
+        EXPECT_EQ(context.commutator(y, z), context.sigmaX(0, SequenceSignType::Imaginary));
+
+        EXPECT_EQ(context.commutator(z, I), context.zero());
+        EXPECT_EQ(context.commutator(z, x), context.sigmaY(0, SequenceSignType::Imaginary));
+        EXPECT_EQ(context.commutator(z, y), context.sigmaX(0, SequenceSignType::NegativeImaginary));
+        EXPECT_EQ(context.commutator(z, z), context.zero());
+
+        // Check imaginary first argument
+        EXPECT_EQ(context.commutator(context.sigmaX(0, SequenceSignType::Imaginary), z),
+                  context.sigmaY(0, SequenceSignType::Positive));
+        EXPECT_EQ(context.commutator(context.sigmaY(0, SequenceSignType::Imaginary), z),
+                  context.sigmaX(0, SequenceSignType::Negative));
+        EXPECT_EQ(context.commutator(context.sigmaZ(0, SequenceSignType::Imaginary), z),
+                  context.zero());
+
+        // Check imaginary second argument
+        EXPECT_EQ(context.commutator(x, context.sigmaX(0, SequenceSignType::Imaginary)),
+                  context.zero());
+        EXPECT_EQ(context.commutator(x, context.sigmaY(0, SequenceSignType::Imaginary)),
+                  context.sigmaZ(0, SequenceSignType::Negative));
+        EXPECT_EQ(context.commutator(x, context.sigmaZ(0, SequenceSignType::Imaginary)),
+                  context.sigmaY(0, SequenceSignType::Positive));
+    }
+
+    TEST(Scenarios_Pauli_Context, Anticommutator_SingleQubit) {
+        PauliContext context{1};
+        ASSERT_EQ(context.qubit_size, 1);
+        ASSERT_EQ(context.size(), 3);
+
+        OperatorSequence I = context.identity();
+        OperatorSequence x = context.sigmaX(0);
+        OperatorSequence y = context.sigmaY(0);
+        OperatorSequence z = context.sigmaZ(0);
+
+        EXPECT_EQ(context.anticommutator(I, I), I);
+        EXPECT_EQ(context.anticommutator(I, x), x);
+        EXPECT_EQ(context.anticommutator(I, y), y);
+        EXPECT_EQ(context.anticommutator(I, z), z);
+
+        EXPECT_EQ(context.anticommutator(x, I), x);
+        EXPECT_EQ(context.anticommutator(x, x), I);
+        EXPECT_EQ(context.anticommutator(x, y), context.zero());
+        EXPECT_EQ(context.anticommutator(x, z), context.zero());
+
+        EXPECT_EQ(context.anticommutator(y, I), y);
+        EXPECT_EQ(context.anticommutator(y, x), context.zero());
+        EXPECT_EQ(context.anticommutator(y, y), I);
+        EXPECT_EQ(context.anticommutator(y, z), context.zero());
+
+        EXPECT_EQ(context.anticommutator(z, I), z);
+        EXPECT_EQ(context.anticommutator(z, x), context.zero());
+        EXPECT_EQ(context.anticommutator(z, y), context.zero());
+        EXPECT_EQ(context.anticommutator(z, z), I);
+
+        // Check imaginary first argument
+        EXPECT_EQ(context.anticommutator(context.identity(SequenceSignType::Imaginary), z),
+                  context.sigmaZ(0, SequenceSignType::Imaginary));
+        EXPECT_EQ(context.anticommutator(context.sigmaX(0, SequenceSignType::Imaginary), z),
+                  context.zero());
+        EXPECT_EQ(context.anticommutator(context.sigmaY(0, SequenceSignType::Imaginary), z),
+                  context.zero());
+        EXPECT_EQ(context.anticommutator(context.sigmaZ(0, SequenceSignType::Imaginary), z),
+                  context.identity(SequenceSignType::Imaginary));
+
+        // Check imaginary second argument
+        EXPECT_EQ(context.anticommutator(x, context.identity(SequenceSignType::Imaginary)),
+                  context.sigmaX(0, SequenceSignType::Imaginary));
+        EXPECT_EQ(context.anticommutator(x, context.sigmaX(0, SequenceSignType::Imaginary)),
+                  context.identity(SequenceSignType::Imaginary));
+        EXPECT_EQ(context.anticommutator(x, context.sigmaY(0, SequenceSignType::Imaginary)),
+                  context.zero());
+        EXPECT_EQ(context.anticommutator(x, context.sigmaZ(0, SequenceSignType::Imaginary)),
+                  context.zero());
+    }
+
     TEST(Scenarios_Pauli_Context, Symmetrized_FiveQubit) {
         PauliContext context{5, true, true};
         ASSERT_TRUE(context.wrap);

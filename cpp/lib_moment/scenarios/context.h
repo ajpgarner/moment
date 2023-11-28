@@ -84,10 +84,25 @@ namespace Moment {
           */
           [[nodiscard]] virtual bool can_be_simplified_as_moment(const OperatorSequence& seq) const;
 
-        /**
-         * Use context to conjugate operator sequence.
-         * @param seq The operator sequence to conjugate.
-         */
+         /**
+          * Return null operator sequence associated with this context.
+          */
+         [[nodiscard]] OperatorSequence zero() const;
+
+         /**
+          * Return identity operator sequence associated with this context.
+          */
+         [[nodiscard]] OperatorSequence identity() const;
+
+         /**
+          * Return scaled identity operator sequence associated with this context.
+          */
+         [[nodiscard]] OperatorSequence identity(SequenceSignType sign) const;
+
+         /**
+          * Use context to conjugate operator sequence.
+          * @param seq The operator sequence to conjugate.
+          */
         [[nodiscard]] virtual OperatorSequence conjugate(const OperatorSequence& seq) const;
 
          /**
