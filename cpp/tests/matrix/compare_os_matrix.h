@@ -58,18 +58,16 @@ namespace Moment::Tests {
 
 
         std::string prefix{" Level = "};
-        prefix += std::to_string(mmPtr->Level());
+        prefix += std::to_string(mmPtr->Index);
         return compare_os_matrix(prefix, *mmPtr, dimension, reference);
     }
 
     inline void compare_lm_os_matrix(const SymbolicMatrix& theLM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
-        const auto* lmPtr = LocalizingMatrix::as_monomial_localizing_matrix_ptr(theLM);
-        ASSERT_NE(lmPtr, nullptr) << "Was not a monomial localizing matrix!";
-
+        ASSERT_TRUE(theLM.has_operator_matrix());
         std::stringstream ss;
-        ss << " Level = " << lmPtr->Level() << ", word = " << theLM.context.format_sequence(lmPtr->Word());
-        return compare_os_matrix(ss.str(), *lmPtr, dimension, reference);
+        ss << theLM.operator_matrix().description();
+        return compare_os_matrix(ss.str(), theLM.operator_matrix(), dimension, reference);
     }
 
 }

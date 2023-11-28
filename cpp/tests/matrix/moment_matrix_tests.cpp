@@ -29,7 +29,7 @@ namespace Moment::Tests {
         const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
 
-        EXPECT_EQ(mm0Ptr->Level(), 0);
+        EXPECT_EQ(mm0Ptr->Index, 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel0, {});
         compare_symbol_matrix(matLevel0, 1, {"1"});
@@ -37,7 +37,7 @@ namespace Moment::Tests {
         auto [id1, matLevel1] = system.MomentMatrix.create(1);
         const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
-        EXPECT_EQ(mm1Ptr->Level(), 1);
+        EXPECT_EQ(mm1Ptr->Index, 1);
         compare_mm_os_matrix(matLevel1, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel1, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
@@ -45,7 +45,7 @@ namespace Moment::Tests {
         auto [id5, matLevel5] = system.MomentMatrix.create(5);
         const auto* mm5Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel5);
         ASSERT_NE(mm5Ptr, nullptr);
-        EXPECT_EQ(mm5Ptr->Level(), 5);
+        EXPECT_EQ(mm5Ptr->Index, 5);
         compare_mm_os_matrix(matLevel5, 1, {OperatorSequence::Identity(context)});
         compare_unique_sequences(matLevel5, {});
         compare_symbol_matrix(matLevel1, 1, {"1"});
@@ -61,14 +61,14 @@ namespace Moment::Tests {
         auto [id0, matLevel0] = system.MomentMatrix.create(0);
         const auto* mm0Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel0);
         ASSERT_NE(mm0Ptr, nullptr);
-        EXPECT_EQ(mm0Ptr->Level(), 0);
+        EXPECT_EQ(mm0Ptr->Index, 0);
         compare_mm_os_matrix(matLevel0, 1, {OperatorSequence::Identity(context)});
 
 
         auto [id1, matLevel1] = system.MomentMatrix.create(1);
         const auto* mm1Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel1);
         ASSERT_NE(mm1Ptr, nullptr);
-        EXPECT_EQ(mm1Ptr->Level(), 1);
+        EXPECT_EQ(mm1Ptr->Index, 1);
         compare_mm_os_matrix(matLevel1, 2, {OperatorSequence::Identity(context),
                                          OperatorSequence({theOp}, context),
                                          OperatorSequence({theOp}, context),
@@ -78,7 +78,7 @@ namespace Moment::Tests {
         auto [id2, matLevel2] = system.MomentMatrix.create(2);
         const auto* mm2Ptr = MomentMatrix::as_monomial_moment_matrix_ptr(matLevel2);
         ASSERT_NE(mm2Ptr, nullptr);
-        EXPECT_EQ(mm2Ptr->Level(), 2);
+        EXPECT_EQ(mm2Ptr->Index, 2);
         compare_mm_os_matrix(matLevel2, 3, {OperatorSequence::Identity(context),
                                          OperatorSequence({theOp}, context),
                                          OperatorSequence({theOp, theOp}, context),

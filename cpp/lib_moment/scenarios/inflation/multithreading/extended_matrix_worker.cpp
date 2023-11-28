@@ -14,7 +14,6 @@
 #include "dictionary/operator_sequence_generator.h"
 
 #include "matrix/operator_matrix/moment_matrix.h"
-#include "matrix/operator_matrix/operator_matrix.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -125,7 +124,7 @@ namespace Moment::Multithreading {
              context{context},  symbols{symbols}, symbols_and_factors{symbols, factors},
              source_symbols{source}, source_operators{moment_matrix}, extension_scalars{extension_scalars},
              output_dimension{source.Dimension() + extension_scalars.size()},
-             source_osg{context.operator_sequence_generator(moment_matrix.Level(), false)} {
+             source_osg{context.operator_sequence_generator(moment_matrix.Index, false)} {
 
         assert(source_osg.size() == source.Dimension());
         // Create output data

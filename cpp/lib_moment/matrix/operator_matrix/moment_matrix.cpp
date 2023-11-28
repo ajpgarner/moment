@@ -23,27 +23,10 @@
 
 namespace Moment {
 
-    MomentMatrix::MomentMatrix(const Context& context, const size_t level,
-                               std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-        : OperatorMatrix{context, std::move(op_seq_mat)}, hierarchy_level{level} {
-
-    }
-
-    MomentMatrix::MomentMatrix(MomentMatrix &&src) noexcept :
-            OperatorMatrix{static_cast<OperatorMatrix&&>(src)},
-            hierarchy_level{src.hierarchy_level} {
-    }
-
-    MomentMatrix::~MomentMatrix() noexcept = default;
-
-    const OSGPair& MomentMatrix::generators() const {
-        const auto& dictionary = this->context.dictionary();
-        return dictionary.Level(this->hierarchy_level);
-    }
 
     std::string MomentMatrix::description() const {
         std::stringstream ss;
-        ss << "Moment Matrix, Level " << this->hierarchy_level;
+        ss << "Moment Matrix, Level " << this->Index;
         return ss.str();
     }
 
@@ -59,28 +42,28 @@ namespace Moment {
         const auto &op_matrix = input.operator_matrix();
         return dynamic_cast<const MomentMatrix *>(&op_matrix); // might be nullptr!
     }
-
-    std::unique_ptr<MonomialMatrix>
-    MomentMatrix::create_matrix(const Context &context, SymbolTable& symbols,
-                                const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
-
-        if (context.can_have_aliases()) {
-            const auto alias_mm_functor = [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
-                return context.simplify_as_moment(lhs * rhs);
-            };
-            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(alias_mm_functor)>
-                    creation_context{context, symbols, level, alias_mm_functor, true, 1.0, mt_policy};
-
-            return creation_context.execute(level);
-        } else {
-            const auto mm_functor = [](const OperatorSequence &lhs, const OperatorSequence &rhs) {
-                return lhs * rhs;
-            };
-            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(mm_functor)>
-                    creation_context{context, symbols, level, mm_functor, true, 1.0, mt_policy};
-
-           return creation_context.execute(level);
-        }
-    }
+//
+//    std::unique_ptr<MonomialMatrix>
+//    MomentMatrix::create_matrix(const Context &context, SymbolTable& symbols,
+//                                const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
+//
+//        if (context.can_have_aliases()) {
+//            const auto alias_mm_functor = [&context](const OperatorSequence& lhs, const OperatorSequence& rhs) {
+//                return context.simplify_as_moment(lhs * rhs);
+//            };
+//            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(alias_mm_functor)>
+//                    creation_context{context, symbols, level, alias_mm_functor, true, 1.0, mt_policy};
+//
+//            return creation_context.execute(level);
+//        } else {
+//            const auto mm_functor = [](const OperatorSequence &lhs, const OperatorSequence &rhs) {
+//                return lhs * rhs;
+//            };
+//            OperatorMatrixFactory<MomentMatrix, class Context, size_t, decltype(mm_functor)>
+//                    creation_context{context, symbols, level, mm_functor, true, 1.0, mt_policy};
+//
+//           return creation_context.execute(level);
+//        }
+//    }
 
 }

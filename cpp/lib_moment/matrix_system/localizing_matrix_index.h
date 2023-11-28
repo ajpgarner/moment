@@ -33,6 +33,20 @@ namespace Moment {
             // Then by sequence hash...
             return (this->WordHash < rhs.WordHash);
         }
+
+        /**
+         * Gets part of index that can be used to call for an OSG associated with localizing matrix.
+         */
+        [[nodiscard]] constexpr friend size_t get_osg_index(const LocalizingMatrixIndex& lmi) {
+            return lmi.Level;
+        }
     };
+
+
+    template<typename t> struct OSGIndexType;
+    template<> struct OSGIndexType<LocalizingMatrixIndex> {
+        using type = size_t;
+    };
+
 
 }

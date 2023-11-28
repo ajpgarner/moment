@@ -191,7 +191,7 @@ namespace Moment::Inflation {
         assert(mm_ptr); // ^- make_extended_matrix should have already thrown exception if above is nullptr!
 
         // Make description string of extended matrix
-        this->description = make_description(mm_ptr->hierarchy_level, extensions);
+        this->description = make_description(mm_ptr->Index, extensions);
     }
 
 

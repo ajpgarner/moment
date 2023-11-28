@@ -7,31 +7,35 @@
 #pragma once
 
 #include "operator_matrix.h"
-
-#include "multithreading/multithreading.h"
-
-#include <optional>
-#include <stdexcept>
+#include "operator_matrix_impl.h"
 
 namespace Moment {
 
-    namespace errors {
-        class hermitian_failure : public std::logic_error {
-        public:
-            explicit hermitian_failure(const std::string& what) : std::logic_error{what} { }
-        };
-    }
+    struct MomentMatrixGenerator {
+    public:
+        const size_t index;
 
-    class OperatorSequenceGenerator;
+        constexpr MomentMatrixGenerator(const Context& /**/, const size_t index)
+                : index{index} { }
+
+        [[nodiscard]] inline OperatorSequence
+        operator()(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
+            return lhs * rhs;
+        }
+
+        /** Moment matrices are always Hermitian. */
+        [[nodiscard]] inline constexpr static bool should_be_hermitian(const size_t /**/) noexcept { return true; }
+
+        /** Moment matrices always have a prefactor of +1. */
+        [[nodiscard]] inline constexpr static std::complex<double>
+        determine_prefactor(const size_t /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
+    };
 
     /**
-     * MomentMatrix, of operators.
+     * Full moment matrix of operators.
      */
-    class MomentMatrix : public OperatorMatrix {
-    public:
-        /** The Level of moment matrix defined */
-        const size_t hierarchy_level;
-
+    class MomentMatrix;
+    class MomentMatrix : public OperatorMatrixImpl<size_t, MomentMatrixGenerator, MomentMatrix> {
     public:
         /**
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
@@ -39,42 +43,19 @@ namespace Moment {
          * @param level The hierarchy depth.
          * @param mt_policy Whether or not to use multi-threaded creation.
          */
-        MomentMatrix(const Context& context, size_t level,
-                     std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
-
-        MomentMatrix(const MomentMatrix&) = delete;
-
-        MomentMatrix(MomentMatrix&& src) noexcept;
-
-        ~MomentMatrix() noexcept;
+        MomentMatrix(const Context& context, size_t level, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+            : OperatorMatrixImpl{context, level, std::move(op_seq_mat)} { }
 
         /**
-         * The hierarchy depth of this moment matrix.
+         * String label for this moment matrix.
          */
-        [[nodiscard]] constexpr size_t Level() const noexcept { return this->hierarchy_level; }
-
-        /**
-         * The generators associated with this matrix
-         */
-         [[nodiscard]] const OSGPair& generators() const override;
-
-         [[nodiscard]] std::string description() const override;
+        [[nodiscard]] std::string description() const override;
 
     public:
         /**
          * If supplied input is symbol matrix associated with a monomial moment matrix, extract that moment matrix.
-         * Otherwise, returns std::nullopt.
+         * Otherwise, returns nullptr.
          */
         static const MomentMatrix* as_monomial_moment_matrix_ptr(const SymbolicMatrix& input) noexcept;
-
-        /**
-         * Full creation stack, with possible multithreading.
-         */
-        static std::unique_ptr<MonomialMatrix>
-        create_matrix(const Context& context, SymbolTable& symbols, size_t level,
-                      Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
-
-
-        friend class MomentMatrixCreationContext;
     };
 }

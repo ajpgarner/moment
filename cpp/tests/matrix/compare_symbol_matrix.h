@@ -58,7 +58,7 @@ namespace Moment::Tests {
         if (mmPtr != nullptr) {
             const auto& theMM = dynamic_cast<const MonomialMatrix&>(inputMM);
 
-            compare_monomial_matrix(std::string("Level = ") + std::to_string(mmPtr->Level()),
+            compare_monomial_matrix(std::string("Level = ") + std::to_string(mmPtr->Index),
                                     theMM, dimension, reference);
         } else {
             compare_monomial_matrix(inputMM.Description(), dynamic_cast<const MonomialMatrix&>(inputMM),

@@ -56,6 +56,14 @@ namespace Moment {
         [[nodiscard]] const OSGPair& Level(const size_t max_word_length) const;
 
         /**
+         * Alias to 'pure' NPA hierarchy level (e.g. Moment matrix) generator.
+         * @param npa_level The maximum word length.
+         */
+        [[nodiscard]] inline const OSGPair& operator()(const size_t max_word_length) const {
+            return this->Level(max_word_length);
+        }
+
+        /**
          * Return number of registered OSGs
          */
         [[nodiscard]] inline size_t size() const noexcept {

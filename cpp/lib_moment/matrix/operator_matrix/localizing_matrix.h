@@ -8,18 +8,38 @@
 
 #include "matrix_system/localizing_matrix_index.h"
 #include "operator_matrix.h"
+#include "operator_matrix_impl.h"
 
-#include "multithreading/multithreading.h"
 
 namespace Moment {
 
-    class LocalizingMatrix : public OperatorMatrix {
+    struct LocalizingMatrixGenerator {
     public:
-        /**
-         * "Index" of this localizing matrix, containing its depth and localizing word.
-         */
-        const LocalizingMatrixIndex Index;
+        const LocalizingMatrixIndex& lmi;
 
+        constexpr LocalizingMatrixGenerator(const Context& /**/, const LocalizingMatrixIndex& lmi)
+            : lmi{lmi} { }
+
+        [[nodiscard]] inline OperatorSequence
+        operator()(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
+            return lhs * (lmi.Word * rhs);
+        }
+
+        /** Localizing matrices are Hermitian if their word is Hermitian. */
+        [[nodiscard]] static inline bool should_be_hermitian(const LocalizingMatrixIndex& lmi) {
+            return !is_imaginary(lmi.Word.get_sign()) && (lmi.Word.hash() == lmi.Word.conjugate().hash());
+        }
+
+        /** Localizing matrices always have a prefactor of +1. */
+        [[nodiscard]] inline constexpr static std::complex<double>
+        determine_prefactor(const LocalizingMatrixIndex& /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
+
+    };
+
+    class LocalizingMatrix;
+    class LocalizingMatrix
+            : public OperatorMatrixImpl<LocalizingMatrixIndex, LocalizingMatrixGenerator, LocalizingMatrix> {
+    public:
         /**
           * Constructs a localizing matrix at the requested hierarchy depth (level) for the supplied context,
           * with the supplied word.
@@ -27,39 +47,11 @@ namespace Moment {
           * @param lmi Index, describing the hierarchy depth and localizing word.
           */
         LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
-                         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
-
-    public:
-
-        LocalizingMatrix(LocalizingMatrix&& rhs) = default;
-
-        ~LocalizingMatrix() noexcept;
-
-        /**
-         * The generating word for this localizing matrix.
-         */
-        [[nodiscard]] constexpr const OperatorSequence& Word() const noexcept {
-            return Index.Word;
-        }
-
-        /**
-         * The hierarchy depth of this localizing matrix.
-         */
-        [[nodiscard]] constexpr size_t Level() const noexcept {
-            return Index.Level;
-        }
+                         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+             : OperatorMatrixImpl<LocalizingMatrixIndex, LocalizingMatrixGenerator, LocalizingMatrix>{
+                        context, std::move(lmi), std::move(op_seq_mat)} { }
 
         [[nodiscard]] std::string description() const override;
-
-        const OSGPair& generators() const override;
-
-
-        /**
-         * Full creation stack, with possible multithreading.
-         */
-        static std::unique_ptr<MonomialMatrix>
-        create_matrix(const Context& context, SymbolTable& symbols, LocalizingMatrixIndex lmi,
-                      Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
         /**
          * If supplied input is symbol matrix associated with a monomial localizng matrix, extract that matrix.
