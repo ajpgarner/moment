@@ -48,11 +48,16 @@ namespace Moment::Pauli {
             }
         }
 
-        /** Pauli (anti-)commutator matrices are Hermitian if and only if word is real. */
+        /** Pauli (anti-)commutator matrices could be Hermitian if:
+         *      Commutator: word is imaginary (if word is real, then anti-hermitian).
+         *  Anticommutator: word is real (if word is imaginary, then anti-hermitian).
+         */
         [[nodiscard]] inline constexpr static bool
         should_be_hermitian(const Index& index) noexcept {
-            // TODO: Hermitian logic here
-            return !is_imaginary(index.Word.get_sign());
+            if constexpr (anti_commutator) {
+                return !is_imaginary(index.Word.get_sign());
+            }
+            return is_imaginary(index.Word.get_sign());
         }
 
         /** Pauli (anti-)commutator matrices have a prefactor of 2 */

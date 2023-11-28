@@ -146,6 +146,7 @@ namespace Moment {
                      const PolynomialLocalizingMatrix::Constituents& constituents) {
             // Special case: null matrix
             if (constituents.empty()) {
+                // FIXME: Handle empty case for exotic OSGs
                 return make_empty_matrix(context, factory, index.Level);
             }
 
@@ -167,7 +168,8 @@ namespace Moment {
             return make_summed_matrices(context, factory, index, constituents);
         }
 
-        std::string make_description(const Context& context, const SymbolTable& symbols, const PolynomialLMIndex& index) {
+        std::string make_description(const Context& context, const SymbolTable& symbols,
+                                     const PolynomialLMIndex& index) {
             std::stringstream ss;
             ContextualOS cSS{ss, context, symbols};
             cSS.format_info.show_braces = false;
@@ -181,10 +183,10 @@ namespace Moment {
     }
 
 
-    PolynomialLocalizingMatrix::PolynomialLocalizingMatrix(const Context &context, SymbolTable &symbols,
+    PolynomialLocalizingMatrix::PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols,
                                                            const PolynomialFactory& factory,
                                                            PolynomialLMIndex index,
-                                                           PolynomialLocalizingMatrix::Constituents &&constituents)
+                                                           PolynomialLocalizingMatrix::Constituents&& constituents)
            : PolynomialMatrix(context, symbols, factory.zero_tolerance,
                               sum_matrices(context, factory, index, constituents)),
                 index{std::move(index)}, constituents{std::move(constituents)} {
