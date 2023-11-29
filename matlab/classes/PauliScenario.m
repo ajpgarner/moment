@@ -112,31 +112,85 @@ classdef PauliScenario < MTKScenario
     
     %% Accessors
     methods
+        function varargout = getAll(obj)
+            % Call parent function not w/ 3 outputs
+            if nargout ~= 3
+                varargout = getAll@MTKScenario(obj);
+                return;
+            end
+            
+            varargout = cell(3, 1);
+            varargout{1} = obj.sigmaX();
+            varargout{2} = obj.sigmaY();
+            varargout{3} = obj.sigmaZ();
+        end
+        
         function val = sigmaX(obj, site)
-            if (nargin < 2) || ~isnumeric(site) ...
-                    || (numel(site)~=1) ...
-                    || (site <= 0) || (site > obj.QubitCount)
+        % SIGMAX Get Pauli X operator(s).
+        % SYNTAX:
+        %  1.  x = sigmaX([number])
+        %  2.  all_x = sigmaX()
+        % RETURNS
+        %  1. Pauli X operator of specified qubit.
+        %  2. Vector of Pauli X operators for all qubits.
+        %
+            if (nargin < 2)
+               op_numbers = num2cell((1:obj.QubitCount)*3-2)';
+               val = MTKMonomial(obj, op_numbers, 1.0);
+               return;
+            end
+
+            if ~isnumeric(site) || (numel(site)~=1) ...
+                || (site <= 0) || (site > obj.QubitCount)
                 error("Qubit number must be between 1 and %d.", obj.QubitCount);
             end
-            val = MTKMonomial(obj, (site-1)*3+1, 1.0);
+           
+            val = MTKMonomial(obj, (site*3)-2, 1.0);
         end
         
         function val = sigmaY(obj, site)
-            if (nargin < 2) || ~isnumeric(site) ...
-                    || (numel(site)~=1) ...
-                    || (site <= 0) || (site > obj.QubitCount)
+        % SIGMAY Get Pauli Y operator(s).
+        % SYNTAX:
+        %  1.  y = sigmaY([number])
+        %  2.  all_y = sigmaY()
+        % RETURNS
+        %  1. Pauli Y operator of specified qubit.
+        %  2. Vector of Pauli Y operators for all qubits.
+        %
+            if (nargin < 2)
+               op_numbers = num2cell((1:obj.QubitCount)*3-1)';
+               val = MTKMonomial(obj, op_numbers, 1.0);
+               return;
+            end
+
+            if ~isnumeric(site) || (numel(site)~=1) ...
+                || (site <= 0) || (site > obj.QubitCount)
                 error("Qubit number must be between 1 and %d.", obj.QubitCount);
             end
-            val = MTKMonomial(obj, (site-1)*3+2, 1.0);
+            
+            val = MTKMonomial(obj, (site*3)-1, 1.0);
         end
         
         function val = sigmaZ(obj, site)
-            if (nargin < 2) || ~isnumeric(site) ...
-                    || (numel(site)~=1) ...
-                    || (site <= 0) || (site > obj.QubitCount)
+        % SIGMAZ Get Pauli Z operator(s).
+        % SYNTAX:
+        %  1.  z = sigmaZ([number])
+        %  2.  all_z = sigmaZ()
+        % RETURNS
+        %  1. Pauli Z operator of specified qubit.
+        %  2. Vector of Pauli Z operators for all qubits.
+        %
+            if (nargin < 2)
+               op_numbers = num2cell((1:obj.QubitCount)*3)';
+               val = MTKMonomial(obj, op_numbers, 1.0);
+               return;
+            end
+
+            if ~isnumeric(site) || (numel(site)~=1) ...
+                || (site <= 0) || (site > obj.QubitCount)
                 error("Qubit number must be between 1 and %d.", obj.QubitCount);
             end
-            val = MTKMonomial(obj, (site-1)*3+3, 1.0);
+            val = MTKMonomial(obj, site*3, 1.0);
         end
     end
     
