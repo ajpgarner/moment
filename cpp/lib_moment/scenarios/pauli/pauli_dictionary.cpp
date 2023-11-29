@@ -53,4 +53,9 @@ namespace Moment::Pauli {
         this->nn_indices.insert(std::make_pair(index, insert_index));
         return this->osgs[insert_index]; // ~write_lock
     }
+
+    const size_t PauliDictionary::WordCount(const NearestNeighbourIndex& index) const {
+        const auto& osg_pair = this->NearestNeighbour(index);
+        return osg_pair().size();
+    }
 }

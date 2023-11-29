@@ -22,6 +22,6 @@ namespace Moment::Pauli {
         PauliPolynomialLocalizingMatrix(const PauliContext& context, SymbolTable& symbols,
                                         const PolynomialFactory& factory,
                                         PauliPolynomialLMIndex index,
-                                        PolynomialLocalizingMatrix::Constituents&& constituents);
+                                        PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
     };
 }

@@ -66,4 +66,9 @@ namespace Moment {
         return this->osgs[index];
     }
 
+    const size_t Dictionary::WordCount(const size_t max_word_length) const {
+        auto& pair = this->Level(max_word_length);
+        return pair().size();
+    }
+
 }

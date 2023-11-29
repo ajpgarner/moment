@@ -27,9 +27,15 @@ namespace Moment::Pauli {
 
         /**
          * Gets a nearest neighbour partial-NPA hierarchy level generator.
-         * @param npa_level The maximum word length.
          */
         [[nodiscard]] const OSGPair& NearestNeighbour(const NearestNeighbourIndex& index) const;
+
+        using Dictionary::WordCount;
+
+        /**
+         * Gets the number of operator sequences in nearest neighbour partial-NPA hierarchy level generator.
+         */
+        [[nodiscard]] const size_t WordCount(const NearestNeighbourIndex& index) const;
 
 
     };

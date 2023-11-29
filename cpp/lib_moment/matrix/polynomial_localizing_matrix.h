@@ -7,6 +7,7 @@
 
 #pragma once
 #include "polynomial_matrix.h"
+#include "composite_matrix.h"
 #include "matrix_system/polynomial_localizing_matrix_index.h"
 
 #include <complex>
@@ -16,18 +17,14 @@ namespace Moment {
 
     class MonomialMatrix;
 
-    class PolynomialLocalizingMatrix : public PolynomialMatrix {
-    public:
-        using Constituents = std::vector<std::pair<const SymbolicMatrix*, std::complex<double>>>;
-
+    class PolynomialLocalizingMatrix : public CompositeMatrix {
     private:
         PolynomialLMIndex index;
-        Constituents constituents;
 
     public:
         /** Constructor for non-empty polynomial localizing matrix. */
         PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols, const PolynomialFactory& factory,
-                                   PolynomialLMIndex index, Constituents&& constituents);
+                                   PolynomialLMIndex index, CompositeMatrix::ConstituentInfo&& constituents);
 
     };
 

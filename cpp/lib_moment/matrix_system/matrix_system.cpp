@@ -116,11 +116,16 @@ namespace Moment {
         assert(this->is_locked_write_lock(lock));
 
         // First ensure constituent parts exist
-        PolynomialLocalizingMatrix::Constituents constituents;
-        constituents.reserve(index.Polynomial.size());
+        PolynomialLocalizingMatrix::ConstituentInfo constituents;
+        constituents.elements.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(*this->symbol_table)) {
             auto [mono_offset, mono_matrix] = this->LocalizingMatrix.create(lock, mono_index, mt_policy);
-            constituents.emplace_back(&mono_matrix, factor);
+            constituents.elements.emplace_back(&mono_matrix, factor);
+        }
+
+        // If no constituents, we have to query for size in another way:
+        if (!constituents.auto_set_dimension()) {
+            constituents.matrix_dimension = this->context->dictionary().WordCount(index.Level);
         }
 
         // NB: Previous symbol updates from constituents will have already been accounted for...

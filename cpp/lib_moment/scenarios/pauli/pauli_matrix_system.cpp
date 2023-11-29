@@ -90,11 +90,14 @@ namespace Moment::Pauli {
         auto& symbol_table = this->Symbols();
 
         // First ensure constituent parts exist
-        PauliPolynomialLocalizingMatrix::Constituents constituents;
-        constituents.reserve(index.Polynomial.size());
+        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        constituents.elements.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
             auto [mono_offset, mono_matrix] = this->PauliLocalizingMatrices.create(lock, mono_index, mt_policy);
-            constituents.emplace_back(&mono_matrix, factor);
+            constituents.elements.emplace_back(&mono_matrix, factor);
+        }
+        if (!constituents.auto_set_dimension()) {
+            constituents.matrix_dimension = this->pauliContext.pauli_dictionary().WordCount(index.Level);
         }
 
         // NB: Previous symbol updates from constituents will have already been accounted for...

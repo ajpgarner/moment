@@ -13,7 +13,7 @@ namespace Moment::Pauli {
 
     PauliPolynomialLocalizingMatrix::PauliPolynomialLocalizingMatrix(
             const PauliContext& context, SymbolTable& symbols, const PolynomialFactory& factory,
-            PauliPolynomialLMIndex index, PolynomialLocalizingMatrix::Constituents&& constituents)
+            PauliPolynomialLMIndex index, PolynomialLocalizingMatrix::ConstituentInfo&& constituents)
     : PolynomialLocalizingMatrix{context, symbols, factory,
                                  static_cast<PolynomialLMIndex>(index), std::move(constituents)},
          pauliContext{context}, nn_index{std::move(index)} {

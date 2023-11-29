@@ -7,7 +7,7 @@ add_library(lib_moment
         dictionary/operator_sequence.cpp
         dictionary/operator_sequence_generator.cpp
         dictionary/dictionary.cpp
-        matrix/symbolic_matrix.cpp
+        matrix/composite_matrix.cpp
         matrix/matrix_basis.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp
@@ -19,6 +19,7 @@ add_library(lib_moment
         matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
         matrix/substituted_matrix.cpp
+        matrix/symbolic_matrix.cpp
         matrix_system/matrix_factories.cpp
         matrix_system/matrix_system.cpp
         matrix_system/rulebook_storage.cpp
