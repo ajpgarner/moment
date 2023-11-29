@@ -35,11 +35,12 @@
 #include "functions/moment_rules/apply_moment_rules.h"
 #include "functions/moment_rules/create_moment_rules.h"
 #include "functions/moment_rules/moment_rules.h"
-#include "functions/operator_matrix/substituted_matrix.h"
+#include "functions/operator_matrix/commutator_matrix.h"
 #include "functions/operator_matrix/extended_matrix.h"
 #include "functions/operator_matrix/localizing_matrix.h"
 #include "functions/operator_matrix/moment_matrix.h"
 #include "functions/operator_matrix/operator_matrix.h"
+#include "functions/operator_matrix/substituted_matrix.h"
 #include "functions/operator_rules/complete.h"
 #include "functions/operator_rules/operator_rules.h"
 #include "functions/probability/collins_gisin.h"
@@ -59,11 +60,12 @@ namespace Moment::mex::functions {
         std::map<std::string, MTKEntryPointID> make_str_to_entrypoint_map() {
             std::map<std::string, MTKEntryPointID> output;
             output.emplace("algebraic_matrix_system",   MTKEntryPointID::AlgebraicMatrixSystem);
-            output.emplace("alphabetic_name", MTKEntryPointID::AlphabeticName);
-            output.emplace("apply_moment_rules", MTKEntryPointID::ApplyMomentRules);
-            output.emplace("collins_gisin",   MTKEntryPointID::CollinsGisin);
-            output.emplace("complete",        MTKEntryPointID::Complete);
-            output.emplace("conjugate",       MTKEntryPointID::Conjugate);
+            output.emplace("alphabetic_name",   MTKEntryPointID::AlphabeticName);
+            output.emplace("apply_moment_rules",MTKEntryPointID::ApplyMomentRules);
+            output.emplace("collins_gisin",     MTKEntryPointID::CollinsGisin);
+            output.emplace("commutator_matrix", MTKEntryPointID::CommutatorMatrix);
+            output.emplace("complete",          MTKEntryPointID::Complete);
+            output.emplace("conjugate",         MTKEntryPointID::Conjugate);
             output.emplace("create_moment_rules",   MTKEntryPointID::CreateMomentRules);
             output.emplace("echo",            MTKEntryPointID::Echo);
             output.emplace("extended_matrix", MTKEntryPointID::ExtendedMatrix);
@@ -74,7 +76,7 @@ namespace Moment::mex::functions {
             output.emplace("import_matrix",   MTKEntryPointID::ImportMatrix);
             output.emplace("imported_matrix_system",    MTKEntryPointID::ImportedMatrixSystem);
             output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
-            output.emplace("localizing_matrix",  MTKEntryPointID::LocalizingMatrix);
+            output.emplace("localizing_matrix",         MTKEntryPointID::LocalizingMatrix);
             output.emplace("locality_matrix_system",    MTKEntryPointID::LocalityMatrixSystem);
             output.emplace("logging",            MTKEntryPointID::Logging);
             output.emplace("make_explicit",      MTKEntryPointID::MakeExplicit);
@@ -149,6 +151,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::CommutatorMatrix:
+                the_function = std::make_unique<functions::CommutatorMatrix>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::Complete:
                 the_function = std::make_unique<functions::Complete>(engine, storageManager);

@@ -80,11 +80,12 @@ matlab_add_mex(NAME moment_mex
             functions/moment_rules/apply_moment_rules.cpp
             functions/moment_rules/create_moment_rules.cpp
             functions/moment_rules/moment_rules.cpp
-            functions/operator_matrix/substituted_matrix.cpp
+            functions/operator_matrix/commutator_matrix.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp
             functions/operator_matrix/moment_matrix.cpp
             functions/operator_matrix/operator_matrix.cpp
+            functions/operator_matrix/substituted_matrix.cpp
             functions/operator_rules/complete.cpp
             functions/operator_rules/operator_rules.cpp
             functions/probability/collins_gisin.cpp
