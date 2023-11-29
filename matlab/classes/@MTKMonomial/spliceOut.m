@@ -17,5 +17,6 @@ function spliceOut(output, source, indices)
     output.symbol_conjugated = source.symbol_conjugated(indices{:});
     output.re_basis_index = source.re_basis_index(indices{:});
     output.im_basis_index = source.im_basis_index(indices{:});
+    output.is_alias = source.is_alias(indices{:});
 
 end

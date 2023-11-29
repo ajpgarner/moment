@@ -31,6 +31,9 @@
         case 'ImaginaryBasisIndex'        
             output = obj.ImaginaryBasisIndex(indices{:});
             matched = true;
+        case 'IsAlias'
+            output = obj.IsAlias(indices{:});
+            matched = true;
         otherwise
             [output, matched] = ...
                 spliceProperty@MTKObject(obj, indices, propertyName);

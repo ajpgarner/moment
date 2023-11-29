@@ -28,6 +28,7 @@ function obj = mono_assign_scalar(obj, value)
          obj.symbol_conjugated = value.symbol_conjugated;
          obj.real_basis_index = value.real_basis_index;
          obj.im_basis_index = value.im_basis_index;
+         obj.is_alias = value.is_alias;
     else
         obj.setDefaultSymbolInfo();       
     end        
@@ -43,6 +44,7 @@ function obj = mono_splice_scalar(obj, indices, value)
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated;
          obj.re_basis_index(indices{:}) = value.re_basis_index;
          obj.im_basis_index(indices{:}) = value.im_basis_index;
+         obj.is_alias(indices{:}) = value.is_alias;
     else
         obj.setDefaultSymbolInfo();       
     end
@@ -58,6 +60,7 @@ function obj = mono_splice_array(obj, indices, value)
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated(:);
          obj.re_basis_index(indices{:}) = value.re_basis_index(:);
          obj.im_basis_index(indices{:}) = value.im_basis_index(:);
+         obj.is_alias(indices{:}) = value.is_alias(:);
     else
         obj.setDefaultSymbolInfo();
     end
@@ -74,6 +77,7 @@ function obj = mono_splice_broadcast(obj, indices, value)
          obj.symbol_conjugated(indices{:}) = value.symbol_conjugated;
          obj.re_basis_index(indices{:}) = value.re_basis_index;
          obj.im_basis_index(indices{:}) = value.im_basis_index;
+         obj.is_alias(indices{:}) = value.is_alias;
     else
         obj.setDefaultSymbolInfo();
     end
