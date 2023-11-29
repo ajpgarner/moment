@@ -129,6 +129,41 @@ namespace Moment::mex {
         return staging_poly.find_symbols(this->matrix_system->Symbols(), true);
     }
 
+    void LocalizingMatrixIndexImporter::supply_context_only(const MaintainsMutex::ReadLock& rlock) {
+
+        // Check mode
+        if constexpr (debug_mode) {
+            if (this->matrix_system == nullptr) {
+                throw_error(matlabEngine, errors::internal_error, "MatrixSystem not linked.");
+            }
+            if (ExpressionType::OperatorCell != this->expression_type) {
+                throw_error(matlabEngine, errors::internal_error,
+                            "No operator cell is defined by this LocalizingMatrixIndex.");
+            }
+        }
+
+        auto& staging_poly = *std::get<2>(this->localizing_expression);
+
+        // Check if derived...
+        if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(this->matrix_system); dms_ptr != nullptr) {
+            if constexpr (debug_mode) {
+                if (!dms_ptr->base_system().is_locked_read_lock(rlock)) {
+                    throw_error(matlabEngine, errors::internal_error,
+                                "Incorrect read lock held for symbol read (expected base system lock).");
+                }
+            }
+            staging_poly.supply_context(dms_ptr->base_system().Context());
+        } else {
+            if constexpr (debug_mode) {
+                if (!this->matrix_system->is_locked_read_lock(rlock)) {
+                    throw_error(matlabEngine, errors::internal_error, "Incorrect read lock held for symbol read.");
+                }
+            }
+
+            staging_poly.supply_context(this->matrix_system->Context());
+        }
+    }
+
     void LocalizingMatrixIndexImporter::register_symbols_in_op_cell(const MaintainsMutex::WriteLock& wlock) {
         auto& staging_poly = *std::get<2>(this->localizing_expression);
         // Check if derived...
@@ -231,6 +266,19 @@ namespace Moment::mex {
         }
     }
 
+
+    std::pair<size_t, RawPolynomial>
+    LocalizingMatrixIndexImporter::to_raw_polynomial_index() const {
+
+        if (this->expression_type != ExpressionType::OperatorCell) {
+            throw_error(this->matlabEngine, errors::internal_error,
+                        "RawPolynomial only results from operator cell input.");
+        }
+
+        const auto& staging_poly = *std::get<2>(this->localizing_expression);
+        return std::pair<size_t, RawPolynomial>{this->hierarchy_level, staging_poly.to_raw_polynomial()};
+    }
+
     Pauli::PauliLocalizingMatrixIndex
     LocalizingMatrixIndexImporter::to_pauli_monomial_index() const {
         // Read and check normal LMI expression
@@ -251,5 +299,19 @@ namespace Moment::mex {
         return Pauli::PauliPolynomialLMIndex{lmi.Level, this->nearest_neighbour,
                                              std::move(lmi.Polynomial)};
 
+    }
+
+    std::pair<Pauli::NearestNeighbourIndex, RawPolynomial>
+    LocalizingMatrixIndexImporter::to_pauli_raw_polynomial_index() const {
+        using namespace Pauli;
+        if (this->expression_type != ExpressionType::OperatorCell) {
+            throw_error(this->matlabEngine, errors::internal_error,
+                        "RawPolynomial only results from operator cell input.");
+        }
+
+        const auto& staging_poly = *std::get<2>(this->localizing_expression);
+        return std::pair<Pauli::NearestNeighbourIndex, RawPolynomial>{
+            NearestNeighbourIndex{this->hierarchy_level, this->nearest_neighbour}, staging_poly.to_raw_polynomial()
+        };
     }
 }

@@ -210,6 +210,7 @@ namespace Moment::mex::functions {
         getPolyOpCM(matlab::engine::MATLABEngine& matlabEngine,
                     Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
                     Multithreading::MultiThreadPolicy mt_policy) {
+
             // Can expression be parsed without new symbols?
             auto symbol_read_lock = system.get_read_lock();
             const bool found_all = input.lmi_importer().attempt_to_find_symbols_from_op_cell(symbol_read_lock);
@@ -220,7 +221,6 @@ namespace Moment::mex::functions {
                 auto write_lock = system.get_write_lock();
                 input.lmi_importer().register_symbols_in_op_cell(write_lock);
                 auto index = input.lmi_importer().to_pauli_polynomial_index();
-                // FIXME: Aliasing issues
                 if constexpr (anticommutator) {
                     // Create or retrieve
                     return system.PolynomialAnticommutatorMatrices.create(write_lock, std::move(index), mt_policy);
@@ -233,6 +233,27 @@ namespace Moment::mex::functions {
             // Fall-back to normal retrieval
             return getPolyCMExistingSymbols<anticommutator>(matlabEngine, std::move(symbol_read_lock),
                                                             system, input, mt_policy);
+        }
+
+        template<bool anticommutator>
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getAliasedPolyOpCM(matlab::engine::MATLABEngine& matlabEngine,
+                    Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
+                    Multithreading::MultiThreadPolicy mt_policy) {
+            // Can expression be parsed without new symbols?
+            auto symbol_read_lock = system.get_read_lock();
+            auto& lmi_importer = input.lmi_importer();
+            lmi_importer.supply_context_only(symbol_read_lock);
+            auto [raw_level, raw_poly] = input.lmi_importer().to_pauli_raw_polynomial_index();
+            symbol_read_lock.unlock();
+
+            // System will call its own write locks:~
+            if constexpr (anticommutator) {
+                return system.create_and_register_anticommutator_matrix(raw_level, raw_poly, mt_policy);
+            } else {
+                return system.create_and_register_commutator_matrix(raw_level, raw_poly, mt_policy);
+            }
+
         }
     }
 
@@ -266,16 +287,30 @@ namespace Moment::mex::functions {
                         return getMonoCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
                     }
                 case LocalizingMatrixIndexImporter::ExpressionType::SymbolCell:
+                    if (!this->quiet && pauli_system.pauliContext.can_have_aliases()) {
+                        print_warning(matlabEngine,
+                          "If symmetrization is enabled, symbol cell input might produce unexpected results:\n"
+                          "The input Polynomial will be symmetrized before its (anti)commutators are calculated!");
+                    }
+
                     if (anticommutator) {
                         return getPolySymbolCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
                     } else {
                         return getPolySymbolCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
                     }
                 case LocalizingMatrixIndexImporter::ExpressionType::OperatorCell:
-                    if (anticommutator) {
-                        return getPolyOpCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
+                    if (pauli_system.pauliContext.can_have_aliases()) {
+                        if (anticommutator) {
+                            return getAliasedPolyOpCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
+                        } else {
+                            return getAliasedPolyOpCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
+                        }
                     } else {
-                        return getPolyOpCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
+                        if (anticommutator) {
+                            return getPolyOpCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
+                        } else {
+                            return getPolyOpCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
+                        }
                     }
                 default:
                 case LocalizingMatrixIndexImporter::ExpressionType::Unknown:

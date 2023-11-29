@@ -51,8 +51,8 @@ namespace Moment {
                                                 Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(write_lock));
 
-        // TODO: Implement
-        throw std::logic_error{"PolynomialLocalizingMatrix::create_from_raw not implemented yet."};
+        // TODO: Implement soon...!
+        throw std::logic_error{"PolynomialLocalizingMatrix::create_from_raw has not yet been implemented."};
     }
 
 }

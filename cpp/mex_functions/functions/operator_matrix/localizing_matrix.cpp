@@ -282,6 +282,34 @@ namespace Moment::mex::functions {
             // Fall-back to normal
             return getPolySymbolLMExistingSymbols(matlabEngine, std::move(symbol_read_lock), system, input, mt_policy);
         }
+
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getAliasedPolyOpLM(matlab::engine::MATLABEngine& matlabEngine,
+                           MatrixSystem& system, LocalizingMatrixParams& input,
+                           Multithreading::MultiThreadPolicy mt_policy) {
+
+            // Can expression be parsed without new symbols?
+            auto symbol_read_lock = [&system]() -> MaintainsMutex::ReadLock {
+                if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(&system); dms_ptr != nullptr) {
+                    return dms_ptr->base_system().get_read_lock();
+                }
+                return system.get_read_lock();
+            }();
+
+            auto& lmi_importer = input.lmi_importer();
+            lmi_importer.supply_context_only(symbol_read_lock);
+
+            if (auto * pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system); pms_ptr != nullptr) {
+                Pauli::PauliMatrixSystem& pauli_system = *pms_ptr;
+                auto [raw_level, raw_poly] = lmi_importer.to_pauli_raw_polynomial_index();
+                symbol_read_lock.unlock();
+                return pauli_system.create_and_register_localizing_matrix(raw_level, raw_poly, mt_policy);
+            } else {
+                auto [raw_level, raw_poly] = lmi_importer.to_raw_polynomial_index();
+                symbol_read_lock.unlock();
+                return system.create_and_register_localizing_matrix(raw_level, raw_poly, mt_policy);
+            }
+        }
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix &>
@@ -290,15 +318,33 @@ namespace Moment::mex::functions {
         // Attach matrix system to index reader
         input.lmi_importer().link_matrix_system(&system);
 
+        // Check if index could be aliased in some way
+        const bool can_have_aliases = [&system]() {
+            if (const auto* dms_ptr = dynamic_cast<const Derived::DerivedMatrixSystem*>(&system); dms_ptr != nullptr) {
+                return dms_ptr->base_system().Context().can_have_aliases();
+            } else {
+                return system.Context().can_have_aliases();
+            }
+        }();
+
         // Switch based on type
         try {
             switch (input.lmi_importer().get_expression_type()) {
                 case LocalizingMatrixIndexImporter::ExpressionType::OperatorSequence:
                     return getMonoLM(matlabEngine, system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixIndexImporter::ExpressionType::SymbolCell:
+                    if (!this->quiet && can_have_aliases) {
+                        print_warning(matlabEngine,
+                              "When a scenario has aliases (e.g. due to symmetry), symbol cell input might produce unexpected results:\n"
+                              "The input Polynomial will be symmetrized before the localizing matrices!");
+                    }
                     return getPolySymbolLM(matlabEngine, system, input, this->settings->get_mt_policy());
                 case LocalizingMatrixIndexImporter::ExpressionType::OperatorCell:
-                    return getPolyOpLM(matlabEngine, system, input, this->settings->get_mt_policy());
+                    if (can_have_aliases) {
+                        return getAliasedPolyOpLM(matlabEngine, system, input, this->settings->get_mt_policy());
+                    } else {
+                        return getPolyOpLM(matlabEngine, system, input, this->settings->get_mt_policy());
+                    }
                 default:
                 case LocalizingMatrixIndexImporter::ExpressionType::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");

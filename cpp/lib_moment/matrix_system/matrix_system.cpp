@@ -8,6 +8,7 @@
 
 #include "polynomial_index_storage.h"
 
+#include "dictionary/raw_polynomial.h"
 #include "dictionary/dictionary.h"
 
 #include "matrix/operator_matrix/localizing_matrix.h"
@@ -141,9 +142,19 @@ namespace Moment {
         if (new_symbol_count > prev_symbol_count) {
             this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
         }
-
         return ptr;
     }
+
+    std::pair<size_t, const Moment::PolynomialMatrix&>
+    MatrixSystem::create_and_register_localizing_matrix(const size_t level, const RawPolynomial& raw_poly,
+                                                        Multithreading::MultiThreadPolicy mt_policy) {
+        auto write_lock = this->get_write_lock();
+        auto mat_ptr = PolynomialLocalizingMatrix::create_from_raw(write_lock, *this, level, raw_poly, mt_policy);
+        const auto& matrix = *mat_ptr;
+        const auto offset = this->push_back(write_lock, std::move(mat_ptr));
+        return {offset, matrix};
+    }
+
 
     bool MatrixSystem::generate_dictionary(const size_t word_length) {
         auto write_lock = this->get_write_lock();

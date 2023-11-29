@@ -14,6 +14,7 @@
 #include "multithreading/multithreading.h"
 
 #include "multithreading/maintains_mutex.h"
+#include "dictionary/raw_polynomial.h"
 
 #include <map>
 #include <memory>
@@ -28,6 +29,7 @@ namespace Moment {
     class MomentRulebook;
     class OperatorSequenceGenerator;
     class PolynomialFactory;
+    class RawPolynomial;
     class SymbolTable;
 
     /**
@@ -199,6 +201,19 @@ namespace Moment {
         create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex& index,
                                             Multithreading::MultiThreadPolicy mt_policy);
 
+    public:
+        /**
+         * Special creation request for localizing matrix, to be used in aliased settings.
+         * @param level The hierarchy level of the localizing matrix.
+         * @param raw_poly The raw polynomial object of the matrix.
+         * @param mt_policy Is multithreaded creation used?
+         * @return Index and reference to new localizing matrix.
+         */
+        std::pair<size_t, const Moment::PolynomialMatrix&>
+        create_and_register_localizing_matrix(size_t level, const RawPolynomial& raw_poly,
+                                              Multithreading::MultiThreadPolicy mt_policy);
+
+    protected:
         /**
          * Virtual method, called to expand a rulebook according to matrix system extra rules.
          * @param rulebook The rulebook to expand

@@ -17,6 +17,7 @@
 
 namespace Moment {
     class Context;
+    class Polynomial;
 
     /**
       * A 'raw' polynomial consists of an operator sequence and weight.

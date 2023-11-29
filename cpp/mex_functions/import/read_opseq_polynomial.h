@@ -23,6 +23,7 @@ namespace matlab::engine {
 namespace Moment {
     class Context;
     class SymbolTable;
+    class RawPolynomial;
 }
 
 namespace Moment::mex {
@@ -48,6 +49,11 @@ namespace Moment::mex {
          * @throws matlab::Exception (errors::bad_param) if operator string is invalid (e.g. out of range).
          */
         void supply_context(const Context& context);
+
+        /**
+         * Instantiates a raw polynomial from contextualized inputs
+         */
+        RawPolynomial to_raw_polynomial() const;
 
         /**
          * Look up symbols for contextualized monomials.
@@ -79,12 +85,21 @@ namespace Moment::mex {
              return this->symbols_resolved;
          }
 
+         /**
+          * True if polynomial contains aliases
+          */
+         [[nodiscard]] inline bool any_aliases() const noexcept {
+             return this->aliases_found;
+         }
+
     private:
         std::unique_ptr<StagingMonomial[]> data;
 
         size_t data_length = 0;
 
         bool symbols_resolved = false;
+
+        bool aliases_found = false;
     };
 
 

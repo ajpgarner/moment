@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "dictionary/raw_polynomial.h"
+
 #include "matrix_system/localizing_matrix_index.h"
 #include "matrix_system/polynomial_localizing_matrix_index.h"
 #include "scenarios/pauli/pauli_localizing_matrix_indices.h"
@@ -95,6 +97,12 @@ namespace Moment {
             }
 
             /**
+             * Partially stage operator-cell polynomial for raw index creation.
+             * @rlock Read lock to matrix system on which operators are defined.
+             */
+            void supply_context_only(const MaintainsMutex::ReadLock& rlock);
+
+            /**
              * Partially stage operator-cell polynomial, and return if all resulting symbols are known.
              * @rlock Read lock to matrix system where symbols are defined.
              */
@@ -113,6 +121,11 @@ namespace Moment {
             [[nodiscard]] Pauli::PauliLocalizingMatrixIndex to_pauli_monomial_index() const;
 
             [[nodiscard]] Pauli::PauliPolynomialLMIndex to_pauli_polynomial_index() const;
+
+            [[nodiscard]] std::pair<size_t, RawPolynomial> to_raw_polynomial_index() const;
+
+            [[nodiscard]] std::pair<Pauli::NearestNeighbourIndex, RawPolynomial> to_pauli_raw_polynomial_index() const;
+
 
         };
 

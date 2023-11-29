@@ -68,6 +68,7 @@ namespace Moment::Pauli {
          */
         explicit PauliMatrixSystem(std::unique_ptr<class PauliContext> context, double tolerance = 1.0);
 
+        using MatrixSystem::create_and_register_localizing_matrix;
 
         /**
          * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.

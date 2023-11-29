@@ -7,6 +7,8 @@
 
 #include "read_opseq_polynomial.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/context.h"
 #include "symbolic/symbol_table.h"
 #include "symbolic/polynomial_factory.h"
@@ -27,6 +29,7 @@ namespace Moment::mex {
         std::optional<OperatorSequence> resolved_sequence = std::nullopt;
         symbol_name_t symbol_id = -1;
         bool conjugated = false;
+        bool is_aliased = false;
 
     public:
         /** Turn raw sequence into contextualized operator sequence. */
@@ -66,7 +69,7 @@ namespace Moment::mex {
         assert(this->resolved_sequence.has_value());
         const auto where = symbols.where(this->resolved_sequence.value());
 
-        if (where == nullptr) {
+        if (!where.found()) {
             std::stringstream errSS;
             errSS << "Sequence \"" << this->resolved_sequence.value().formatted_string() << "\""
                   <<  " in " << name
@@ -74,6 +77,7 @@ namespace Moment::mex {
             throw_error(engine, errors::bad_param, errSS.str());
         }
         this->symbol_id = where->Id();
+        this->is_aliased = where.is_aliased;
         this->conjugated = where.is_conjugated;
     }
 
@@ -82,12 +86,13 @@ namespace Moment::mex {
         assert(this->resolved_sequence.has_value());
         const auto where = symbols.where(this->resolved_sequence.value());
 
-        if (where == nullptr) {
+        if (!where.found()) {
             this->symbol_id = -1;
             this->conjugated = false;
             return false;
         }
         this->symbol_id = where->Id();
+        this->is_aliased = where.is_aliased;
         this->conjugated = where.is_conjugated;
         return true;
     }
@@ -96,12 +101,14 @@ namespace Moment::mex {
                                             SymbolTable& symbols, const std::string& name) {
         assert(this->resolved_sequence.has_value());
         const auto where = symbols.where(this->resolved_sequence.value());
-        if (where != nullptr) {
+        if (where.found()) {
             this->symbol_id = where->Id();
             this->conjugated = where.is_conjugated;
+            this->is_aliased = where.is_aliased;
         } else {
             this->symbol_id = symbols.merge_in(OperatorSequence{this->resolved_sequence.value()});
             this->conjugated = where.is_conjugated;
+            this->is_aliased = where.is_aliased; // Even if not found, where can determine if moment is canonical.
         }
     }
 
@@ -190,14 +197,34 @@ namespace Moment::mex {
         }
     }
 
+    RawPolynomial StagingPolynomial::to_raw_polynomial() const {
+        assert(this->data);
+        RawPolynomial output;
+        for (size_t index = 0; index < this->data_length; ++index) {
+            if (!this->data[index].resolved_sequence.has_value()) [[unlikely]] {
+                std::stringstream errSS;
+                errSS << "RawPolynomial cannot be formed before sequences have been been resolved, but "
+                      << this->name << " element #" << (index + 1) << " is missing.";
+                throw_error(this->matlabEngine, errors::internal_error, errSS.str());
+            }
+            output.emplace_back(this->data[index].resolved_sequence.value(), this->data[index].factor);
+        }
+        return output;
+    }
+
+
     bool StagingPolynomial::find_symbols(const SymbolTable &symbols, bool fail_quietly) {
         assert(this->data);
+        this->aliases_found = false;
         if (fail_quietly) {
             bool found_all_symbols = true;
             for (size_t index = 0; index < this->data_length; ++index) {
                 this->data[index].look_up_symbol_or_fail_quietly(this->matlabEngine, symbols);
                 if (this->data[index].symbol_id < 0) {
                     found_all_symbols = false;
+                }
+                if (this->data[index].is_aliased) {
+                    this->aliases_found = true;
                 }
             }
             symbols_resolved = found_all_symbols;
@@ -206,6 +233,9 @@ namespace Moment::mex {
                 std::stringstream nameSS;
                 nameSS << this->name << " element #" << (index + 1);
                 this->data[index].look_up_symbol(this->matlabEngine, symbols, nameSS.str());
+                if (this->data[index].is_aliased) {
+                    this->aliases_found = true;
+                }
             }
             symbols_resolved = true;
         }
@@ -218,11 +248,15 @@ namespace Moment::mex {
             return;
         }
 
+        this->aliases_found = false;
         for (size_t index = 0; index < this->data_length; ++index) {
             if (this->data[index].symbol_id < 0) {
                 std::stringstream nameSS;
                 nameSS << this->name << " element #" << (index + 1);
                 this->data[index].look_up_or_make_symbol(this->matlabEngine, symbols, nameSS.str());
+                if (this->data[index].is_aliased) {
+                    this->aliases_found = true;
+                }
             }
         }
         this->symbols_resolved = true;
