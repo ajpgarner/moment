@@ -445,8 +445,10 @@ namespace Moment::Pauli {
         if (!this->translational_symmetry) [[unlikely]] {
             return seq;
         }
+        assert(this->wrap);
 
-        // Empty sequences, and sequences starting on qubit 1 do not change
+
+        // Special case: empty sequences, and sequences starting on qubit 1 do not change
         if (seq.empty()) {
             return seq;
         }
@@ -455,6 +457,40 @@ namespace Moment::Pauli {
             return seq;
         }
 
+        const auto word_size = seq.size();
+
+        // Special case: single op
+        if (1 == word_size) {
+            const oper_name_t pauli_op = first_op % 3;
+            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, sequence_storage_t{pauli_op},
+                                    static_cast<uint64_t>(first_op+2), *this, seq.get_sign()};
+        }
+        else if (2 == word_size) { // Special case: a pair of qubits
+            assert(this->qubit_size >= 2);
+            const oper_name_t first_qubit = seq[0] / 3;
+            const oper_name_t first_pauli = seq[0] % 3;
+            const oper_name_t second_qubit = seq[1] / 3;
+            const oper_name_t second_pauli = seq[1] % 3;
+            assert((second_qubit - first_qubit) > 0);
+
+            sequence_storage_t output_data;
+            output_data.reserve(2);
+
+            // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
+            if ((2*second_qubit) < (this->qubit_size + (2* first_qubit))) {
+                // Then, make 1st qubit at index 0, and 2nd at distance between them
+                output_data.emplace_back(first_pauli);
+                output_data.emplace_back((second_qubit-first_qubit)*3 + second_pauli);
+            } else {
+                // Otherwise, make 2nd qubit at index 0, and 2nd at the first on the wrap-distance
+                assert(this->qubit_size > (second_qubit - first_qubit)); // second could be at N-1, and first at 0
+                output_data.emplace_back(second_pauli);
+                output_data.emplace_back((this->qubit_size - second_qubit + first_qubit)*3 + first_pauli);
+            }
+            return OperatorSequence{std::move(output_data), *this};
+        }
+
+        // XXX: Handle remaining cases correctly
         const oper_name_t operator_offset = (first_op / 3) * 3; // Looks redundant, but actually does a floor.
 
         sequence_storage_t output_data;
@@ -467,9 +503,14 @@ namespace Moment::Pauli {
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
+        // Obvious tests
         if (seq.empty()) {
             return false;
         }
-        return (*seq.begin() >= 3);
+        if (*seq.begin() >= 3) {
+            return true;
+        }
+
+        return Context::can_be_simplified_as_moment(seq);
     }
 }

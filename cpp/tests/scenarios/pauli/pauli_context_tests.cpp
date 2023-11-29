@@ -527,9 +527,14 @@ namespace Moment::Tests {
         ASSERT_EQ(context.qubit_size, 5);
         ASSERT_EQ(context.size(), 15);
 
+        // Pair
         const auto x1z3 = context.sigmaX(0) * context.sigmaZ(2);
         EXPECT_EQ(context.simplify_as_moment(context.sigmaX(1) * context.sigmaZ(3)), x1z3);
+        EXPECT_EQ(context.simplify_as_moment(context.sigmaX(4) * context.sigmaZ(1)), x1z3);
 
-
+        // Triplet
+        const auto x1y2z3 =  context.sigmaX(0) * context.sigmaY(1) * context.sigmaZ(2);
+        EXPECT_EQ(context.simplify_as_moment(context.sigmaX(1) * context.sigmaY(2) * context.sigmaZ(3)), x1y2z3);
+        EXPECT_EQ(context.simplify_as_moment(context.sigmaX(3) * context.sigmaY(4) * context.sigmaZ(0)), x1y2z3);
     }
 }

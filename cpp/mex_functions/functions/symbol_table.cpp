@@ -47,7 +47,6 @@ namespace Moment::mex::functions {
 
                 auto input_iter = query_inputs.cbegin();
                 while (input_iter != query_inputs.cend()) {
-                //for (size_t elem_index = 0; elem_index < elems; ++elem_index) {
                     const matlab::data::Array the_elem = *input_iter;
                     std::vector<uint64_t> raw_op_seq = read_positive_integer_array<uint64_t>(matlabEngine,
                                                                                              "Operator sequence",
