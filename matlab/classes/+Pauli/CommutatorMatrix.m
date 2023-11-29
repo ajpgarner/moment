@@ -1,15 +1,17 @@
 classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
-        NNLocalizingMatrix < MTKLocalizingMatrix
-%NNLOCALIZINGMATRIX Nearest neighbour localizing matrix.
+        CommutatorMatrix < MTKOpMatrix
+%COMMUTATORMATRIX Commutator of expression with moment matrix.
     
 %% Properties
     properties(GetAccess=public,SetAccess=private)
+        Level
         Neighbours
+        Expression
     end
     
 %% Constructor    
     methods
-        function obj = NNLocalizingMatrix(scenario, level, expr, nn)
+        function obj = CommutatorMatrix(scenario, level, expr, nn)
             
             % Input validation
             assert(nargin>=1 && isa(scenario, 'PauliScenario'), ...
@@ -17,12 +19,18 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
             assert(nargin>=2 && isnumeric(level) && isscalar(level),...
                 "Positive integer moment matrix level should be provided.")
             level = uint64(level);
+            
+            assert(nargin>=3, ...
+                   "Expression to commute with must be specified.");
+                
             if nargin < 4
                 nn = uint64(0);
             else
-                assert(isnumeric(nn) && isscalar(nn))
+                assert(isnumeric(nn) && isscalar(nn) && (nn >= 0),...
+                    "Number of neighbours should be a nonnegative integer.");
                 nn = uint64(nn);
             end
+            
                         
             % Handle expression
             if isa(expr, "MTKObject")
@@ -51,32 +59,35 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                 expr = MTKMonomial(scenario, monomial_expr, 1.0);
             end
             
-            % Do Pauli monomial LM creation
-            if is_monomial
+            % Do Pauli commutator matrix creation
+             if is_monomial
                 [lm_index, lm_dim, actually_mono, is_hermitian] ...
-                    = mtk('localizing_matrix', scenario.System.RefId, ...
+                    = mtk('commutator_matrix', 'commutator', ...
+                          scenario.System.RefId, ...
                           level, monomial_expr, ...
                           'neighbours', nn);
             else
-                if expr.FoundAllSymbols
+                if expr.FoundAllSymbols && ~scenario.PermitsSymbolAliases
                     [lm_index, lm_dim, actually_mono, is_hermitian] ...
-                        = mtk('localizing_matrix', scenario.System.RefId,...
+                        = mtk('commutator_matrix', 'commutator', ...
+                              scenario.System.RefId,...
                               level, 'symbols', expr.SymbolCell{1}, ...
                               'neighbours', nn);
                 else
                     [lm_index, lm_dim, actually_mono, is_hermitian] ...
-                        = mtk('localizing_matrix', scenario.System.RefId,...
+                        = mtk('commutator_matrix', 'commutator', ...
+                              scenario.System.RefId,...
                               level, 'operators', expr.OperatorCell{1}, ...
                               'neighbours', nn);
                 end                
             end
 
-            % Invoke parent constructor
-            obj = obj@MTKLocalizingMatrix(scenario, ...
-                {level, lm_index, lm_dim, actually_mono, is_hermitian},...
-                expr);
-            
-            obj.Neighbours = nn;          
+             % Invoke parent constructor
+            obj = obj@MTKOpMatrix(scenario, lm_index, lm_dim, ...
+                                  actually_mono, is_hermitian);
+            obj.Level = level;
+            obj.Neighbours = nn;
+            obj.Expression = expr;
         end
     end
 end

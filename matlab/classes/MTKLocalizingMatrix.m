@@ -83,19 +83,19 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
                               level, monomial_expr);
 
                 else
-                    if expr.FoundAllSymbols
+                    if expr.FoundAllSymbols && ~scenario.PermitsSymbolAliases
                         [lm_index, lm_dim, actually_monomial, is_hermitian]...
                             = mtk('localizing_matrix', scenario.System.RefId,...
                                   level, 'symbols', expr.SymbolCell{1});
                     else
                         [lm_index, lm_dim, actually_monomial, is_hermitian]...
                             = mtk('localizing_matrix', scenario.System.RefId,...
-                                  level, 'operators', expr.OperatorCell);
+                                  level, 'operators', expr.OperatorCell{1});
                     end
                 end
             end
             
-            % Construct MTKObject
+            % Construct MTKOpMatrix
             obj = obj@MTKOpMatrix(scenario, lm_index, lm_dim, ...
                                   actually_monomial, is_hermitian);
             obj.Level = level;

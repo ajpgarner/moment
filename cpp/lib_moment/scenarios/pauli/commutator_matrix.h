@@ -25,7 +25,7 @@ namespace Moment::Pauli {
     using CommutatorMatrixIndex = PauliLocalizingMatrixIndex;
 
     /**
-     * Generate 'Pauli' commutor matrix, possibly limited to nearest-neighbours in top row.
+     * Generate 'Pauli' (anti-)commutator matrix, possibly limited to nearest-neighbours in top row.
      */
     template<bool anti_commutator = false>
     struct CommutatorMatrixGenerator {

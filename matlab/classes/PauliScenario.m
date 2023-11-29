@@ -102,6 +102,11 @@ classdef PauliScenario < MTKScenario
                 obj.NumberOfRows = 1;
             end
             
+            % If symmetrized, then flag alias warning
+            if obj.Symmetrized
+                obj.PermitsSymbolAliases = true;
+            end
+            
         end
     end
     
@@ -202,22 +207,59 @@ classdef PauliScenario < MTKScenario
         end
         
       function val = LocalizingMatrix(obj, expr, level, neighbours)
-        % MOMENTMATRIX Construct a moment matrix for the Pauli scenario.
-        %   PARAMS:
-        %       level - NPA Hierarchy level
-        %       expr - The localizing expression
-        %       neighbours - If positive, restrict moments to this number 
-        %                    of nearest neighbours in top row of matrix.
+       % LOCALIZINGMATRIX Construct a moment matrix for the Pauli scenario.
+       %   PARAMS:
+       %       level - NPA Hierarchy level
+       %       expr - The localizing expression
+       %       neighbours - If positive, restrict moments to this number 
+       %                    of nearest neighbours in top row of matrix.
         
-            % Defaults:
-            assert(nargin>=2, "Moment matrix level must be specified.");
-            assert(nargin>=3, "Localizing expression must be specified.");
+            % Defaults:            
+            assert(nargin>=2, "Localizing expression must be specified.");
+            assert(nargin>=3, "Hierarchy level must be specified.");
             if nargin < 4
                 neighbours = 0;
             end
             
             val = Pauli.NNLocalizingMatrix(obj, level, expr, neighbours);
-        end
+      end
+      
+      function val = CommutatorMatrix(obj, expr, level, neighbours)
+      % COMMUTATORMATRIX Calculate the commutator of moment matrix with 
+      %                  expression.
+      %   PARAMS:
+      %       level - NPA Hierarchy level.
+      %       expr - The expression to commute with.
+      %       neighbours - If positive, restrict moments to this number 
+      %                    of nearest neighbours in top row of matrix.
+             
+          % Defaults:          
+          assert(nargin>=2, "Expression to commute with must be specified.");
+          assert(nargin>=3, "Hierarchy level must be specified.");
+          if nargin < 4
+              neighbours = uint64(0);
+          end
+          val = Pauli.CommutatorMatrix(obj, level, expr, neighbours);
+      end
+      
+      
+      function val = AnticommutatorMatrix(obj, expr, level, neighbours)
+      % ANTICOMMUTATORMATRIX Calculate the anti-commutator of moment matrix 
+      %                      with expression.
+      %   PARAMS:
+      %       level - NPA Hierarchy level.
+      %       expr - The expression to anti-commute with.
+      %       neighbours - If positive, restrict moments to this number 
+      %                    of nearest neighbours in top row of matrix.
+       
+          % Defaults:          
+          assert(nargin>=2, "Expression to anti-commute with must be specified.");
+          assert(nargin>=3, "Hierarchy level must be specified.");
+          if nargin < 4
+              neighbours = uint64(0);
+          end
+          val = Pauli.AnticommutatorMatrix(obj, level, expr, neighbours);
+      end
     end
            
     %% Virtual methods    

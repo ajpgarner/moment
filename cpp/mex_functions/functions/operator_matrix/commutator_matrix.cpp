@@ -116,6 +116,9 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"level");
         this->param_names.emplace(u"word");
 
+        // Accept NN parameter
+        this->param_names.emplace(u"neighbours");
+
         // Word type?
         this->flag_names.emplace(u"symbols");
         this->flag_names.emplace(u"operators");
@@ -130,34 +133,107 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
     }
 
-    std::pair<size_t, const Moment::SymbolicMatrix &>
-    getMonoCM(matlab::engine::MATLABEngine& matlabEngine, Pauli::PauliMatrixSystem& pauli_system,
-              CommutatorMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
-        auto read_lock = pauli_system.get_read_lock();
-        auto plmi = input.lmi_importer().to_pauli_monomial_index();
-        auto offset = pauli_system.CommutatorMatrices.find_index(plmi);
-        if (offset >= 0) {
-            return {offset, pauli_system[offset]};
+    namespace {
+        template<bool anticommutator>
+        std::pair<size_t, const Moment::SymbolicMatrix&>
+        getMonoCM(matlab::engine::MATLABEngine& matlabEngine, Pauli::PauliMatrixSystem& pauli_system,
+                  CommutatorMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
+            auto read_lock = pauli_system.get_read_lock();
+            auto plmi = input.lmi_importer().to_pauli_monomial_index();
+            const auto offset = [&pauli_system, &plmi]() -> ptrdiff_t {
+                if constexpr (anticommutator) {
+                    return pauli_system.AnticommutatorMatrices.find_index(plmi);;
+                } else {
+                    return pauli_system.CommutatorMatrices.find_index(plmi);
+                }
+            }();
+            //auto offset = pauli_system.CommutatorMatrices.find_index(plmi);
+
+            if (offset >= 0) {
+                return {offset, pauli_system[offset]};
+            }
+
+            // Try to create
+            read_lock.unlock();
+            if constexpr (anticommutator) {
+                return pauli_system.AnticommutatorMatrices.create(plmi, mt_policy);
+            } else {
+                return pauli_system.CommutatorMatrices.create(plmi, mt_policy);
+            }
         }
 
-        // Try to create
-        read_lock.unlock();
-        return pauli_system.CommutatorMatrices.create(plmi, mt_policy);
-    }
+        template<bool anticommutator>
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getPolyCMExistingSymbols(matlab::engine::MATLABEngine& matlabEngine,
+                                 MaintainsMutex::ReadLock&& read_lock,
+                                 Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
+                                 Multithreading::MultiThreadPolicy mt_policy) {
 
-    std::pair<size_t, const Moment::SymbolicMatrix &>
-    getMonoACM(matlab::engine::MATLABEngine& matlabEngine, Pauli::PauliMatrixSystem& pauli_system,
-              CommutatorMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
-        auto read_lock = pauli_system.get_read_lock();
-        auto plmi = input.lmi_importer().to_pauli_monomial_index();
-        auto offset = pauli_system.AnticommutatorMatrices.find_index(plmi);
-        if (offset >= 0) {
-            return {offset, pauli_system[offset]};
+            assert(system.is_locked_read_lock(read_lock));
+
+            auto plmi = input.lmi_importer().to_pauli_polynomial_index();
+
+            // Try to get in read-only mode
+            const auto offset = [&system, &plmi]() -> ptrdiff_t {
+                if constexpr (anticommutator) {
+                    return system.PolynomialAnticommutatorMatrices.find_index(plmi);
+                } else {
+                    return system.PolynomialCommutatorMatrices.find_index(plmi);
+                }
+            }();
+
+            if (offset >= 0) {
+                return {offset, system[offset]}; // ~read_lock
+            }
+
+            // Try to create polynomial matrix
+            read_lock.unlock();
+            if constexpr (anticommutator) {
+                return system.PolynomialAnticommutatorMatrices.create(std::move(plmi), mt_policy);
+            } else {
+                return system.PolynomialCommutatorMatrices.create(std::move(plmi), mt_policy);
+            }
+
         }
 
-        // Try to create
-        read_lock.unlock();
-        return pauli_system.AnticommutatorMatrices.create(plmi, mt_policy);
+        template<bool anticommutator>
+        inline std::pair<size_t, const Moment::SymbolicMatrix &>
+        getPolySymbolCM(matlab::engine::MATLABEngine& matlabEngine, Pauli::PauliMatrixSystem &system,
+                        CommutatorMatrixParams& input,
+                        Multithreading::MultiThreadPolicy mt_policy) {
+            return getPolyCMExistingSymbols<anticommutator>(matlabEngine, system.get_read_lock(),
+                                                            system, input, mt_policy);
+        }
+
+        template<bool anticommutator>
+        std::pair<size_t, const Moment::SymbolicMatrix &>
+        getPolyOpCM(matlab::engine::MATLABEngine& matlabEngine,
+                    Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
+                    Multithreading::MultiThreadPolicy mt_policy) {
+            // Can expression be parsed without new symbols?
+            auto symbol_read_lock = system.get_read_lock();
+            const bool found_all = input.lmi_importer().attempt_to_find_symbols_from_op_cell(symbol_read_lock);
+
+            // Not all symbols found, so switch to write lock
+            if (!found_all) {
+                symbol_read_lock.unlock();
+                auto write_lock = system.get_write_lock();
+                input.lmi_importer().register_symbols_in_op_cell(write_lock);
+                auto index = input.lmi_importer().to_pauli_polynomial_index();
+                // FIXME: Aliasing issues
+                if constexpr (anticommutator) {
+                    // Create or retrieve
+                    return system.PolynomialAnticommutatorMatrices.create(write_lock, std::move(index), mt_policy);
+                } else {
+                    // Create or retrieve
+                    return system.PolynomialCommutatorMatrices.create(write_lock, std::move(index), mt_policy);
+                }
+            }
+
+            // Fall-back to normal retrieval
+            return getPolyCMExistingSymbols<anticommutator>(matlabEngine, std::move(symbol_read_lock),
+                                                            system, input, mt_policy);
+        }
     }
 
     std::pair<size_t, const Moment::SymbolicMatrix&>
@@ -185,17 +261,22 @@ namespace Moment::mex::functions {
             switch (cmp.lmi_importer().get_expression_type()) {
                 case LocalizingMatrixIndexImporter::ExpressionType::OperatorSequence:
                     if (anticommutator) {
-                        return getMonoACM(matlabEngine, pauli_system, cmp, this->settings->get_mt_policy());
+                        return getMonoCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
                     } else {
-                        return getMonoCM(matlabEngine, pauli_system, cmp, this->settings->get_mt_policy());
+                        return getMonoCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
                     }
                 case LocalizingMatrixIndexImporter::ExpressionType::SymbolCell:
-                    throw_error(matlabEngine, errors::internal_error,
-                                "Currently symbol-cell inputs for (anti)commutator matrices are not supported.");
+                    if (anticommutator) {
+                        return getPolySymbolCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
+                    } else {
+                        return getPolySymbolCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
+                    }
                 case LocalizingMatrixIndexImporter::ExpressionType::OperatorCell:
-                    throw_error(matlabEngine, errors::internal_error,
-                                "Currently operator cell inputs for (anti)commutator matrices are not supported.");
-                    //return getPolyOpCM(matlabEngine, system, cmp, this->settings->get_mt_policy());
+                    if (anticommutator) {
+                        return getPolyOpCM<true>(matlabEngine, pauli_system, cmp, mt_policy);
+                    } else {
+                        return getPolyOpCM<false>(matlabEngine, pauli_system, cmp, mt_policy);
+                    }
                 default:
                 case LocalizingMatrixIndexImporter::ExpressionType::Unknown:
                     throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");
