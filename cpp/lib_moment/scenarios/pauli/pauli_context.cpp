@@ -11,6 +11,8 @@
 #include "pauli_dictionary.h"
 #include "pauli_osg.h"
 
+#include "utilities/shift_sorter.h"
+
 #include "../contextual_os.h"
 
 #include <cassert>
@@ -440,6 +442,86 @@ namespace Moment::Pauli {
         return std::make_unique<PauliSequenceGenerator>(*this, word_length);
     }
 
+    namespace {
+        [[nodiscard]] OperatorSequence simplify_pair_as_moment(const PauliContext& context,
+                                                               const oper_name_t first, const oper_name_t second,
+                                                               SequenceSignType the_sign) {
+            assert(context.qubit_size >= 2);
+            const auto first_qubit = static_cast<oper_name_t>(first / 3);
+            const auto first_pauli = static_cast<oper_name_t>(first % 3);
+            const auto second_qubit = static_cast<oper_name_t>(second / 3);
+            const auto second_pauli = static_cast<oper_name_t>(second % 3);
+            assert((second_qubit - first_qubit) > 0);
+
+            sequence_storage_t output_data;
+            output_data.reserve(2);
+
+            // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
+            if ((2*second_qubit) < (context.qubit_size + (2* first_qubit))) {
+                // Then, make 1st qubit at index 0, and 2nd at distance between them
+                output_data.emplace_back(first_pauli);
+                output_data.emplace_back((second_qubit-first_qubit)*3 + second_pauli);
+            } else {
+                // Otherwise, make 2nd qubit at index 0, and 2nd at the first on the wrap-distance
+                assert(context.qubit_size > (second_qubit - first_qubit)); // second could be at N-1, and first at 0
+                output_data.emplace_back(second_pauli);
+                output_data.emplace_back((context.qubit_size - second_qubit + first_qubit)*3 + first_pauli);
+            }
+            const auto hash = context.hash(output_data);
+            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data), hash, context,
+                                    the_sign};
+        }
+
+        [[nodiscard]] OperatorSequence
+        simplify_three_or_more_as_moment(const PauliContext& context, OperatorSequence&& seq) {
+            // Prepare distances into (thread-local) scratch pad:
+            const size_t word_size = seq.size();
+            thread_local SmallVector<oper_name_t, 32> qubits;
+            assert(word_size > 2);
+            assert(word_size <= 32);
+            for (size_t q = 0; q < (word_size - 1); ++q) {
+                qubits[q] = static_cast<oper_name_t>((seq[q+1] / 3) - (seq[q] / 3));
+            }
+            qubits[word_size-1] = static_cast<oper_name_t>(context.qubit_size + (seq[0] / 3) - (seq[word_size-1] / 3));
+
+            // Find which qubit we should take as the first
+            ShiftSorter<oper_name_t> sorter;
+            const size_t leading_qubit_index = sorter(std::span<const oper_name_t>{qubits.get(), word_size});
+
+            // Prepare output
+            sequence_storage_t output_data;
+            output_data.reserve(word_size);
+
+            // Easy case: no-cycling required
+            if (0 == leading_qubit_index) {
+                // Looks redundant, contains an implicit floor operation:
+                const auto operator_offset = static_cast<oper_name_t>((seq[0] / 3) * 3);
+
+                for (auto op: seq) {
+                    output_data.emplace_back(op - operator_offset);
+                }
+            } else {
+                // Start in the middle
+                const auto leading_qubit = static_cast<oper_name_t >(seq[leading_qubit_index] / 3);
+                const auto end_operator_offset = static_cast<oper_name_t>(leading_qubit * 3);
+                for (size_t i = leading_qubit_index; i < word_size; ++i) {
+                    output_data.emplace_back(seq[i] - end_operator_offset);
+                } // This makes the qubit at the leading qubit index as if it was at qubit 0.
+
+                // Now, we must offset the qubits at the front
+                const auto begin_operator_offset = static_cast<oper_name_t>((context.qubit_size - leading_qubit) * 3);
+                for (size_t i = 0; i < leading_qubit_index; ++i) {
+                    output_data.emplace_back(seq[i] + begin_operator_offset);
+                }
+            }
+
+            const auto hash = context.hash(output_data);
+            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data),
+                                    hash, context, seq.get_sign()};
+        }
+
+    }
+
     OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
         // If no symmetry, just return
         if (!this->translational_symmetry) [[unlikely]] {
@@ -447,66 +529,37 @@ namespace Moment::Pauli {
         }
         assert(this->wrap);
 
-
-        // Special case: empty sequences, and sequences starting on qubit 1 do not change
+        // Special case: empty sequences
         if (seq.empty()) {
             return seq;
         }
-        const oper_name_t first_op = *seq.begin();
-        if (first_op < 3) {
-            return seq;
-        }
 
+        // Otherwise action depends on size
         const auto word_size = seq.size();
 
-        // Special case: single op
+        // Special case: single operator
         if (1 == word_size) {
-            const oper_name_t pauli_op = first_op % 3;
+            const auto pauli_op = static_cast<oper_name_t>(*seq.begin() % 3);
             return OperatorSequence{OperatorSequence::ConstructRawFlag{}, sequence_storage_t{pauli_op},
-                                    static_cast<uint64_t>(first_op+2), *this, seq.get_sign()};
+                                    static_cast<uint64_t>(pauli_op+2), *this, seq.get_sign()};
         }
-        else if (2 == word_size) { // Special case: a pair of qubits
-            assert(this->qubit_size >= 2);
-            const oper_name_t first_qubit = seq[0] / 3;
-            const oper_name_t first_pauli = seq[0] % 3;
-            const oper_name_t second_qubit = seq[1] / 3;
-            const oper_name_t second_pauli = seq[1] % 3;
-            assert((second_qubit - first_qubit) > 0);
-
-            sequence_storage_t output_data;
-            output_data.reserve(2);
-
-            // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
-            if ((2*second_qubit) < (this->qubit_size + (2* first_qubit))) {
-                // Then, make 1st qubit at index 0, and 2nd at distance between them
-                output_data.emplace_back(first_pauli);
-                output_data.emplace_back((second_qubit-first_qubit)*3 + second_pauli);
-            } else {
-                // Otherwise, make 2nd qubit at index 0, and 2nd at the first on the wrap-distance
-                assert(this->qubit_size > (second_qubit - first_qubit)); // second could be at N-1, and first at 0
-                output_data.emplace_back(second_pauli);
-                output_data.emplace_back((this->qubit_size - second_qubit + first_qubit)*3 + first_pauli);
-            }
-            return OperatorSequence{std::move(output_data), *this};
+        // Special case: a pair of qubits
+        if (2 == word_size) {
+          return simplify_pair_as_moment(*this, seq[0], seq[1], seq.get_sign());
         }
 
-        // XXX: Handle remaining cases correctly
-        const oper_name_t operator_offset = (first_op / 3) * 3; // Looks redundant, but actually does a floor.
-
-        sequence_storage_t output_data;
-        output_data.reserve(seq.size());
-        for (auto op : seq) {
-            output_data.emplace_back(op - operator_offset);
-        }
-
-        return OperatorSequence{std::move(output_data), *this};
+        // General case:
+        return simplify_three_or_more_as_moment(*this, std::move(seq));
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
+        assert(this->translational_symmetry);
+
         // Obvious tests
         if (seq.empty()) {
             return false;
         }
+
         if (*seq.begin() >= 3) {
             return true;
         }
