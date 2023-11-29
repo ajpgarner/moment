@@ -35,7 +35,7 @@ function val = plus(lhs, rhs)
     this.checkSameScenario(other);
     
     % Do we have symbolic representation for accelerated addition?
-    if this.FoundAllSymbols && other.FoundAllSymbols
+    if ~this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols && other.FoundAllSymbols
         result_cell = mtk('plus', 'sequences', ...
                           this.Scenario.System.RefId, ...
                           this.SymbolCell, other.SymbolCell);
