@@ -15,7 +15,7 @@ namespace Moment::Pauli {
 
     class PauliPolynomialLocalizingMatrix : public PolynomialLocalizingMatrix {
     public:
-        const PauliContext& pauliContext;
+        const PauliContext& pauli_context;
         PauliPolynomialLMIndex nn_index;
 
     public:

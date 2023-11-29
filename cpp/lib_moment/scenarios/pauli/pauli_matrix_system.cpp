@@ -19,10 +19,13 @@ namespace Moment::Pauli {
         : MatrixSystem{std::move(contextPtr), tolerance},
           pauliContext{dynamic_cast<class PauliContext&>(this->Context())},
           PauliMomentMatrices{*this}, PauliLocalizingMatrices{*this}, PauliPolynomialLocalizingMatrices{*this},
-          CommutatorMatrices{*this}, AnticommutatorMatrices{*this} {
+          CommutatorMatrices{*this}, AnticommutatorMatrices{*this},
+          PolynomialCommutatorMatrices{*this}, PolynomialAnticommutatorMatrices{*this} {
 
-        // Set index factory...
+        // Set polynomial factory for indices...
         this->PauliPolynomialLocalizingMatrices.indices.set_factory(this->polynomial_factory());
+        this->PolynomialCommutatorMatrices.indices.set_factory(this->polynomial_factory());
+        this->PolynomialAnticommutatorMatrices.indices.set_factory(this->polynomial_factory());
     }
 
     std::unique_ptr<SymbolicMatrix>
@@ -130,6 +133,78 @@ namespace Moment::Pauli {
         }
         return ptr;
     }
+
+    std::unique_ptr<PolynomialMatrix>
+    PauliMatrixSystem::create_commutator_matrix(MaintainsMutex::WriteLock& lock,
+                                                const PolynomialCommutatorMatrixIndex& index,
+                                                Multithreading::MultiThreadPolicy mt_policy) {
+
+        assert(this->is_locked_write_lock(lock));
+
+        auto& symbol_table = this->Symbols();
+
+        // First ensure constituent parts exist
+        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        constituents.elements.reserve(index.Polynomial.size());
+        for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
+            auto [mono_offset, mono_matrix] = this->CommutatorMatrices.create(lock, mono_index, mt_policy);
+            constituents.elements.emplace_back(&mono_matrix, factor);
+        }
+        if (!constituents.auto_set_dimension()) {
+            constituents.matrix_dimension = this->pauliContext.pauli_dictionary().WordCount(index.Level);
+        }
+
+        // NB: Previous symbol updates from constituents will have already been accounted for...
+        const size_t prev_symbol_count = symbol_table.size();
+
+        // Synthesize into polynomial matrix
+        auto ptr = std::make_unique<PolynomialCommutatorMatrix>(this->pauliContext, symbol_table,
+                                                                 this->polynomial_factory(),
+                                                                 index, std::move(constituents));
+
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
+        }
+
+        return ptr;
+    }
+
+    std::unique_ptr<PolynomialMatrix>
+    PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& lock,
+                                                    const PolynomialCommutatorMatrixIndex& index,
+                                                    Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(lock));
+
+        auto& symbol_table = this->Symbols();
+
+        // First ensure constituent parts exist
+        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        constituents.elements.reserve(index.Polynomial.size());
+        for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
+            auto [mono_offset, mono_matrix] = this->AnticommutatorMatrices.create(lock, mono_index, mt_policy);
+            constituents.elements.emplace_back(&mono_matrix, factor);
+        }
+        if (!constituents.auto_set_dimension()) {
+            constituents.matrix_dimension = this->pauliContext.pauli_dictionary().WordCount(index.Level);
+        }
+
+        // NB: Previous symbol updates from constituents will have already been accounted for...
+        const size_t prev_symbol_count = symbol_table.size();
+
+        // Synthesize into polynomial matrix
+        auto ptr = std::make_unique<PolynomialAnticommutatorMatrix>(this->pauliContext, symbol_table,
+                                                                     this->polynomial_factory(),
+                                                                     index, std::move(constituents));
+
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
+        }
+
+        return ptr;
+    }
+
 
     std::unique_ptr<MonomialMatrix>
     PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& write_lock,
@@ -241,9 +316,22 @@ namespace Moment::Pauli {
                                                      const MonomialMatrix& cm) {
     }
 
+    void PauliMatrixSystem::on_new_commutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                     const PolynomialCommutatorMatrixIndex& index,
+                                                     ptrdiff_t matrix_offset,
+                                                     const PolynomialMatrix& cm) {
+    }
+
     void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                          const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
                                                          const MonomialMatrix& cm) {
+
+    }
+
+    void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+                                                         const PolynomialCommutatorMatrixIndex& index,
+                                                         ptrdiff_t matrix_offset,
+                                                         const PolynomialMatrix& cm) {
 
     }
 

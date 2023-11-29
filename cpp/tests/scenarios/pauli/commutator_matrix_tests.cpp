@@ -137,4 +137,71 @@ namespace Moment::Tests {
 
     }
 
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, Commute_X1_plus_Z1) {
+        auto& system = this->get_system();
+        const auto& factory = this->get_factory();
+        const Polynomial X1_plus_Z1{factory({Monomial{sX, 1.0}, Monomial{sZ, 1.0}})};
+
+        const PolynomialCommutatorMatrixIndex cmi_x1_plus_z1{1, 0, X1_plus_Z1}; // [MM, X1 + Z1]
+
+        auto& matrix = system.PolynomialCommutatorMatrices(cmi_x1_plus_z1);
+        ASSERT_FALSE(matrix.is_monomial());
+        const auto& poly_matrix = dynamic_cast<const PolynomialMatrix&>(matrix);
+
+        compare_polynomial_matrix("[MM, X+Z]", poly_matrix, 4, factory.zero_tolerance, {
+               factory({Monomial{0}}),
+               factory({Monomial{sY, {0.0, -2.0}}}),
+               factory({Monomial{sZ, {0.0, -2.0}}, Monomial{sX, {0.0, 2.0}}}),
+               factory({Monomial{sY, {0.0,  2.0}}}),
+
+               factory({Monomial{sY, {0.0, -2.0}}}),
+               factory({Monomial{0}}),
+               factory({Monomial{sY, -2.0}}),
+               factory({Monomial{sZ, -2.0}, Monomial{sX, 2.0}}),
+
+               factory({Monomial{sZ, {0.0, -2.0}}, Monomial{sX, {0.0, 2.0}}}),
+               factory({Monomial{sY, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{sY, 2.0}}),
+
+               factory({Monomial{sY, {0.0, 2.0}}}),
+               factory({Monomial{sZ, 2.0}, Monomial{sX, -2.0}}),
+               factory({Monomial{sY, -2.0}}),
+               factory({Monomial{0}})
+      });
+    }
+
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, Anticommute_X1_plus_Z1) {
+        auto& system = this->get_system();
+        const auto& factory = this->get_factory();
+        const Polynomial X1_plus_Z1{factory({Monomial{sX, 1.0}, Monomial{sZ, 1.0}})};
+
+        const PolynomialCommutatorMatrixIndex cmi_x1_plus_z1{1, 0, X1_plus_Z1}; // [MM, X1 + Z1]
+
+        auto& matrix = system.PolynomialAnticommutatorMatrices(cmi_x1_plus_z1);
+        ASSERT_FALSE(matrix.is_monomial());
+        const auto& poly_matrix = dynamic_cast<const PolynomialMatrix&>(matrix);
+
+        compare_polynomial_matrix("{MM, X+Z}", poly_matrix, 4, factory.zero_tolerance,
+              {factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{1, 2.0}}),
+
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, {0.0, 2.0}}}),
+               factory({Monomial{0}}),
+
+               factory({Monomial{0}}),
+               factory({Monomial{1, {0.0, -2.0}}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, {0.0, 2.0}}}),
+
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{1, {0.0, -2.0}}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}})});
+    }
+
 }
