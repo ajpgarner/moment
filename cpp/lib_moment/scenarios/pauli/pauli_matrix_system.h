@@ -68,6 +68,35 @@ namespace Moment::Pauli {
          */
         explicit PauliMatrixSystem(std::unique_ptr<class PauliContext> context, double tolerance = 1.0);
 
+
+        /**
+         * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
+         * Used for alias-safe creation of polynomial matrices, but does not save (polynomial) index.
+         * Acquires write lock.
+         */
+        [[nodiscard]] std::pair<ptrdiff_t, const PolynomialMatrix&>
+        create_and_register_localizing_matrix(const NearestNeighbourIndex& index, const RawPolynomial& raw_poly,
+                          Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+
+        /**
+         * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
+         * Used for alias-safe creation of polynomial matrices, but does not save (polynomial) index.
+         * Acquires write lock.
+         */
+        [[nodiscard]] std::pair<ptrdiff_t, const PolynomialMatrix&>
+        create_and_register_commutator_matrix(const NearestNeighbourIndex& index, const RawPolynomial& raw_poly,
+                             Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+
+        /**
+         * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
+         * Used for alias-safe creation of polynomial matrices, but does not save (polynomial) index.
+         * Acquires write lock.
+         */
+        [[nodiscard]] std::pair<ptrdiff_t, const PolynomialMatrix&>
+        create_and_register_anticommutator_matrix(const NearestNeighbourIndex& index, const RawPolynomial& raw_poly,
+                             Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
+
+
     protected:
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
@@ -128,6 +157,7 @@ namespace Moment::Pauli {
         [[nodiscard]] std::unique_ptr<PolynomialMatrix>
         create_anticommutator_matrix(WriteLock& lock, const PolynomialCommutatorMatrixIndex& index,
                                      Multithreading::MultiThreadPolicy mt_policy);
+
 
 
         void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,

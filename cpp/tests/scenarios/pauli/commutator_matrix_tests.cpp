@@ -9,6 +9,8 @@
 #include "../../matrix/compare_os_matrix.h"
 #include "../../matrix/compare_symbol_matrix.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/pauli/commutator_matrix.h"
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
@@ -182,6 +184,78 @@ namespace Moment::Tests {
         ASSERT_FALSE(matrix.is_monomial());
         const auto& poly_matrix = dynamic_cast<const PolynomialMatrix&>(matrix);
 
+        compare_polynomial_matrix("{MM, X+Z}", poly_matrix, 4, factory.zero_tolerance,
+              {factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{1, 2.0}}),
+
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, {0.0, 2.0}}}),
+               factory({Monomial{0}}),
+
+               factory({Monomial{0}}),
+               factory({Monomial{1, {0.0, -2.0}}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
+               factory({Monomial{1, {0.0, 2.0}}}),
+
+               factory({Monomial{1, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{1, {0.0, -2.0}}}),
+               factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}})});
+    }
+
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, RawCommute_X1_plus_Z1) {
+        auto& system = this->get_system();
+        auto& context = system.pauliContext;
+        const auto& factory = this->get_factory();
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(context.sigmaX(0), {1.0, 0.0});
+        raw_poly.emplace_back(context.sigmaZ(0), {1.0, 0.0});
+        ASSERT_EQ(raw_poly.size(), 2);
+
+        auto [offset, poly_matrix] = system.create_and_register_commutator_matrix(NearestNeighbourIndex{1, 0}, raw_poly);
+        ASSERT_FALSE(poly_matrix.is_monomial());
+
+        compare_polynomial_matrix("[MM, X+Z]", poly_matrix, 4, factory.zero_tolerance, {
+               factory({Monomial{0}}),
+               factory({Monomial{sY, {0.0, -2.0}}}),
+               factory({Monomial{sZ, {0.0, -2.0}}, Monomial{sX, {0.0, 2.0}}}),
+               factory({Monomial{sY, {0.0,  2.0}}}),
+
+               factory({Monomial{sY, {0.0, -2.0}}}),
+               factory({Monomial{0}}),
+               factory({Monomial{sY, -2.0}}),
+               factory({Monomial{sZ, -2.0}, Monomial{sX, 2.0}}),
+
+               factory({Monomial{sZ, {0.0, -2.0}}, Monomial{sX, {0.0, 2.0}}}),
+               factory({Monomial{sY, 2.0}}),
+               factory({Monomial{0}}),
+               factory({Monomial{sY, 2.0}}),
+
+               factory({Monomial{sY, {0.0, 2.0}}}),
+               factory({Monomial{sZ, 2.0}, Monomial{sX, -2.0}}),
+               factory({Monomial{sY, -2.0}}),
+               factory({Monomial{0}})
+      });
+    }
+
+    TEST_F(Scenarios_Pauli_CommutatorMatrixTests, RawAnticommute_X1_plus_Z1) {
+        auto& system = this->get_system();
+
+        auto& context = system.pauliContext;
+        const auto& factory = this->get_factory();
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(context.sigmaX(0), {1.0, 0.0});
+        raw_poly.emplace_back(context.sigmaZ(0), {1.0, 0.0});
+        ASSERT_EQ(raw_poly.size(), 2);
+
+
+        auto [offset, poly_matrix] = system.create_and_register_anticommutator_matrix(NearestNeighbourIndex{1, 0},
+                                                                                      raw_poly);
+        ASSERT_FALSE(poly_matrix.is_monomial());
         compare_polynomial_matrix("{MM, X+Z}", poly_matrix, 4, factory.zero_tolerance,
               {factory({Monomial{sX, 2.0}, Monomial{sZ, 2.0}}),
                factory({Monomial{1, 2.0}}),

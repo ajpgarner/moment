@@ -6,8 +6,11 @@
  */
 #include "gtest/gtest.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
+#include "scenarios/pauli/pauli_polynomial_localizing_matrix.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -15,6 +18,7 @@
 #include "matrix/polynomial_matrix.h"
 
 namespace Moment::Tests {
+    using namespace Moment::Pauli;
 
     class Scenarios_Pauli_PolyLMTests : public ::testing::Test {
     private:
@@ -97,6 +101,50 @@ namespace Moment::Tests {
 
         const PolynomialLMIndex plmIndex{1, factory({Monomial{sid_X, -2.0}, Monomial{sid_Y, 1.0}})};
         auto& plm = system.PolynomialLocalizingMatrix(plmIndex);
+
+        const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
+        const LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};
+
+        ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_a_1));
+        ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_b_1));
+        const auto& lmA = dynamic_cast<const MonomialMatrix&>(system.LocalizingMatrix(lmi_a_1));
+        const auto& lmB = dynamic_cast<const MonomialMatrix&>(system.LocalizingMatrix(lmi_b_1));
+
+        ASSERT_EQ(plm.Dimension(), 4);
+        ASSERT_EQ(lmA.Dimension(), 4);
+        ASSERT_EQ(lmB.Dimension(), 4);
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const auto& poly_elem = plm.SymbolMatrix(row, col);
+                const auto& monoA_elem = lmA.SymbolMatrix(row, col);
+                const auto& monoB_elem = lmB.SymbolMatrix(row, col);
+                const bool swap_order = monoB_elem.id < monoA_elem.id;
+
+                ASSERT_EQ(poly_elem.size(), 2) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].id, monoA_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].factor, monoA_elem.factor*-2.0) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 1 : 0].conjugated, monoA_elem.conjugated)
+                                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].id, monoB_elem.id) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].factor, monoB_elem.factor) << "col = " << col << ", row = " << row;
+                EXPECT_EQ(poly_elem[swap_order ? 0 : 1].conjugated, monoB_elem.conjugated)
+                                    << "col = " << col << ", row = " << row;
+            }
+        }
+    }
+
+    TEST_F(Scenarios_Pauli_PolyLMTests, Plain_MakePolyRaw) {
+        auto& system = this->get_system();
+        const auto& factory = this->get_factory();
+        const auto& context = this->get_context();
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(context.sigmaX(0), std::complex{-2.0, 0.0});
+        raw_poly.emplace_back(context.sigmaY(0), std::complex{1.0, 0.0});
+        ASSERT_EQ(raw_poly.size(), 2);
+
+        auto [offset, plm] = system.create_and_register_localizing_matrix(NearestNeighbourIndex{1, 0}, raw_poly);
+        ASSERT_FALSE(plm.is_monomial());
 
         const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
         const LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};

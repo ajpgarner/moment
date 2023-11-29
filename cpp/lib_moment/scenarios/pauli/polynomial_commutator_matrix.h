@@ -9,8 +9,15 @@
 #include "commutator_matrix.h"
 #include "pauli_polynomial_lm_indices.h"
 
-
 #include "matrix/composite_matrix.h"
+#include "matrix/polynomial_localizing_matrix.h"
+
+#include "multithreading/maintains_mutex.h"
+#include "multithreading/multithreading.h"
+
+namespace Moment {
+    class RawPolynomial;
+}
 
 namespace Moment::Pauli {
 
@@ -28,6 +35,15 @@ namespace Moment::Pauli {
                                    const PolynomialFactory& factory,
                                    PolynomialCommutatorMatrixIndex index,
                                    CompositeMatrix::ConstituentInfo&& constituents);
+
+        PolynomialCommutatorMatrix(PauliMatrixSystem& system, NearestNeighbourIndex index,
+                                   const std::string& raw_word_name, CompositeMatrix::ConstituentInfo&& constituents);
+
+        /** Creates PolynomialLocalizingMatrix from raw polynomial */
+        static std::unique_ptr<PolynomialCommutatorMatrix>
+        create_from_raw(MaintainsMutex::WriteLock& write_lock, PauliMatrixSystem& system,
+                        NearestNeighbourIndex index,  const RawPolynomial& raw_polynomials,
+                        Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
     };
 
     class PolynomialAnticommutatorMatrix : public CompositeMatrix {
@@ -41,6 +57,17 @@ namespace Moment::Pauli {
                                        const PolynomialFactory& factory,
                                        PolynomialCommutatorMatrixIndex index,
                                        CompositeMatrix::ConstituentInfo&& constituents);
+
+
+        PolynomialAnticommutatorMatrix(PauliMatrixSystem& system, NearestNeighbourIndex index,
+                                       const std::string& raw_word_name,
+                                       CompositeMatrix::ConstituentInfo&& constituents);
+
+        /** Creates PolynomialLocalizingMatrix from raw polynomial */
+        static std::unique_ptr<PolynomialAnticommutatorMatrix>
+        create_from_raw(MaintainsMutex::WriteLock& write_lock, PauliMatrixSystem& system,
+                        NearestNeighbourIndex index, const RawPolynomial& raw_polynomials,
+                        Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
     };
 
     /**

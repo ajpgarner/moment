@@ -10,6 +10,12 @@
 #include "matrix/polynomial_localizing_matrix.h"
 #include "pauli_polynomial_lm_indices.h"
 
+#include "multithreading/multithreading.h"
+
+namespace Moment {
+    class RawPolynomial;
+}
+
 namespace Moment::Pauli {
     class PauliContext;
 
@@ -23,5 +29,18 @@ namespace Moment::Pauli {
                                         const PolynomialFactory& factory,
                                         PauliPolynomialLMIndex index,
                                         PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
+
+        PauliPolynomialLocalizingMatrix(PauliMatrixSystem& system,
+                                        NearestNeighbourIndex index,
+                                        const std::string& raw_word_name,
+                                        PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
+
+
+    public:
+        /** Creates PolynomialLocalizingMatrix from raw polynomial */
+        static std::unique_ptr<PauliPolynomialLocalizingMatrix>
+        create_from_raw(MaintainsMutex::WriteLock& write_lock, PauliMatrixSystem& system,
+                        NearestNeighbourIndex index,  const RawPolynomial& raw_polynomials,
+                        Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
     };
 }

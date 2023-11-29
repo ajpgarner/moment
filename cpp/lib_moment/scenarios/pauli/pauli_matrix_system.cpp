@@ -28,6 +28,39 @@ namespace Moment::Pauli {
         this->PolynomialAnticommutatorMatrices.indices.set_factory(this->polynomial_factory());
     }
 
+    std::pair<ptrdiff_t, const PolynomialMatrix&>
+    PauliMatrixSystem::create_and_register_localizing_matrix(const NearestNeighbourIndex& index,
+                                                             const RawPolynomial& raw_poly,
+                                                             Multithreading::MultiThreadPolicy mt_policy) {
+        auto write_lock = this->get_write_lock();
+        auto mat_ptr = PauliPolynomialLocalizingMatrix::create_from_raw(write_lock, *this, index, raw_poly, mt_policy);
+        const auto& matrix = *mat_ptr;
+        const auto offset = this->push_back(write_lock, std::move(mat_ptr));
+        return {offset, matrix};
+    }
+
+    std::pair<ptrdiff_t, const PolynomialMatrix&>
+    PauliMatrixSystem::create_and_register_commutator_matrix(const NearestNeighbourIndex& index,
+                                                             const RawPolynomial& raw_poly,
+                                                             Multithreading::MultiThreadPolicy mt_policy) {
+        auto write_lock = this->get_write_lock();
+        auto mat_ptr = PolynomialCommutatorMatrix::create_from_raw(write_lock, *this, index, raw_poly, mt_policy);
+        const auto& matrix = *mat_ptr;
+        const auto offset = this->push_back(write_lock, std::move(mat_ptr));
+        return {offset, matrix};
+    }
+
+    std::pair<ptrdiff_t, const PolynomialMatrix&>
+    PauliMatrixSystem::create_and_register_anticommutator_matrix(const NearestNeighbourIndex& index,
+                                                                 const RawPolynomial& raw_poly,
+                                                                 Multithreading::MultiThreadPolicy mt_policy) {
+        auto write_lock = this->get_write_lock();
+        auto mat_ptr = PolynomialAnticommutatorMatrix::create_from_raw(write_lock, *this, index, raw_poly, mt_policy);
+        const auto& matrix = *mat_ptr;
+        const auto offset = this->push_back(write_lock, std::move(mat_ptr));
+        return {offset, matrix};
+    }
+
     std::unique_ptr<SymbolicMatrix>
     PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
                                             Multithreading::MultiThreadPolicy mt_policy) {
