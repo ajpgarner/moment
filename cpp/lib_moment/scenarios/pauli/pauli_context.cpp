@@ -74,6 +74,8 @@ namespace Moment::Pauli {
             sequence_storage_t output_data;
             output_data.reserve(2);
 
+            // TODO: Case vs. perfect aliasing; then tie-break with X < Y < Z
+
             // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
             if ((2*second_qubit) < (context.qubit_size + (2* first_qubit))) {
                 // Then, make 1st qubit at index 0, and 2nd at distance between them
@@ -143,8 +145,11 @@ namespace Moment::Pauli {
 
         /** Orient two qubits in 2D space */
         [[nodiscard]] OperatorSequence simplify_pair_as_moment_2D(const PauliContext& context,
-                                                                  const oper_name_t first, const oper_name_t second,
+                                                                  const oper_name_t first_op,
+                                                                  const oper_name_t second_op,
                                                                   SequenceSignType the_sign) {
+            const oper_name_t first_qubit = first_op / 3;
+            const oper_name_t second_qubit = second_op / 3;
             throw errors::bad_pauli_context{"Don't know how to simplify pair as moment in lattice."};
         }
 
@@ -176,6 +181,7 @@ namespace Moment::Pauli {
                 throw errors::bad_pauli_context{"Translational symmetry cannot be imposed on non-wrapping scenarios"};
             }
         }
+
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));

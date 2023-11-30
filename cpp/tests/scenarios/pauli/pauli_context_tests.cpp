@@ -66,6 +66,28 @@ namespace Moment::Tests {
         EXPECT_EQ(sigmaZ2.hash(), context.hash({5}));
     }
 
+    TEST(Scenarios_Pauli_Context, SigmaXYZ_Lattice) {
+        PauliContext context{4, true, true, 2};
+        ASSERT_EQ(context.qubit_size, 4);
+        ASSERT_EQ(context.size(), 12);
+
+        EXPECT_EQ(context.sigmaX(0), context.sigmaX(0, 0));
+        EXPECT_EQ(context.sigmaX(1), context.sigmaX(1, 0));
+        EXPECT_EQ(context.sigmaX(2), context.sigmaX(0, 1));
+        EXPECT_EQ(context.sigmaX(3), context.sigmaX(1, 1));
+
+        EXPECT_EQ(context.sigmaY(0), context.sigmaY(0, 0));
+        EXPECT_EQ(context.sigmaY(1), context.sigmaY(1, 0));
+        EXPECT_EQ(context.sigmaY(2), context.sigmaY(0, 1));
+        EXPECT_EQ(context.sigmaY(3), context.sigmaY(1, 1));
+
+        EXPECT_EQ(context.sigmaZ(0), context.sigmaZ(0, 0));
+        EXPECT_EQ(context.sigmaZ(1), context.sigmaZ(1, 0));
+        EXPECT_EQ(context.sigmaZ(2), context.sigmaZ(0, 1));
+        EXPECT_EQ(context.sigmaZ(3), context.sigmaZ(1, 1));
+
+    }
+
 
     TEST(Scenarios_Pauli_Context, OperatorSequence_Single) {
         PauliContext context{2};
@@ -554,7 +576,29 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice) {
+    TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_SingleQubit) {
+        PauliContext context{16, true, true, 4};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_EQ(context.qubit_size, 16);
+        ASSERT_EQ(context.row_width, 4);
+        ASSERT_EQ(context.col_height, 4);
+        ASSERT_EQ(context.size(), 48);
+
+        // Try various shifts
+        for (size_t row = 0; row < 4; ++row) {
+            for (size_t col = 0; col < 4; ++col) {
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaX(row, col)), context.sigmaX(0))
+                           << "Qubit = (" << row << ", " << col << ")";
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaY(row, col)), context.sigmaY(0))
+                           << "Qubit = (" << row << ", " << col << ")";
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaZ(row, col)), context.sigmaZ(0))
+                           << "Qubit = (" << row << ", " << col << ")";
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_Triplet) {
         PauliContext context{16, true, true, 4};
         ASSERT_TRUE(context.wrap);
         ASSERT_TRUE(context.translational_symmetry);
@@ -565,9 +609,17 @@ namespace Moment::Tests {
 
 
         // Expected result
+        const auto expected = context.sigmaZ(0, 0) * context.sigmaX(0, 3) * context.sigmaY(3, 0);
 
-
-
-
+        // Try various shifts
+        for (size_t horz_shift = 0; horz_shift < 4; ++horz_shift) {
+            for (size_t vert_shift = 0; vert_shift < 4; ++vert_shift) {
+                auto offset = context.sigmaZ(horz_shift, vert_shift)
+                                  * context.sigmaX(horz_shift, (vert_shift+3)%4)
+                                  * context.sigmaY((horz_shift+3)%4, vert_shift);
+                EXPECT_EQ(context.simplify_as_moment(std::move(offset)), expected)
+                           << "(+" << horz_shift << ", +" << vert_shift << ")";
+            }
+        }
     }
 }

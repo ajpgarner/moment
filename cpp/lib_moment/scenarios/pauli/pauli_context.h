@@ -139,7 +139,10 @@ namespace Moment {
             [[nodiscard]] OperatorSequence sigmaX(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
 
-            /** Pauli sigma X operator at site (row, cow). */
+            /**
+             * Pauli sigma X operator at site (row, col).
+             * Note column major storage order.
+             */
             [[nodiscard]] inline OperatorSequence sigmaX(const oper_name_t row, const oper_name_t col,
                                                   SequenceSignType sign = SequenceSignType::Positive) const {
                 return sigmaX(col*this->col_height + row, sign);
@@ -149,9 +152,27 @@ namespace Moment {
             [[nodiscard]] OperatorSequence sigmaY(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
 
+            /**
+             * Pauli sigma Y operator at site (row, col).
+             * Note column major storage order.
+             */
+            [[nodiscard]] inline OperatorSequence sigmaY(const oper_name_t row, const oper_name_t col,
+                                                         SequenceSignType sign = SequenceSignType::Positive) const {
+                return sigmaY(col*this->col_height + row, sign);
+            }
+
             /** Pauli sigma Z operator at site N. */
             [[nodiscard]] OperatorSequence sigmaZ(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
+
+            /**
+             * Pauli sigma Z operator at site (row, col).
+             * Note column major storage order.
+             */
+            [[nodiscard]] inline OperatorSequence sigmaZ(const oper_name_t row, const oper_name_t col,
+                                                         SequenceSignType sign = SequenceSignType::Positive) const {
+                return sigmaZ(col*this->col_height + row, sign);
+            }
 
         protected:
             [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
