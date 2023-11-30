@@ -32,6 +32,9 @@ namespace Moment {
         class PauliSequenceGenerator;
         class PauliDictionary;
 
+        /**
+         * Context for spin system.
+         */
         class PauliContext : public Context {
         public:
             /**
@@ -39,16 +42,20 @@ namespace Moment {
             */
             const oper_name_t qubit_size;
 
-            /**
-             * If a 2D spin lattice instead of a 1D spin chain, the number of qubits in one row.
-             */
-            const oper_name_t row_width = 0;
 
             /**
-             * If a 2D spin lattice, the number of qubits in a column.
-             * Either row_width * col_width = qubit_size, or both row_width and col_width are 0.
+             * If a 2D spin lattice, the number of qubits in one column.
+             * Adopting a COLUMN MAJOR scheme, this is the stride of the major index.
+             * If zero, then context is set to chain mode for purposes of neighbours.
              */
-            const oper_name_t col_width = 0;
+            const oper_name_t col_height = 0;
+
+            /**
+             * If a 2D spin lattice, the number of qubits in one row.
+             * Adopting a COLUMN MAJOR scheme, this is the number of major elements
+             * In 2D mode, indexing is COLUMN MAJOR: qubit number = col * col_height + row.
+             */
+            const oper_name_t row_width = 0;
 
             /**
              * Does the system wrap or tile?
@@ -70,11 +77,11 @@ namespace Moment {
              * Construct a context for Pauli matrices
              * @param qubits The number of unique qubits in the scenario.
              * @param wrap True to make the system wrap (or tile in 2D), in terms of neighbouring qubits.
-             * @param lattice_row_size The number of qubits in one row of a 2D lattice, or 0 for a 1D chain.
+             * @param lattice_col_height The number of qubits in one column, of 2D lattice, or set to 0 for a 1D chain.
              * @throws bad_pauli_context If the lattice row size is not valid (0, or divisor of qubits).
              */
             explicit PauliContext(oper_name_t qubits, bool wrap = false, bool translational_symmetry = false,
-                                  oper_name_t lattice_row_size = 0);
+                                  oper_name_t lattice_col_height = 0);
 
             inline const PauliDictionary& pauli_dictionary() const noexcept {
                 assert (dictionary_ptr);
@@ -86,7 +93,7 @@ namespace Moment {
             }
 
             [[nodiscard]] inline bool is_lattice() const noexcept {
-                return this->row_width != 0;
+                return this->col_height != 0;
             }
 
             [[nodiscard]] bool can_have_aliases() const noexcept final {
@@ -131,6 +138,12 @@ namespace Moment {
             /** Pauli sigma X  operator at site N. */
             [[nodiscard]] OperatorSequence sigmaX(const oper_name_t qubit,
                                                   SequenceSignType sign = SequenceSignType::Positive) const;
+
+            /** Pauli sigma X operator at site (row, cow). */
+            [[nodiscard]] inline OperatorSequence sigmaX(const oper_name_t row, const oper_name_t col,
+                                                  SequenceSignType sign = SequenceSignType::Positive) const {
+                return sigmaX(col*this->col_height + row, sign);
+            }
 
             /** Pauli sigma Y operator at site N. */
             [[nodiscard]] OperatorSequence sigmaY(const oper_name_t qubit,

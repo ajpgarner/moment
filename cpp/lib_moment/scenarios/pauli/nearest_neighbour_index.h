@@ -3,6 +3,8 @@
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
+ *
+ * @see pauli_osg.cpp for algorithms that exploit the neighbours parameter.
  */
 
 #pragma once

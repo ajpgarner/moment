@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/pauli/pauli_context.h"
+#include <stdexcept>
 
 namespace Moment::Tests {
     using namespace Moment::Pauli;
@@ -550,5 +551,23 @@ namespace Moment::Tests {
         EXPECT_EQ(context.simplify_as_moment(context.sigmaX(2) * context.sigmaY(3) * context.sigmaZ(4)), x1y2z3);
         EXPECT_EQ(context.simplify_as_moment(context.sigmaX(3) * context.sigmaY(4) * context.sigmaZ(0)), x1y2z3);
         EXPECT_EQ(context.simplify_as_moment(context.sigmaX(4) * context.sigmaY(0) * context.sigmaZ(1)), x1y2z3);
+    }
+
+
+    TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice) {
+        PauliContext context{16, true, true, 4};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_EQ(context.qubit_size, 16);
+        ASSERT_EQ(context.row_width, 4);
+        ASSERT_EQ(context.col_height, 4);
+        ASSERT_EQ(context.size(), 48);
+
+
+        // Expected result
+
+
+
+
     }
 }

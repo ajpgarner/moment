@@ -58,34 +58,124 @@ namespace Moment::Pauli {
             return cayley_table_ixyz[(left<<2) + right];
         }
 
+        /**
+         * Orient two qubits in a chain to canonical position
+         */
+        [[nodiscard]] OperatorSequence simplify_pair_as_moment(const PauliContext& context,
+                                                               const oper_name_t first, const oper_name_t second,
+                                                               SequenceSignType the_sign) {
+            assert(context.qubit_size >= 2);
+            const auto first_qubit = static_cast<oper_name_t>(first / 3);
+            const auto first_pauli = static_cast<oper_name_t>(first % 3);
+            const auto second_qubit = static_cast<oper_name_t>(second / 3);
+            const auto second_pauli = static_cast<oper_name_t>(second % 3);
+            assert((second_qubit - first_qubit) > 0);
+
+            sequence_storage_t output_data;
+            output_data.reserve(2);
+
+            // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
+            if ((2*second_qubit) < (context.qubit_size + (2* first_qubit))) {
+                // Then, make 1st qubit at index 0, and 2nd at distance between them
+                output_data.emplace_back(first_pauli);
+                output_data.emplace_back((second_qubit-first_qubit)*3 + second_pauli);
+            } else {
+                // Otherwise, make 2nd qubit at index 0, and 2nd at the first on the wrap-distance
+                assert(context.qubit_size > (second_qubit - first_qubit)); // second could be at N-1, and first at 0
+                output_data.emplace_back(second_pauli);
+                output_data.emplace_back((context.qubit_size - second_qubit + first_qubit)*3 + first_pauli);
+            }
+            const auto hash = context.hash(output_data);
+            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data), hash, context,
+                                    the_sign};
+        }
+
+        /**
+         * Orient three or more qubits in a chain to canonical position
+         */
+        [[nodiscard]] OperatorSequence
+        simplify_three_or_more_as_moment(const PauliContext& context, OperatorSequence&& seq) {
+            // Prepare distances into (thread-local) scratch pad:
+            const size_t word_size = seq.size();
+            thread_local SmallVector<oper_name_t, 32> qubits;
+            assert(word_size > 2);
+            assert(word_size <= 32);
+            for (size_t q = 0; q < (word_size - 1); ++q) {
+                qubits[q] = static_cast<oper_name_t>((seq[q+1] / 3) - (seq[q] / 3));
+            }
+            qubits[word_size-1] = static_cast<oper_name_t>(context.qubit_size + (seq[0] / 3) - (seq[word_size-1] / 3));
+
+            // Find which qubit we should take as the first
+            ShiftSorter<oper_name_t> sorter;
+            const size_t leading_qubit_index = sorter(std::span<const oper_name_t>{qubits.get(), word_size});
+
+            // Prepare output
+            sequence_storage_t output_data;
+            output_data.reserve(word_size);
+
+            // Easy case: no-cycling required
+            if (0 == leading_qubit_index) {
+                // Looks redundant, contains an implicit floor operation:
+                const auto operator_offset = static_cast<oper_name_t>((seq[0] / 3) * 3);
+
+                for (auto op: seq) {
+                    output_data.emplace_back(op - operator_offset);
+                }
+            } else {
+                // Start in the middle
+                const auto leading_qubit = static_cast<oper_name_t >(seq[leading_qubit_index] / 3);
+                const auto end_operator_offset = static_cast<oper_name_t>(leading_qubit * 3);
+                for (size_t i = leading_qubit_index; i < word_size; ++i) {
+                    output_data.emplace_back(seq[i] - end_operator_offset);
+                } // This makes the qubit at the leading qubit index as if it was at qubit 0.
+
+                // Now, we must offset the qubits at the front
+                const auto begin_operator_offset = static_cast<oper_name_t>((context.qubit_size - leading_qubit) * 3);
+                for (size_t i = 0; i < leading_qubit_index; ++i) {
+                    output_data.emplace_back(seq[i] + begin_operator_offset);
+                }
+            }
+
+            const auto hash = context.hash(output_data);
+            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data),
+                                    hash, context, seq.get_sign()};
+        }
+
+        /** Orient two qubits in 2D space */
+        [[nodiscard]] OperatorSequence simplify_pair_as_moment_2D(const PauliContext& context,
+                                                                  const oper_name_t first, const oper_name_t second,
+                                                                  SequenceSignType the_sign) {
+            throw errors::bad_pauli_context{"Don't know how to simplify pair as moment in lattice."};
+        }
+
+        [[nodiscard]] OperatorSequence
+        simplify_three_or_more_as_moment_2D(const PauliContext& context, OperatorSequence&& seq) {
+            throw errors::bad_pauli_context{"Don't know how to simplify word as moment in lattice."};
+        }
     }
 
     PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const bool tx_sym,
-                               const oper_name_t row_width_in)
+                               const oper_name_t col_height_in)
         : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, wrap{is_wrapped}, translational_symmetry{tx_sym},
-            row_width{row_width_in},
-            col_width{(row_width_in > 0) ? static_cast<oper_name_t>(qubits / row_width_in)
+            col_height{col_height_in},
+            row_width{(col_height_in> 0) ? static_cast<oper_name_t>(qubits / col_height_in)
                                          : static_cast<oper_name_t>(0)} {
-        // Check validity of row_width
-        if (row_width != 0) {
-            if (row_width < 0) {
+        // Check validity of col_height
+        if (col_height != 0) {
+            if (col_height < 0) {
                 throw errors::bad_pauli_context{"Row width must be a positive integer or zero."};
             }
-            auto remainder = qubits % row_width;
+            auto remainder = qubits % col_height;
             if (remainder != 0) {
                 throw errors::bad_pauli_context{"Row width must be a divisor of the number of qubits."};
             }
-            assert((row_width * col_width) == qubit_size);
+            assert((row_width * col_height) == qubit_size);
         }
         if (translational_symmetry) {
             if (!wrap) {
                 throw errors::bad_pauli_context{"Translational symmetry cannot be imposed on non-wrapping scenarios"};
             }
-            if (col_width != 0) {
-                throw errors::bad_pauli_context{"Translational symmetry not implemented for 2D lattices."};
-            }
         }
-
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
@@ -324,7 +414,6 @@ namespace Moment::Pauli {
         return result;
     }
 
-
     OperatorSequence PauliContext::conjugate(const OperatorSequence &seq) const {
         return OperatorSequence{OperatorSequence::ConstructRawFlag{},
                                 seq.raw(), seq.hash(), *this, Moment::conjugate(seq.get_sign())};
@@ -336,6 +425,7 @@ namespace Moment::Pauli {
         return OperatorSequence{OperatorSequence::ConstructRawFlag{},
                                 sequence_storage_t{op_number}, static_cast<uint64_t>(op_number+2), *this, sign};
     }
+
 
     OperatorSequence PauliContext::sigmaY(const oper_name_t qubit, SequenceSignType sign) const {
         assert(qubit < this->qubit_size);
@@ -415,7 +505,7 @@ namespace Moment::Pauli {
            << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"))
            << " (" << this->operator_count << " operators)";
         if (this->is_lattice()) {
-            ss << " in " << this->row_width << " x " << this->col_width << " lattice";
+            ss << " in " << this->row_width << " x " << this->col_height << " lattice";
         }
 
         if (this->wrap) {
@@ -442,86 +532,6 @@ namespace Moment::Pauli {
         return std::make_unique<PauliSequenceGenerator>(*this, word_length);
     }
 
-    namespace {
-        [[nodiscard]] OperatorSequence simplify_pair_as_moment(const PauliContext& context,
-                                                               const oper_name_t first, const oper_name_t second,
-                                                               SequenceSignType the_sign) {
-            assert(context.qubit_size >= 2);
-            const auto first_qubit = static_cast<oper_name_t>(first / 3);
-            const auto first_pauli = static_cast<oper_name_t>(first % 3);
-            const auto second_qubit = static_cast<oper_name_t>(second / 3);
-            const auto second_pauli = static_cast<oper_name_t>(second % 3);
-            assert((second_qubit - first_qubit) > 0);
-
-            sequence_storage_t output_data;
-            output_data.reserve(2);
-
-            // Is right-ward gap from 1st to 2nd qubit smaller than gap from 2nd to 1st?
-            if ((2*second_qubit) < (context.qubit_size + (2* first_qubit))) {
-                // Then, make 1st qubit at index 0, and 2nd at distance between them
-                output_data.emplace_back(first_pauli);
-                output_data.emplace_back((second_qubit-first_qubit)*3 + second_pauli);
-            } else {
-                // Otherwise, make 2nd qubit at index 0, and 2nd at the first on the wrap-distance
-                assert(context.qubit_size > (second_qubit - first_qubit)); // second could be at N-1, and first at 0
-                output_data.emplace_back(second_pauli);
-                output_data.emplace_back((context.qubit_size - second_qubit + first_qubit)*3 + first_pauli);
-            }
-            const auto hash = context.hash(output_data);
-            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data), hash, context,
-                                    the_sign};
-        }
-
-        [[nodiscard]] OperatorSequence
-        simplify_three_or_more_as_moment(const PauliContext& context, OperatorSequence&& seq) {
-            // Prepare distances into (thread-local) scratch pad:
-            const size_t word_size = seq.size();
-            thread_local SmallVector<oper_name_t, 32> qubits;
-            assert(word_size > 2);
-            assert(word_size <= 32);
-            for (size_t q = 0; q < (word_size - 1); ++q) {
-                qubits[q] = static_cast<oper_name_t>((seq[q+1] / 3) - (seq[q] / 3));
-            }
-            qubits[word_size-1] = static_cast<oper_name_t>(context.qubit_size + (seq[0] / 3) - (seq[word_size-1] / 3));
-
-            // Find which qubit we should take as the first
-            ShiftSorter<oper_name_t> sorter;
-            const size_t leading_qubit_index = sorter(std::span<const oper_name_t>{qubits.get(), word_size});
-
-            // Prepare output
-            sequence_storage_t output_data;
-            output_data.reserve(word_size);
-
-            // Easy case: no-cycling required
-            if (0 == leading_qubit_index) {
-                // Looks redundant, contains an implicit floor operation:
-                const auto operator_offset = static_cast<oper_name_t>((seq[0] / 3) * 3);
-
-                for (auto op: seq) {
-                    output_data.emplace_back(op - operator_offset);
-                }
-            } else {
-                // Start in the middle
-                const auto leading_qubit = static_cast<oper_name_t >(seq[leading_qubit_index] / 3);
-                const auto end_operator_offset = static_cast<oper_name_t>(leading_qubit * 3);
-                for (size_t i = leading_qubit_index; i < word_size; ++i) {
-                    output_data.emplace_back(seq[i] - end_operator_offset);
-                } // This makes the qubit at the leading qubit index as if it was at qubit 0.
-
-                // Now, we must offset the qubits at the front
-                const auto begin_operator_offset = static_cast<oper_name_t>((context.qubit_size - leading_qubit) * 3);
-                for (size_t i = 0; i < leading_qubit_index; ++i) {
-                    output_data.emplace_back(seq[i] + begin_operator_offset);
-                }
-            }
-
-            const auto hash = context.hash(output_data);
-            return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(output_data),
-                                    hash, context, seq.get_sign()};
-        }
-
-    }
-
     OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
         // If no symmetry, just return
         if (!this->translational_symmetry) [[unlikely]] {
@@ -543,6 +553,16 @@ namespace Moment::Pauli {
             return OperatorSequence{OperatorSequence::ConstructRawFlag{}, sequence_storage_t{pauli_op},
                                     static_cast<uint64_t>(pauli_op+2), *this, seq.get_sign()};
         }
+
+        // Remaining cases will depend on if lattice 2D or not:
+        if (this->is_lattice()) {
+            if (2 == word_size) {
+                return simplify_pair_as_moment_2D(*this, seq[0], seq[1], seq.get_sign());
+            }
+            return simplify_three_or_more_as_moment_2D(*this, std::move(seq));
+        }
+
+
         // Special case: a pair of qubits
         if (2 == word_size) {
           return simplify_pair_as_moment(*this, seq[0], seq[1], seq.get_sign());
@@ -560,9 +580,13 @@ namespace Moment::Pauli {
             return false;
         }
 
+        // If first qubit isn't 0, then definitely can be moved:
         if (*seq.begin() >= 3) {
             return true;
         }
+
+        // TODO: Quicker test for remaining cases
+
 
         return Context::can_be_simplified_as_moment(seq);
     }

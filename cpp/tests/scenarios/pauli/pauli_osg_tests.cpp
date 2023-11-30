@@ -257,7 +257,7 @@ namespace Moment::Tests {
         ASSERT_EQ(context.size(), 27);
         ASSERT_FALSE(context.wrap);
         ASSERT_EQ(context.row_width, 3);
-        ASSERT_EQ(context.col_width, 3);
+        ASSERT_EQ(context.col_height, 3);
         ASSERT_TRUE(context.is_lattice());
 
         PauliSequenceGenerator psg{context, 2, 1};
@@ -288,12 +288,49 @@ namespace Moment::Tests {
         tester.test_pauli_pairs(7, 8);
     }
 
+    TEST(Scenarios_Pauli_OSG, SixQubits_LatticeWrapped) {
+        PauliContext context{6, true, false, 3}; // 2x3 lattice
+        ASSERT_TRUE(context.wrap);
+        ASSERT_EQ(context.size(), 18);
+        ASSERT_EQ(context.row_width, 2);
+        ASSERT_EQ(context.col_height, 3);
+        ASSERT_TRUE(context.is_lattice());
+
+        PauliSequenceGenerator psg{context, 2, 1};
+        EXPECT_TRUE(psg.limited());
+        EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
+        EXPECT_EQ(psg.size(), 127); // L0: 1, L1: 18; L2: 108
+
+        OSGTester tester{psg};
+
+        tester.check_and_advance(OperatorSequence(context));
+
+        for (size_t qubit = 0; qubit < 6; ++qubit) {
+            tester.test_pauli_single(qubit);
+        }
+
+        tester.test_pauli_pairs(0, 1);
+        tester.test_pauli_pairs(0, 3);
+        tester.test_pauli_pairs(1, 2);
+        tester.test_pauli_pairs(1, 4);
+        tester.test_pauli_pairs(2, 0);
+        tester.test_pauli_pairs(2, 5);
+
+        tester.test_pauli_pairs(3, 4);
+        tester.test_pauli_pairs(3, 0);
+        tester.test_pauli_pairs(4, 5);
+        tester.test_pauli_pairs(4, 1);
+        tester.test_pauli_pairs(5, 3);
+        tester.test_pauli_pairs(5, 2);
+
+    }
+
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeWrapped) {
         PauliContext context{9, true, false, 3};
         ASSERT_TRUE(context.wrap);
         ASSERT_EQ(context.size(), 27);
         ASSERT_EQ(context.row_width, 3);
-        ASSERT_EQ(context.col_width, 3);
+        ASSERT_EQ(context.col_height, 3);
         ASSERT_TRUE(context.is_lattice());
 
         PauliSequenceGenerator psg{context, 2, 1};
@@ -330,4 +367,6 @@ namespace Moment::Tests {
         tester.test_pauli_pairs(8, 6);
         tester.test_pauli_pairs(8, 2);
     }
+
+
 }

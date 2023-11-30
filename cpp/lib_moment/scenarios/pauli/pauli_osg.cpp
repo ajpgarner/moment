@@ -193,34 +193,47 @@ namespace Moment::Pauli {
         size_t add_lattice_neighbour_pairs(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
             const auto init_size = sequences.size();
 
-
             // Iterate over all qubits in lattice
             oper_name_t qubit_index = 0;
-            for (oper_name_t row_id = 0, max_row = context.col_width - 1; row_id < max_row; ++row_id) {
-                for (oper_name_t col_id = 0, max_col = context.row_width - 1; col_id < max_col; ++col_id) {
+            // Major index is column index; and there are as many columns as the width of 1 row
+            for (oper_name_t col_id = 0, max_col = context.row_width - 1; col_id < max_col; ++col_id) {
+                // Then each element in a given column is identified by its row index
+                // There are as many rows as the height of 1 column.
+                for (oper_name_t row_id = 0, max_row = context.col_height - 1; row_id < max_row; ++row_id) {
+                    // Add vertical link (within column):
                     add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1);
-                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.row_width);
+                    // Add horizontal link (to next column):
+                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.col_height);
+
                     ++qubit_index;
                 }
 
-                if constexpr (wrapped) { // Add extra wrapped neighbours in row
-                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.row_width);
+                if constexpr (wrapped) {
+                    // Add extra vertical link from bottom of column to top of same column:
+                    add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.col_height);
                 };
-                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.row_width);
+                // Add horizontal link from bottom of column to bottom of next column:
+                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + context.col_height);
                 ++qubit_index;
             }
 
-            // Add extra wraps around from bottom to top:
-            for (oper_name_t col_id = 0, max_col = context.row_width - 1; col_id < max_col; ++col_id) {
+            // Now, add links in final column (iterating over row to identify elements):
+            for (oper_name_t row_id = 0, max_row = context.col_height - 1; row_id < max_row; ++row_id) {
+                // Add vertical link within final column:
                 add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1);
-                if constexpr (wrapped) { // Add extra neighbours wrapped vertically
-                    add_correlators_for_pair(sequences, context, qubit_index, col_id);
+                if constexpr (wrapped) {
+                    // Add horizontal link from right-most column to corresponding element in left-most column:
+                    add_correlators_for_pair(sequences, context, qubit_index, row_id);
                 }
                 ++qubit_index;
             }
-            if constexpr (wrapped) { // Add final neighbours for bottom right element
-                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.row_width);
-                add_correlators_for_pair(sequences, context, qubit_index, context.row_width-1);
+
+            // In wrap mode, bottom right element needs links too
+            if constexpr (wrapped) {
+                // Vertical link from bottom of last column to top of last column:
+                add_correlators_for_pair(sequences, context, qubit_index, qubit_index + 1 - context.col_height);
+                // Horizontal link from bottom of last column to bottom of first column:
+                add_correlators_for_pair(sequences, context, qubit_index, context.col_height-1);
             }
             ++qubit_index;
 
