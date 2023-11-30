@@ -36,7 +36,7 @@ namespace Moment {
                 case SequenceSignType::Positive:
                     break;
                 case SequenceSignType::Imaginary:
-                    weight *= {0.0, 1.0};
+                    weight *= std::complex{0.0, 1.0};
                     sequence.set_sign(SequenceSignType::Positive);
                     break;
                 case SequenceSignType::Negative:
@@ -44,7 +44,7 @@ namespace Moment {
                     sequence.set_sign(SequenceSignType::Positive);
                     break;
                 case SequenceSignType::NegativeImaginary:
-                    weight *= {0.0, -1.0};
+                    weight *= std::complex{0.0, -1.0};
                     sequence.set_sign(SequenceSignType::Positive);
                     break;
             }
