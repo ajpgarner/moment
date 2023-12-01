@@ -54,6 +54,7 @@ add_executable(moment_tests
         scenarios/pauli/pauli_matrix_system_tests.cpp
         scenarios/pauli/pauli_osg_tests.cpp
         scenarios/pauli/pauli_polynomial_localizing_matrix_tests.cpp
+        scenarios/pauli/site_hasher_tests.cpp
         scenarios/symmetry/group_tests.cpp
         scenarios/symmetry/representation_mapper_tests.cpp
         scenarios/symmetry/symmetrized_matrix_system_tests.cpp
