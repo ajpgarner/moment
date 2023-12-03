@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
-if(UNIX)
-    set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
-endif()
+
+if (APPLE)
+	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++-12")
+elseif (UNIX)
+	set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
+endif ()
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;ASan")
 

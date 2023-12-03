@@ -16,11 +16,7 @@
 #endif
 #include <Windows.h>
 #else
-#ifdef UNIX
-#include "sys/sysinfo.h"
-#else
 #include <thread>
-#endif
 #endif
 
 #include <algorithm>
@@ -59,16 +55,6 @@ namespace Moment::Multithreading {
         return static_cast<size_t>(sysinfo.dwNumberOfProcessors);
     }
 #else
-#ifdef UNIX
-    size_t os_core_reporting() {
-        // Use GNU/linux reported value
-        auto hwc = get_nprocs();
-        if (hwc < 1) {
-            hwc = 1;
-        }
-        return hwc;
-    }
-#else
     size_t os_core_reporting() {
         // Default implementation is to use value reported by std::thread.
         // Thanks to Intel, this value is almost always off by a factor of two on modern CPUs.
@@ -78,7 +64,6 @@ namespace Moment::Multithreading {
         }
         return hwc;
     }
-#endif
 #endif
 }
 
