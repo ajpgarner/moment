@@ -19,8 +19,13 @@ Clang 14.0.0 (via clang-cl), GCC 12.1.0, or Visual Studio 2022 \
 CMAKE 3.22
 
 *On GNU/Linux*: \
-GCC 12.1.0 \
+GCC 12.3.0 \
 CMAKE 3.22
+
+*On Mac*: \
+GCC 12.3.0 \
+CMAKE 3.22
+
 
 ## Installation Instructions
 ### GNU/Linux
@@ -35,6 +40,23 @@ Once the build is complete, the binary `mtk.mexa64` will be automatically copied
 
 To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
 
+### Mac 
+Only tested on Intel-based Macs. You first need the compilation tools if you don't already have:
+
+<pre>brew install git
+brew install gcc@12
+brew install cmake</pre>
+
+It is vital to use GCC 12, it will not work with the native clang. After that the commands are the same as in GNU/Linux:
+
+<pre>git clone --recursive https://github.com/ajpgarner/moment.git
+cd moment
+cmake . -DCMAKE_BUILD_TYPE=Release
+cmake --build .</pre>
+
+Once the build is complete, the binary `mtk.mexmaci64` will be automatically copied into the `moment/matlab` folder. 
+
+To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
 
 ### Windows: CLion
 Clone the repository (e.g. with GitHub desktop).
