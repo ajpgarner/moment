@@ -70,7 +70,9 @@ namespace Moment::mex {
                                                               const matlab::data::Array& input);
 
     template<std::integral int_t>
-    inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+    inline int_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
+        static_assert(false); // <- The general case should never be generated!
+    }
 
     template<>
     inline bool read_as_scalar<bool>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
