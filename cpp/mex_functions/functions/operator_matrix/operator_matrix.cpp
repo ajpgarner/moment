@@ -119,12 +119,12 @@ namespace Moment::mex::functions  {
         assert(inputs.empty()); // Should be guaranteed by parent.
         // Get depth
         auto& index_param = this->find_or_throw(u"index");
-        this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'index'", index_param, 0);
+        this->matrix_index = read_positive_integer<size_t>(matlabEngine, "Parameter 'index'", index_param, 0);
     }
 
     void RawOperatorMatrixParams::extra_parse_inputs() {
         assert(this->inputs.size() == 2); // should be guaranteed by parent.
-        this->matrix_index = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", inputs[1], 0);
+        this->matrix_index = read_positive_integer<size_t>(matlabEngine, "Matrix index", inputs[1], 0);
     }
 
     bool RawOperatorMatrixParams::any_param_set() const {

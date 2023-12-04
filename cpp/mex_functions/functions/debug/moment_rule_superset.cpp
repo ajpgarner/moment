@@ -21,11 +21,9 @@ namespace Moment::mex::functions  {
         this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                             this->inputs[0], 0);
 
-        this->ruleset_A_index = read_positive_integer<uint64_t>(matlabEngine, "Rulebook A",
-                                                            this->inputs[1], 0);
+        this->ruleset_A_index = read_positive_integer<size_t>(matlabEngine, "Rulebook A", this->inputs[1], 0);
 
-        this->ruleset_B_index = read_positive_integer<uint64_t>(matlabEngine, "Rulebook B",
-                                                            this->inputs[2], 0);
+        this->ruleset_B_index = read_positive_integer<size_t>(matlabEngine, "Rulebook B", this->inputs[2], 0);
     }
 
     MomentRuleSuperset::MomentRuleSuperset(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)

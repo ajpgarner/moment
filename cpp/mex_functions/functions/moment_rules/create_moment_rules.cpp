@@ -27,7 +27,7 @@ namespace Moment::mex::functions {
     CreateMomentRulesParams::CreateMomentRulesParams(SortedInputs &&rawInput)
             : SortedInputs(std::move(rawInput)) {
         // Read matrix key
-        this->matrix_system_key = read_positive_integer<size_t>(matlabEngine, "Matrix system reference", inputs[0], 0);
+        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Matrix system reference", inputs[0], 0);
 
         // Ascertain input mode
         if (this->flags.contains(u"info")) {

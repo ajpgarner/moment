@@ -39,7 +39,7 @@ namespace Moment::mex::functions {
         this->zero_index = this->flags.contains(u"zero_index");
 
         // Read object dimensions:
-        this->dimensions = read_as_vector<size_t>(matlabEngine, this->inputs[0]);
+        this->dimensions = read_positive_integer_array<size_t>(matlabEngine, "Dimensions", this->inputs[0], 0);
 
 
         // Read indices
@@ -47,10 +47,10 @@ namespace Moment::mex::functions {
             matlab::data::CellArray cell_input = this->inputs[1];
             this->indices.reserve(cell_input.getNumberOfElements());
             for (auto iter = cell_input.cbegin(); iter != cell_input.cend(); ++iter) {
-                this->indices.emplace_back(read_as_vector<size_t>(matlabEngine, *iter));
+                this->indices.emplace_back(read_as_size_t_vector(matlabEngine, *iter));
             }
         } else {
-            this->indices.emplace_back(read_as_vector<size_t>(matlabEngine, this->inputs[1]));
+            this->indices.emplace_back(read_as_size_t_vector(matlabEngine, this->inputs[1]));
         }
 
         const size_t index_count = this->indices.size();

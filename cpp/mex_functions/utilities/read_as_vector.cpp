@@ -236,6 +236,11 @@ namespace Moment::mex {
         return do_read_as_vector<uint64_t>(engine, input);
     }
 
+    std::vector<size_t>
+    read_as_size_t_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
+        return do_read_as_vector<size_t>(engine, input);
+    }
+
     std::vector<float>
     read_as_float_vector(matlab::engine::MATLABEngine &engine, const matlab::data::Array &input) {
         return do_read_as_vector<float>(engine, input);

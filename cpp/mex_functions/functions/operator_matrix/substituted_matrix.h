@@ -15,8 +15,8 @@ namespace Moment::mex::functions  {
 
     struct SubstitutedMatrixParams : public OperatorMatrixParams {
     public:
-        uint64_t matrix_index = 0;
-        uint64_t rules_index = 0;
+        size_t matrix_index = 0;
+        size_t rules_index = 0;
 
     public:
         explicit SubstitutedMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }

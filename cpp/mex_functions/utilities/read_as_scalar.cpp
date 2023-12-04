@@ -290,6 +290,10 @@ namespace Moment::mex {
         return do_read_as_scalar<uint64_t>(engine, input);
     }
 
+    size_t read_as_size_t(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
+        return do_read_as_scalar<size_t>(engine, input);
+    }
+
     float read_as_float(matlab::engine::MATLABEngine &engine, const matlab::data::Array& input) {
         return do_read_as_scalar<float>(engine, input);
     }

@@ -53,13 +53,47 @@ namespace Moment::mex {
 
     }
 
+    /**
+     * Parse MATLAB array into bool.
+     */
     [[nodiscard]] bool read_as_boolean(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 16-bit signed integer.
+     */
     [[nodiscard]] int16_t  read_as_int16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 16-bit unsigned integer.
+     */
     [[nodiscard]] uint16_t read_as_uint16(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 32-bit signed integer.
+     */
     [[nodiscard]] int32_t  read_as_int32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 32-bit unsigned integer.
+     */
     [[nodiscard]] uint32_t read_as_uint32(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 64-bit signed integer.
+     */
     [[nodiscard]] int64_t  read_as_int64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into 64-bit unsigned integer.
+     */
     [[nodiscard]] uint64_t read_as_uint64(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
+
+    /**
+     * Parse MATLAB array into size type signed integer (should be 64-bits).
+     * Specialist function required for systems where int32 = int and int64 = long long, but size_t = long.
+     */
+    [[nodiscard, maybe_unused]] size_t read_as_size_t(matlab::engine::MATLABEngine& engine,
+                                                      const matlab::data::Array& input);
 
     [[nodiscard]] float read_as_float(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
     [[nodiscard]] double read_as_double(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
@@ -106,15 +140,15 @@ namespace Moment::mex {
     inline uint64_t read_as_scalar<uint64_t>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
         return read_as_uint64(engine, input);
     };
-    
-    template<std::floating_point float_t>
+
+template<std::floating_point float_t>
     float_t read_as_scalar(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     template<>
     inline float read_as_scalar<float>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
         return read_as_float(engine, input);
     };
-    
+
     template<>
     inline double read_as_scalar<double>(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
         return read_as_double(engine, input);
@@ -133,6 +167,9 @@ namespace Moment::mex {
         return read_as_complex_double(engine, input);
     }
 
+    /**
+     * Read matlab string into uint64_t
+     */
     [[nodiscard]] uint64_t read_as_scalar(matlab::engine::MATLABEngine& engine,
                                           const matlab::data::MATLABString& input);
 
@@ -163,7 +200,7 @@ namespace Moment::mex {
     * @return The parsed integer.
     */
     template<std::integral int_t>
-    int_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+    inline int_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                 const std::string& paramName, const matlab::data::Array& array,
                                 int_t min_value = static_cast<int_t>(0)) {
         if (!castable_to_scalar_int(array)) {
@@ -181,6 +218,27 @@ namespace Moment::mex {
     }
 
     /**
+     * Specialization for size_t
+     */
+    template<>
+    inline size_t read_positive_integer<size_t>(matlab::engine::MATLABEngine &matlabEngine,
+                                         const std::string& paramName, const matlab::data::Array& array,
+                                         size_t min_value) {
+        if (!castable_to_scalar_int(array)) {
+            errors::throw_not_castable_to_scalar(paramName);
+        }
+        try {
+            const size_t val = read_as_size_t(matlabEngine, array);
+            if (val < min_value) {
+                errors::throw_under_min_scalar(paramName, static_cast<size_t>(min_value));
+            }
+            return val;
+        } catch (const errors::unreadable_scalar& use) {
+            errors::throw_unreadable_scalar(paramName, use);
+        }
+    }
+
+    /**
      * Read integer, or throw BadInput exception.
      * @param matlabEngine Reference to engine.
      * @param paramName Parameter/input name, as will appear in failure error message.
@@ -189,7 +247,7 @@ namespace Moment::mex {
      * @return The parsed integer.
      */
     template<std::integral int_t>
-    static int_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
+    inline int_t read_positive_integer(matlab::engine::MATLABEngine &matlabEngine,
                                        const std::string& paramName, const matlab::data::MATLABString& mlString,
                                        const int_t min_value = 0) {
         const auto max_value = static_cast<uint64_t>(std::numeric_limits<int_t>::max());

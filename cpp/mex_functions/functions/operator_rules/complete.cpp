@@ -75,8 +75,7 @@ namespace Moment::mex::functions {
             this->names = read_name_table(matlabEngine, *this->apc, "Operator specification",  inputs[0]);
             assert(this->names);
         } else {
-            this->max_operators = read_positive_integer<uint64_t>(matlabEngine, "Operator specification",
-                                                                  inputs[0], 1);
+            this->max_operators = read_positive_integer<size_t>(matlabEngine, "Operator specification", inputs[0], 1);
             this->apc = std::make_unique<Algebraic::AlgebraicPrecontext>(this->max_operators, hermitian_mode);
             this->names = std::make_unique<Algebraic::NameTable>(*apc);
         }
@@ -88,8 +87,8 @@ namespace Moment::mex::functions {
         } else {
             auto limit_iter = this->params.find(u"limit");
             if (limit_iter != this->params.cend()) {
-                this->max_attempts = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'limit'",
-                                                                     limit_iter->second, 0);
+                this->max_attempts = read_positive_integer<size_t>(matlabEngine, "Parameter 'limit'",
+                                                                   limit_iter->second, 0);
                 this->test_only = (0 == this->max_attempts);
             } else {
                 this->max_attempts = 128;

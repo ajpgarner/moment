@@ -45,6 +45,8 @@ namespace Moment::mex {
                                                               const matlab::data::Array& input);
     [[nodiscard]] std::vector<uint64_t> read_as_uint64_vector(matlab::engine::MATLABEngine& engine,
                                                               const matlab::data::Array& input);
+    [[nodiscard, maybe_unused]] std::vector<size_t> read_as_size_t_vector(matlab::engine::MATLABEngine& engine,
+                                                                          const matlab::data::Array& input);
     [[nodiscard]] std::vector<float> read_as_float_vector(matlab::engine::MATLABEngine& engine,
                                                               const matlab::data::Array& input);
     [[nodiscard]] std::vector<double> read_as_double_vector(matlab::engine::MATLABEngine& engine,
@@ -131,6 +133,28 @@ namespace Moment::mex {
         try {
             auto vec = read_as_vector<int_t>(matlabEngine, array);
             for (const auto& val : vec) {
+                if (val < min_value) {
+                    errors::throw_under_min_vector(paramName, min_value);
+                }
+            }
+            return vec;
+        } catch (const errors::unreadable_vector& use) {
+            errors::throw_unreadable_vector(paramName, use);
+        }
+    }
+
+    template<>
+    inline std::vector<size_t> read_positive_integer_array<size_t>(matlab::engine::MATLABEngine &matlabEngine,
+                                                                   const std::string& paramName,
+                                                                   const matlab::data::Array& array,
+                                                                   size_t min_value)  {
+        if (!castable_to_vector_int(array)) {
+            errors::throw_not_castable_to_vector(paramName);
+        }
+
+        try {
+            std::vector<size_t> vec = read_as_size_t_vector(matlabEngine, array);
+            for (const size_t val : vec) {
                 if (val < min_value) {
                     errors::throw_under_min_vector(paramName, min_value);
                 }

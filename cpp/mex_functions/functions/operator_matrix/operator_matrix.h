@@ -71,7 +71,7 @@ namespace Moment::mex::functions  {
 
     struct RawOperatorMatrixParams : public OperatorMatrixParams {
     public:
-        uint64_t matrix_index = 0;
+        size_t matrix_index = 0;
 
     public:
         explicit RawOperatorMatrixParams(SortedInputs&& inputs) : OperatorMatrixParams(std::move(inputs)) { }

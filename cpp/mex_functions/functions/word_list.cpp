@@ -27,8 +27,8 @@ namespace Moment::mex::functions {
                                                             this->inputs[0], 0);
 
 
-        this->word_length = read_positive_integer<uint64_t>(matlabEngine, "Word length",
-                                                            this->inputs[1], 0);
+        this->word_length = read_positive_integer<size_t>(matlabEngine, "Word length",
+                                                          this->inputs[1], 0);
 
         // Optional parameters for nearest-neighbour mode
         this->find_and_parse(u"neighbours", [this](const matlab::data::Array& param) {

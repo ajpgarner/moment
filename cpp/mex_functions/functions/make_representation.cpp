@@ -26,7 +26,7 @@ namespace Moment::mex::functions {
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
 
         // Get desired word length
-        this->word_length = read_positive_integer<uint64_t>(matlabEngine, "Word length", this->inputs[1], 0);
+        this->word_length = read_positive_integer<size_t>(matlabEngine, "Word length", this->inputs[1], 0);
     }
 
     MakeRepresentation::MakeRepresentation(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)

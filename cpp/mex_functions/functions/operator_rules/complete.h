@@ -22,9 +22,9 @@ namespace Moment::mex::functions {
 
     class CompleteParams : public SortedInputs {
     public:
-        uint64_t max_operators = 0;
+        size_t max_operators = 0;
 
-        uint64_t max_attempts = 128;
+        size_t max_attempts = 128;
 
         /** Precontext, including number of operators, and whether they are self-adjoint */
         std::unique_ptr<Algebraic::AlgebraicPrecontext> apc;

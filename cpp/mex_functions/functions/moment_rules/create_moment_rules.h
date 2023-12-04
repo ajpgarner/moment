@@ -35,7 +35,7 @@ namespace Moment::mex::functions {
         uint64_t matrix_system_key = 0;
 
         /** The ID of an existing ruleset  */
-        uint64_t existing_rule_key = 0;
+        size_t existing_rule_key = 0;
 
         /** True = Also generate extra rules from currently-known factors. */
         bool infer_from_factors = true;

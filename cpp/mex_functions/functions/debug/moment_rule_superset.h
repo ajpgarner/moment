@@ -14,9 +14,9 @@ namespace Moment::mex::functions  {
     public:
         uint64_t storage_key = 0;
 
-        uint64_t ruleset_A_index = 0;
+        size_t ruleset_A_index = 0;
 
-        uint64_t ruleset_B_index = 0;
+        size_t ruleset_B_index = 0;
 
     public:
         explicit MomentRuleSupersetParams(SortedInputs&& inputs);

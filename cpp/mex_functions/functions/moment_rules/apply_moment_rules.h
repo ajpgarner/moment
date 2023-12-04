@@ -23,7 +23,7 @@ namespace Moment::mex::functions {
         uint64_t matrix_system_key = 0;
 
         /** The reference to the substitution rules . */
-        uint64_t rulebook_index = 0;
+        size_t rulebook_index = 0;
 
         /** The format in which the inputs polynomial is given. */
         enum class InputFormat {

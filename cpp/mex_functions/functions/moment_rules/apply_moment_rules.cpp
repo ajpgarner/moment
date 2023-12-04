@@ -30,7 +30,7 @@ namespace Moment::mex::functions {
                                                                   this->inputs[0], 0);
 
         // Get rulebook index
-        this->rulebook_index = read_positive_integer<uint64_t>(matlabEngine, "Rulebook index", this->inputs[1], 0);
+        this->rulebook_index = read_positive_integer<size_t>(matlabEngine, "Rulebook index", this->inputs[1], 0);
 
         // Read symbol combo cell
         read_symbol_cell_input(this->inputs[2]);
