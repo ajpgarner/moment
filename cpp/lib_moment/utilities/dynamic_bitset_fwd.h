@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include "integer_types.h"
 
 #include <concepts>
 #include <vector>

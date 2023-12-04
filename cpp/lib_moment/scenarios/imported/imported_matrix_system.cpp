@@ -22,7 +22,8 @@ namespace Moment::Imported {
 
     namespace {
         void checkIMSymmetric(const SquareMatrix<Monomial>& input,
-                            DynamicBitset<uint64_t>& can_be_real, DynamicBitset<uint64_t>& can_be_imaginary) {
+                            DynamicBitset<uint64_t>& can_be_real,
+                            DynamicBitset<uint64_t>& can_be_imaginary) {
             for (size_t i = 0; i < input.dimension; ++i) {
                 const auto& diagonal = input(std::array<size_t,2>{i, i});
 
@@ -103,7 +104,8 @@ namespace Moment::Imported {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    ImportedMatrixSystem::create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) {
+    ImportedMatrixSystem::create_moment_matrix(WriteLock& lock, size_t level,
+                                               Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
 
@@ -114,7 +116,8 @@ namespace Moment::Imported {
     }
 
     std::unique_ptr<class PolynomialMatrix>
-    ImportedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+    ImportedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock,
+                                                              const PolynomialLMIndex &index,
                                                               Multithreading::MultiThreadPolicy mt_policy) {
         throw std::runtime_error{"Operator matrices cannot be procedurally generated in imported context."};
     }
@@ -146,10 +149,10 @@ namespace Moment::Imported {
         }
 
         // Flag whether a symbol can be real
-        DynamicBitset can_be_real{new_max_symbol_id + 1, true};
+        DynamicBitset<uint64_t> can_be_real{new_max_symbol_id + 1, true};
 
         // Flag whether a symbol can be imaginary
-        DynamicBitset can_be_imaginary{new_max_symbol_id + 1, !this->importedContext.real_only()};
+        DynamicBitset<uint64_t> can_be_imaginary{new_max_symbol_id + 1, !this->importedContext.real_only()};
 
         // Check if import type implies real or imaginary parts of mentioned symbols should be zero
         if (is_hermitian) {
