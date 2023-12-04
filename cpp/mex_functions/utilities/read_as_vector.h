@@ -53,9 +53,7 @@ namespace Moment::mex {
 
     template<std::integral int_t = uint64_t>
     [[nodiscard]] std::vector<int_t>
-    inline read_as_vector(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input) {
-        static_assert(false); // <- The general case should never be generated!
-    }
+    read_as_vector(matlab::engine::MATLABEngine& engine, const matlab::data::Array& input);
 
     template<>
     [[nodiscard]] inline std::vector<int16_t> read_as_vector(matlab::engine::MATLABEngine& engine,

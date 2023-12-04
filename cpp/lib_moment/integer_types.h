@@ -22,6 +22,9 @@ namespace Moment {
     using std::size_t;
     using std::ptrdiff_t;
 
+    static_assert(sizeof(size_t) == 8); // Moment *must* be compiled as a 64-bit executable.
+    static_assert(sizeof(ptrdiff_t) == 8); // Moment *must* be compiled as a 64-bit executable.
+
     /**
      * For enumerating parties (Alice, Bob, etc).
      */
