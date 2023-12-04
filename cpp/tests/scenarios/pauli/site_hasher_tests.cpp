@@ -20,7 +20,7 @@ namespace Moment::Tests {
         EXPECT_EQ(sizeof(SiteHasher<1>::Datum), 8);
         EXPECT_EQ(SiteHasher<1>::qubits_per_slide, 32);
 
-        EXPECT_EQ(hasher({}), (std::array<uint64_t, 1>{0}));
+        EXPECT_EQ(hasher({}), 0);
     }
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_MediumEmpty) {
@@ -35,18 +35,18 @@ namespace Moment::Tests {
         PauliContext context{5};
         SiteHasher<1> hasher{5};
 
-        EXPECT_EQ(hasher(context.identity().raw()), (std::array<uint64_t, 1>{0x0000000000000000}));
-        EXPECT_EQ(hasher(context.sigmaX(0).raw()), (std::array<uint64_t, 1>{0x0000000000000001}));
-        EXPECT_EQ(hasher(context.sigmaY(0).raw()), (std::array<uint64_t, 1>{0x0000000000000002}));
-        EXPECT_EQ(hasher(context.sigmaZ(0).raw()), (std::array<uint64_t, 1>{0x0000000000000003}));
+        EXPECT_EQ(hasher(context.identity().raw()),0x0000000000000000);
+        EXPECT_EQ(hasher(context.sigmaX(0).raw()), 0x0000000000000001);
+        EXPECT_EQ(hasher(context.sigmaY(0).raw()), 0x0000000000000002);
+        EXPECT_EQ(hasher(context.sigmaZ(0).raw()), 0x0000000000000003);
 
-        EXPECT_EQ(hasher(context.sigmaX(1).raw()), (std::array<uint64_t, 1>{0x0000000000000004}));
-        EXPECT_EQ(hasher(context.sigmaY(1).raw()), (std::array<uint64_t, 1>{0x0000000000000008}));
-        EXPECT_EQ(hasher(context.sigmaZ(1).raw()), (std::array<uint64_t, 1>{0x000000000000000c}));
+        EXPECT_EQ(hasher(context.sigmaX(1).raw()), 0x0000000000000004);
+        EXPECT_EQ(hasher(context.sigmaY(1).raw()), 0x0000000000000008);
+        EXPECT_EQ(hasher(context.sigmaZ(1).raw()), 0x000000000000000c);
 
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaX(1)).raw()), (std::array<uint64_t, 1>{0x0000000000000005}));
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaY(1)).raw()), (std::array<uint64_t, 1>{0x0000000000000009}));
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaZ(1)).raw()), (std::array<uint64_t, 1>{0x000000000000000d}));
+        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaX(1)).raw()), 0x0000000000000005);
+        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaY(1)).raw()), 0x0000000000000009);
+        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaZ(1)).raw()), 0x000000000000000d);
     }
 
 
@@ -344,5 +344,20 @@ namespace Moment::Tests {
                       hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 3) % 80)).raw()))
                                 << " shift_index = " << shift_index;
         }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Tiny) {
+        PauliContext context{4, true, true, 2}; // 2x2 wrapping grid
+
+//        SiteHasher<1> hasher{4, 2}; //
+//        EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0).raw()), 0, 0),
+//                  hasher(context.sigmaX(0, 0).raw()));
+//        EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0).raw()), 1, 0), // +1, +0
+//                  hasher(context.sigmaX(1, 0).raw()));
+//        EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0).raw()), 0, 1),
+//                  hasher(context.sigmaX(0, 1).raw()));
+//        EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0).raw()), 1, 1),
+//                  hasher(context.sigmaX(1, 1).raw()));
+
     }
 }

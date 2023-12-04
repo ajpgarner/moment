@@ -42,7 +42,6 @@ namespace Moment {
             */
             const oper_name_t qubit_size;
 
-
             /**
              * If a 2D spin lattice, the number of qubits in one column.
              * Adopting a COLUMN MAJOR scheme, this is the stride of the major index.
