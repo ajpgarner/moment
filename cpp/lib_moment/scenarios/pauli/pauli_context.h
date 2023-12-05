@@ -31,6 +31,7 @@ namespace Moment {
         struct NearestNeighbourIndex;
         class PauliSequenceGenerator;
         class PauliDictionary;
+        class SiteHasherImplBase;
 
         /**
          * Context for spin system.
@@ -69,7 +70,11 @@ namespace Moment {
              */
              const bool translational_symmetry = false;
 
+        private:
              PauliDictionary* dictionary_ptr = nullptr;
+
+             /** Hasher, for calculating translational symmetry equivalence classes */
+             std::unique_ptr<SiteHasherImplBase> tx_hasher;
 
         public:
             /**
@@ -81,6 +86,8 @@ namespace Moment {
              */
             explicit PauliContext(oper_name_t qubits, bool wrap = false, bool translational_symmetry = false,
                                   oper_name_t lattice_col_height = 0);
+
+            ~PauliContext() noexcept;
 
             inline const PauliDictionary& pauli_dictionary() const noexcept {
                 assert (dictionary_ptr);

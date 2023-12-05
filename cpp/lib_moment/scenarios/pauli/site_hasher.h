@@ -72,6 +72,12 @@ namespace Moment::Pauli {
          */
         [[nodiscard]] virtual sequence_storage_t minimize_sequence(const std::span<const oper_name_t> input) const = 0;
 
+        /**
+         * Test if a sequence is canonical or not
+         * @param input A view to operator sequence data.
+         */
+        [[nodiscard]] virtual bool can_be_minimized(const std::span<const oper_name_t> input) const noexcept = 0;
+
     private:
         /**
          * Calculates number of qubits on last slide
@@ -770,6 +776,19 @@ namespace Moment::Pauli {
                 return this->unhash(smallest_hash);
             }
         }
+
+
+        /**
+         * Tests canonical version of operator sequence
+         */
+        [[nodiscard]] bool can_be_minimized(const std::span<const oper_name_t> input) const noexcept final {
+            // Find equivalence class
+            const auto [smallest_hash, actual_hash] = minimal_hash(input);
+
+            // Is input operator sequence already minimal?
+            return (smallest_hash != actual_hash);
+        }
+
 
     private:
         template<bool is_lattice_mode>
