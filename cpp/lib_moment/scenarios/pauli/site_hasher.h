@@ -62,6 +62,15 @@ namespace Moment::Pauli {
                  column_mask(calculate_mask_from_qubits(col_size)) {
             assert(column_height * row_width == qubits);
         }
+    public:
+        virtual ~SiteHasherImplBase() noexcept = default;
+
+        /**
+         * Return the equivalence class the operator sequence is in.
+         * @param input A view to operator sequence data.
+         * @return A representation of the equivalence class the operator sequence is in.
+         */
+        [[nodiscard]] virtual sequence_storage_t minimize_sequence(const std::span<const oper_name_t> input) const = 0;
 
     private:
         /**
@@ -697,7 +706,7 @@ namespace Moment::Pauli {
 
 
     template<size_t num_slides>
-    class SiteHasher : public SiteHasherImpl<num_slides> {
+    class SiteHasher final : public SiteHasherImpl<num_slides> {
     public:
         using Datum = typename SiteHasherImpl<num_slides>::Datum;
 
@@ -740,6 +749,26 @@ namespace Moment::Pauli {
         minimal_hash(const std::span<const oper_name_t> sequence) const noexcept {
             return (this->row_width == 1) ? do_minimal_hash<false>(sequence)
                                           : do_minimal_hash<true>(sequence);
+        }
+
+        /**
+         * Gets canonical version of operator sequence
+         */
+        [[nodiscard]] sequence_storage_t minimize_sequence(const std::span<const oper_name_t> input) const final {
+            // Find equivalence class
+            const auto [smallest_hash, actual_hash] = minimal_hash(input);
+
+            // Operator sequence is already minimal
+            if (smallest_hash == actual_hash) {
+                // Copy input to output:
+                sequence_storage_t output;
+                output.reserve(input.size());
+                std::copy(input.begin(), input.end(), std::back_inserter(output));
+                return output;
+            } else {
+                // Otherwise, reconstruct operator sequence data from minimal hash value:
+                return this->unhash(smallest_hash);
+            }
         }
 
     private:

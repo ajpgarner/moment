@@ -649,7 +649,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_ChainMedium) {
         const size_t chain_length = 40;
-        PauliContext context{chain_length, true, true}; // 20-qubit chain
+        PauliContext context{chain_length, true, true};
         SiteHasher<2> hasher{chain_length};
 
         // Canonical results:
@@ -677,7 +677,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_ChainLarger) {
         const size_t chain_length = 70;
-        PauliContext context{chain_length, true, true}; // 20-qubit chain
+        PauliContext context{chain_length, true, true};
         SiteHasher<3> hasher{chain_length};
 
         // Canonical results:
@@ -738,4 +738,76 @@ namespace Moment::Tests {
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x000000000000004c}));
     }
 
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeSequence_ChainSmall) {
+        const size_t chain_length = 5;
+        PauliContext context{chain_length, true, true};
+        SiteHasher<1> hasher{chain_length};
+
+        // Canonical results:
+        const auto expected_single = context.sigmaX(0);
+        const auto expected_nn = context.sigmaX(0) * context.sigmaY(1);
+
+        for (size_t base_index = 0; base_index < chain_length; ++base_index) {
+            // Single qubit
+            const auto shifted_single_sequence = context.sigmaX(base_index);
+            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+
+            EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
+
+            // Nearest neighbour
+            const auto shifted_nn_sequence =
+                    context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
+            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeSequence_ChainMedium) {
+        const size_t chain_length = 40;
+        PauliContext context{chain_length, true, true};
+        SiteHasher<2> hasher{chain_length};
+
+        // Canonical results:
+        const auto expected_single = context.sigmaX(0);
+        const auto expected_nn = context.sigmaX(0) * context.sigmaY(1);
+
+        for (size_t base_index = 0; base_index < chain_length; ++base_index) {
+            // Single qubit
+            const auto shifted_single_sequence = context.sigmaX(base_index);
+            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+
+            EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
+
+            // Nearest neighbour
+            const auto shifted_nn_sequence =
+                    context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
+            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeSequence_ChainLarge) {
+        const size_t chain_length = 72;
+        PauliContext context{chain_length, true, true};
+        SiteHasher<3> hasher{chain_length};
+
+        // Canonical results:
+        const auto expected_single = context.sigmaX(0);
+        const auto expected_nn = context.sigmaX(0) * context.sigmaY(1);
+
+        for (size_t base_index = 0; base_index < chain_length; ++base_index) {
+            // Single qubit
+            const auto shifted_single_sequence = context.sigmaX(base_index);
+            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+
+            EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
+
+            // Nearest neighbour
+            const auto shifted_nn_sequence =
+                    context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
+            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
+        }
+    }
 }
