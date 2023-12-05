@@ -34,7 +34,7 @@ To download and compile the library use the following commands:
 <pre>git clone --recursive https://github.com/ajpgarner/moment.git
 cd moment
 cmake . -DCMAKE_BUILD_TYPE=Release
-cmake --build .</pre>
+cmake --build . -j 17</pre>
 
 Once the build is complete, the binary `mtk.mexa64` will be automatically copied into the `moment/matlab` folder. 
 
@@ -52,7 +52,7 @@ It is vital to use GCC 12, it will not work with the native clang. After that th
 <pre>git clone --recursive https://github.com/ajpgarner/moment.git
 cd moment
 cmake . -DCMAKE_BUILD_TYPE=Release
-cmake --build .</pre>
+cmake --build . -j 17</pre>
 
 Once the build is complete, the binary `mtk.mexmaci64` will be automatically copied into the `moment/matlab` folder. 
 
