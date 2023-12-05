@@ -41,7 +41,10 @@ namespace Moment::Pauli {
         const size_t qubits_on_final_slide;
 
         /** The mask for final slide when rotating */
-        const storage_t mask;
+        const storage_t final_slide_mask;
+
+        /** The mask for a single column (max size, 32 qubits). */
+        const storage_t column_mask;
 
         /**
          * Construct a site-hasher
@@ -53,8 +56,8 @@ namespace Moment::Pauli {
                   column_height{col_size > 0 ? col_size : qubit_count},
                   row_width{col_size > 0 ? (qubit_count / col_size) : 1},
                   qubits_on_final_slide{calculate_last_slide_qubit_count(qubit_count)},
-                  mask{calculate_mask_from_last_slide_qubits(qubits_on_final_slide)} {
-            //assert(this->qubits <= qubits_per_slide * slides);
+                  final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
+                 column_mask(calculate_mask_from_qubits(col_size)) {
             assert(column_height * row_width == qubits);
         }
 
@@ -67,18 +70,32 @@ namespace Moment::Pauli {
             return ((qubit_count - 1)) % (std::numeric_limits<storage_t>::digits/2) + 1;
         }
 
+    protected:
         /**
-         * Calculates the bit mask for final page
-         */
+        * Calculates the a bit mask for N qubits
+        * @param num_qubits The number of qubits N
+        * @return An integer with the first N bits set
+        */
         [[nodiscard]] constexpr static storage_t
-        calculate_mask_from_last_slide_qubits(const size_t ls_qubits) noexcept {
-            if ((qubits_per_slide == ls_qubits) || (0 == ls_qubits)) {
+        calculate_mask_from_bits(const size_t num_bits) noexcept {
+            if ((2 * qubits_per_slide == num_bits) || (0 == num_bits)) {
                 return ~static_cast<storage_t>(0); // 0xff...ff
             }
 
             // e.g (1<<63)=0x80...; -1 sets all but the highest bit.
-            return static_cast<storage_t>((static_cast<storage_t>(1) << (ls_qubits* 2)) - 1);
+            return static_cast<storage_t>((static_cast<storage_t>(1) << (num_bits)) - 1);
         }
+
+        /**
+         * Calculates the a bit mask for N qubits
+         * @param num_qubits The number of qubits N
+         * @return An integer with the first N bits set
+         */
+        [[nodiscard]] constexpr static storage_t
+        calculate_mask_from_qubits(const size_t num_qubits) noexcept {
+            return calculate_mask_from_bits(num_qubits*2);
+        }
+
     };
 
     template <size_t num_slides>
@@ -92,7 +109,7 @@ namespace Moment::Pauli {
 
         explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
             : SiteHasherBase{qubit_count, col_size} {
-            assert(qubit_count < slides * qubits_per_slide);
+            assert(qubit_count <= slides * qubits_per_slide);
         }
 
 
@@ -201,39 +218,90 @@ namespace Moment::Pauli {
             }
 
             // Apply mask to final slide
-            output[slides-1] &= this->mask;
+            output[slides-1] &= this->final_slide_mask;
 
             return output;
 
         }
 
         /**
-         * Rotate within a column
-         */
-        [[nodiscard]] constexpr Datum row_cyclic_shift(const Datum& input, size_t offset) const noexcept {
-
-            // TODO: Rotation
-            return input;
+          * Offset along major axis:
+          */
+        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
+            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
         }
 
-//        /**
-//         * Shift the data about in a lattice
-//         * @param input The hash to shift
-//         * @param col_offset The horizontal offset (number of columns to cycle by)
-//         * @param row_offset The vertical offset (number of rows to cycle by)
-//         */
-//        [[nodiscard]] constexpr Datum
-//        lattice_shift(const Datum& input, size_t col_offset, size_t row_offset) const noexcept {
-//            // Normalize column offsets
-//            col_offset = col_offset % this->row_width;
-//            row_offset = row_offset % this->column_height;
-//
-//            // Major index shift is just cyclic shift
-//            Datum intermediate{(0 != col_offset) ? this->do_cyclic_shift(input, col_offset * this->column_height)
-//                                                 : input};
-//            // Minor index shift
-//            return this->do_row_cyclic_shift(intermediate, row_offset);
-//        }
+        /**
+         * Offset along minor axis:
+         */
+        [[nodiscard]] constexpr Datum row_shift(const Datum& input, size_t offset) const noexcept {
+
+            // Normalize rotation, and get within-column offsets
+            offset = offset % this->row_width;
+            const storage_t bit_offset = 2 * offset;
+            const storage_t bit_anti_offset = (this->column_height * 2) - bit_offset;
+
+            // Skip trivial offset
+            if (0 == offset) {
+                return input;
+            }
+
+            Datum output;
+            output.fill(0);
+
+            for (size_t column = 0; column < this->row_width; ++column) {
+                const size_t first_slide = (column * this->column_height) / qubits_per_slide;
+                const ptrdiff_t offset_slide_one = static_cast<ptrdiff_t>(2)
+                                                   * ((column * this->column_height) % qubits_per_slide);
+                const ptrdiff_t offset_slide_two = static_cast<ptrdiff_t>(2)
+                                                   * (((column + 1) * this->column_height) % qubits_per_slide);
+
+                if ((offset_slide_two <= offset_slide_one) && (offset_slide_two != 0)) {
+                    // Column straddles slide boundaries
+                    size_t remainder = column_height - (offset_slide_two / 2);
+                    const uint64_t remainder_mask = calculate_mask_from_bits(offset_slide_two);
+                    storage_t word = ((input[first_slide] >> offset_slide_one) & this->column_mask)
+                                        | ((input[first_slide+1] & remainder_mask) << (remainder*2)); // Read word
+                    word = ((word << bit_offset) | (word >> bit_anti_offset)) & this->column_mask; // Rotate word
+
+                    output[first_slide]   |= (word << offset_slide_one);  // Add word part to first slide
+                    output[first_slide+1]  = (word >> (remainder*2));  // Overwrite second slide with  second word part
+
+                } else { // Entirely within first slide
+                    // Within slide shift
+                    storage_t word = (input[first_slide] >> offset_slide_one) & this->column_mask; // Read word
+                    word = ((word << bit_offset) | (word >> bit_anti_offset)) & this->column_mask; // Rotate word
+                    output[first_slide] |= (word << offset_slide_one); // Write word to output
+                }
+            }
+          return output;
+        }
+
+        /**
+         * Slice out value of a single column
+         */
+        [[nodiscard]] constexpr storage_t extract_column(const Datum& input, size_t column) const noexcept {
+            assert(column < this->row_width);
+
+            const size_t first_slide = (column * this->column_height) / qubits_per_slide;
+            const ptrdiff_t offset_slide_one = static_cast<ptrdiff_t>(2)
+                    * ((column * this->column_height) % qubits_per_slide);
+            const ptrdiff_t offset_slide_two = static_cast<ptrdiff_t>(2)
+                    * (((column + 1) * this->column_height) % qubits_per_slide);
+
+            // First, get bits from first slide
+            storage_t output = (input[first_slide] >> offset_slide_one) & this->column_mask;
+
+            // Check if subset spills over to next slide. Works because column_height <= qubits_per_slide.
+            if ((offset_slide_two <= offset_slide_one) && (offset_slide_two != 0)) {
+                size_t remainder = column_height - (offset_slide_two / 2);
+                const uint64_t remainder_mask = calculate_mask_from_bits(offset_slide_two);
+                output |= ((input[first_slide+1] & remainder_mask) << (remainder*2));
+            }
+
+            return output;
+        }
+
     };
 
     /**
@@ -248,9 +316,14 @@ namespace Moment::Pauli {
         /** Number of slides. */
         constexpr static size_t slides = 1;
 
+        /**
+         * Construct a Pauli site hasher for up to 32 qubits
+         * @param qubit_count
+         * @param col_size The number of qubits per column for a lattice, or set to 0 for a chain.
+         */
         explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
                 : SiteHasherBase{qubit_count, col_size} {
-            assert(qubit_count < qubits_per_slide);
+            assert(qubit_count <= qubits_per_slide);
         }
 
         /**
@@ -309,12 +382,50 @@ namespace Moment::Pauli {
             if (0 == offset) {
                 return input;
             }
-            return Datum{((input << offset) & this->mask) | (input >> (2 * this->qubits - offset))};
+            return Datum{((input << offset) & this->final_slide_mask) | (input >> (2 * this->qubits - offset))};
         }
+
+        /**
+         * Offset along major axis:
+         */
+        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
+            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
+        }
+
+        /**
+         * Offset along minor axis:
+         */
+        [[nodiscard]] constexpr Datum row_shift(const Datum input, size_t offset) const noexcept {
+            assert(this->column_height != 0);
+            offset = offset % this->column_height;
+            if (0 == offset) {
+                return input;
+            }
+
+            const storage_t bit_offset = 2 * offset;
+            const storage_t bit_anti_offset = (this->column_height * 2) - bit_offset;
+
+            Datum output{0};
+            for (size_t cIdx = 0; cIdx < this->row_width; ++cIdx) { // Cycle through columns
+                storage_t word = this->extract_column(input, cIdx);
+                word = ((word << bit_offset) | (word >> bit_anti_offset)) & this->column_mask;
+                output |= word << (cIdx * this->column_height*2);
+            }
+            return output;
+        }
+
+        /**
+         * Slice out hash page from a single column.
+         */
+        [[nodiscard]] inline constexpr storage_t extract_column(const Datum input, size_t column) const noexcept {
+            assert(column < this->row_width);
+            return ((input >> (column*this->column_height*2)) & this->column_mask);
+        }
+
     };
 
     /**
-     * Specialized hasher for up to 64 qubits, stored in two 64-bit numbers
+     * Specialized hasher for up to 64 qubits, stored in two 64-bit numbers.
      */
     template<>
     class SiteHasher<2> : public SiteHasherBase {
@@ -325,9 +436,66 @@ namespace Moment::Pauli {
         /** Number of slides. */
         constexpr static size_t slides = 2;
 
+        /** Helper information when splicing a column out from over the slide boundary. */
+        const struct BoundaryCalculator {
+            /** The mask to apply to the LHS of the boundary */
+            uint64_t lhs_mask;
+
+            /** The left shift to apply to the bits on the LHS of the boundary */
+            uint64_t lhs_anti_offset;
+
+            /** The mask to apply to the RHS of the boundary */
+            uint64_t rhs_mask;
+
+            /** The right shift to apply to the bits on the RHS of the boundary */
+            uint64_t rhs_offset;
+
+            /** The column which contains boundary. */
+            size_t wrap_column;
+
+        public:
+            /** Calculate boundary information */
+            explicit constexpr BoundaryCalculator(const size_t column_height) noexcept {
+                if (0 != column_height) {
+                    this->wrap_column = qubits_per_slide / column_height;
+                    size_t left_qubits = qubits_per_slide %  column_height;
+                    if (left_qubits > 0) {
+                        // Unaligned case:
+                        this->lhs_anti_offset = 2 * (qubits_per_slide - left_qubits);
+                        this->lhs_mask = ~calculate_mask_from_bits(this->lhs_anti_offset);
+                        this->rhs_offset = 2 * left_qubits;
+                        this->rhs_mask = calculate_mask_from_qubits(column_height - left_qubits);
+                    } else {
+                        // Aligned case:
+                        this->lhs_mask = 0;
+                        this->lhs_anti_offset = std::numeric_limits<storage_t>::digits;
+                        this->rhs_mask = calculate_mask_from_qubits(column_height);
+                        this->rhs_offset = 0;
+                    }
+                } else {
+                    // No columns
+                    this->wrap_column = 1;
+                    this->lhs_mask = 0;
+                    this->lhs_anti_offset = 0;
+                    this->rhs_mask = 0;
+                    this->rhs_offset = 0;
+                }
+            }
+
+            [[nodiscard]] constexpr inline storage_t evaluate(const Datum& input) const noexcept {
+                return ((input[0] & this->lhs_mask) >> lhs_anti_offset) | ((input[1] & this->rhs_mask) << rhs_offset);
+            }
+
+            constexpr inline void splice_in(Datum& output, storage_t value) const noexcept {
+                output[0] |= (value << lhs_anti_offset) & this->lhs_mask;
+                output[1] |= (value >> rhs_offset) & this->rhs_mask;
+            }
+        } boundary_info;
+
+
         explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherBase{qubit_count, col_size} {
-            assert(qubit_count < 2*qubits_per_slide);
+                : SiteHasherBase{qubit_count, col_size}, boundary_info{col_size} {
+            assert(qubit_count <= 2*qubits_per_slide);
         }
 
         /**
@@ -430,9 +598,82 @@ namespace Moment::Pauli {
                 output[0] |= (input[1] >> back_bit_offset);
             }
 
-            output[1] &= this->mask;
+            output[1] &= this->final_slide_mask;
             return output;
         }
+
+
+        /**
+         * Offset along major axis:
+         */
+        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
+            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
+        }
+
+        /**
+         * Offset along minor axis:
+         */
+        [[nodiscard]] constexpr Datum row_shift(const Datum& input, size_t offset) const noexcept {
+
+            offset = offset % this->column_height;
+            if (0 == offset) {
+                return input;
+            }
+
+            const storage_t bit_offset = 2 * offset;
+            const storage_t bit_anti_offset = (this->column_height * 2) - bit_offset;
+
+            // Prepare output
+            Datum output{0, 0};
+
+            // Left slide columns
+            if (0 != input[0]) {
+                for (size_t cIdx = 0; cIdx < this->boundary_info.wrap_column; ++cIdx) {
+                    storage_t word = (input[0] >> (cIdx * this->column_height * 2)) & this->column_mask; // read col
+                    word = ((word << bit_offset) | (word >> bit_anti_offset)) & this->column_mask; // rot col
+                    output[0] |= word << (cIdx * this->column_height * 2); // write col
+                }
+            }
+
+            // Middle column
+            storage_t middle_word = this->boundary_info.evaluate(input);
+            middle_word = ((middle_word << bit_offset) | (middle_word >> bit_anti_offset)) & this->column_mask;
+            this->boundary_info.splice_in(output, middle_word);
+
+            // Right slide columns
+            if (0 != input[1]) {
+                for (size_t cIdx = this->boundary_info.wrap_column + 1; cIdx < this->row_width; ++cIdx) {
+                    storage_t word = (input[1] >> ((cIdx * this->column_height * 2)
+                                                   - std::numeric_limits<storage_t>::digits))
+                                     & this->column_mask; // Read col
+                    word = ((word << bit_offset) | (word >> bit_anti_offset)) & this->column_mask; // rot col
+                    output[1] |= word << ((cIdx * this->column_height * 2) - std::numeric_limits<storage_t>::digits);
+                }
+            }
+
+            return output;
+        }
+
+
+        /**
+         * Slice out value of a single column
+         */
+        [[nodiscard]] constexpr storage_t extract_column(const Datum& input, size_t column) const noexcept {
+            assert(column < this->row_width);
+
+            // Trivially on first page?
+            if (column < this->boundary_info.wrap_column) {
+                return (input[0] >> (column * this->column_height * 2)) & this->column_mask;
+            } else if (column > this->boundary_info.wrap_column) {
+                // Offset by remainder
+                return (input[1] >> ((column * this->column_height * 2) - std::numeric_limits<storage_t>::digits))
+                        & this->column_mask;
+            }
+            // Return column case
+            return this->boundary_info.evaluate(input);
+        }
+
+
     };
 
 

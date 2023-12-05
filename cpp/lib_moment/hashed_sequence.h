@@ -15,6 +15,7 @@
 
 #include <concepts>
 #include <iosfwd>
+#include <span>
 #include <vector>
 
 namespace Moment {
@@ -191,6 +192,11 @@ namespace Moment {
 
         /** Write access to operator string directly */
         [[nodiscard]] constexpr auto& raw() noexcept { return this->operators; }
+
+        /** View of raw operator sequence */
+        [[nodiscard]] explicit operator std::span<const oper_name_t>() const noexcept {
+            return this->operators;
+        }
 
         /** Recalculate sequence's hash (only required after raw access write!) */
         template<OperatorHasher hasher_t>
