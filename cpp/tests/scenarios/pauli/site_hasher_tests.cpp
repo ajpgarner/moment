@@ -23,15 +23,8 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher({}), 0);
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, Hash_MediumEmpty) {
-        SiteHasher<2> hasher{0};
-        EXPECT_EQ(sizeof(SiteHasher<2>::Datum), 16);
-        EXPECT_EQ(SiteHasher<1>::qubits_per_slide, 32);
-        EXPECT_EQ(hasher(std::vector<oper_name_t>{}), (std::array<uint64_t, 2>{0, 0}));
-    }
 
-
-    TEST(Scenarios_Pauli_SiteHasher, Hash_SmallChain5) {
+    TEST(Scenarios_Pauli_SiteHasher, Hash_SmallChain) {
         PauliContext context{5};
         SiteHasher<1> hasher{5};
 
@@ -48,36 +41,6 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaY(1))), 0x0000000000000009);
         EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaZ(1))), 0x000000000000000d);
     }
-
-
-
-    TEST(Scenarios_Pauli_SiteHasher, Hash_MediumChain5) {
-        PauliContext context{5};
-        SiteHasher<2> hasher{5};
-        EXPECT_EQ(hasher(context.identity()),
-                  (std::array<uint64_t, 2>{0x0000000000000000, 0}));
-        EXPECT_EQ(hasher(context.sigmaX(0)),
-                  (std::array<uint64_t, 2>{0x0000000000000001, 0}));
-        EXPECT_EQ(hasher(context.sigmaY(0)),
-                  (std::array<uint64_t, 2>{0x0000000000000002, 0}));
-        EXPECT_EQ(hasher(context.sigmaZ(0)),
-                  (std::array<uint64_t, 2>{0x0000000000000003, 0}));
-
-        EXPECT_EQ(hasher(context.sigmaX(1)),
-                  (std::array<uint64_t, 2>{0x0000000000000004, 0}));
-        EXPECT_EQ(hasher(context.sigmaY(1)),
-                  (std::array<uint64_t, 2>{0x0000000000000008, 0}));
-        EXPECT_EQ(hasher(context.sigmaZ(1)),
-                  (std::array<uint64_t, 2>{0x000000000000000c, 0}));
-
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaX(1))),
-                  (std::array<uint64_t, 2>{0x0000000000000005, 0}));
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaY(1))),
-                  (std::array<uint64_t, 2>{0x0000000000000009, 0}));
-        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaZ(1))),
-                  (std::array<uint64_t, 2>{0x000000000000000d, 0}));
-    }
-
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_MediumChain40) {
         PauliContext context{40};
@@ -133,7 +96,7 @@ namespace Moment::Tests {
                   (std::array<uint64_t, 2>{0x0000000000000010, 0x000000000000000c}));
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, Unhash_SmallChain5) {
+    TEST(Scenarios_Pauli_SiteHasher, Unhash_SmallChain) {
         PauliContext context{5};
         SiteHasher<1> hasher{5};
 
@@ -180,7 +143,7 @@ namespace Moment::Tests {
         EXPECT_EQ(reconstructXXXXX, seqXXXXX);
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, Unhash_MediumChain40) {
+    TEST(Scenarios_Pauli_SiteHasher, Unhash_MediumChain) {
         PauliContext context{40};
         SiteHasher<2> hasher{40};
 
@@ -363,12 +326,12 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Medium) {
-        PauliContext context{20, true, true, 4}; // 4x5 wrapping grid
-        SiteHasher<2> hasher{20, 4};
-        ASSERT_EQ(hasher.column_height, 4);
+        PauliContext context{40, true, true, 8}; // 8x5 wrapping grid
+        SiteHasher<2> hasher{40, 8};
+        ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 5);
 
-        for (size_t row_id = 0; row_id < 4; ++row_id) {
+        for (size_t row_id = 0; row_id < 8; ++row_id) {
             for (size_t shift = 0; shift < 5; ++shift) {
                 EXPECT_EQ(hasher.col_shift(hasher(context.sigmaX(row_id, 0)), shift),
                           hasher(context.sigmaX(row_id, shift % 5))) << "row = " << row_id;
@@ -554,4 +517,225 @@ namespace Moment::Tests {
             }
         }
     }
+
+    TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Small) {
+        const size_t column_height = 4;
+        const size_t column_count = 4;
+        PauliContext context{16, true, true, column_height}; // 8x8 wrapping grid
+        SiteHasher<1> hasher{16, column_height};
+
+        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+            for (size_t col_id = 0; col_id < column_count; ++col_id) {
+
+                // Single Pauli
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id)))
+                                    << "Single, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Z2 Horizontal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                                    << "Horizontal, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Y5 Vertical
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                                    << "Vertical, row = " << row_id << ", col = " << col_id;
+
+                // Y1 <-> X6 Diagonal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
+                          hasher(context.sigmaY(row_id, col_id)
+                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                    << "Diagonal, row = " << row_id << ", col = " << col_id;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Medium) {
+        const size_t column_height = 6;
+        const size_t column_count = 6;
+        PauliContext context{36, true, true, column_height}; // 8x8 wrapping grid
+        SiteHasher<2> hasher{36, column_height};
+
+        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+            for (size_t col_id = 0; col_id < column_count; ++col_id) {
+
+                // Single Pauli
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id)))
+                                    << "Single, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Z2 Horizontal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                                    << "Horizontal, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Y5 Vertical
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                                    << "Vertical, row = " << row_id << ", col = " << col_id;
+
+                // Y1 <-> X6 Diagonal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
+                          hasher(context.sigmaY(row_id, col_id)
+                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                    << "Diagonal, row = " << row_id << ", col = " << col_id;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Larger) {
+        const size_t column_height = 9;
+        const size_t column_count = 9;
+        PauliContext context{81, true, true, column_height}; // 8x8 wrapping grid
+        SiteHasher<3> hasher{81, column_height};
+
+        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+            for (size_t col_id = 0; col_id < column_count; ++col_id) {
+
+                // Single Pauli
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id)))
+                                    << "Single, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Z5 Horizontal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                                    << "Horizontal, row = " << row_id << ", col = " << col_id;
+
+                // X1 <-> Y2 Vertical
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                                    << "Vertical, row = " << row_id << ", col = " << col_id;
+
+                // Y1 <-> X6 Diagonal
+                EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
+                          hasher(context.sigmaY(row_id, col_id)
+                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                    << "Diagonal, row = " << row_id << ", col = " << col_id;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_ChainSmall) {
+        PauliContext context{5, true, true}; // 5-qubit chain
+        SiteHasher<1> hasher{5};
+
+        // Single qubits
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000001}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000004}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000010}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000040}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(4)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000100}));
+
+        // Neighbouring pairs
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0) * context.sigmaZ(1)),
+                  (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x000000000000000d}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1) * context.sigmaZ(2)),
+                  (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000034}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2) * context.sigmaZ(3)),
+                  (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x00000000000000d0}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3) * context.sigmaZ(4)),
+                  (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000340}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(4) * context.sigmaZ(0)),
+                  (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000103}));
+
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_ChainMedium) {
+        const size_t chain_length = 40;
+        PauliContext context{chain_length, true, true}; // 20-qubit chain
+        SiteHasher<2> hasher{chain_length};
+
+        // Canonical results:
+        const SiteHasher<2>::Datum expected_single_hash{1, 0};
+        const SiteHasher<2>::Datum expected_nn_hash{9, 0};
+        ASSERT_EQ(hasher(context.sigmaX(0)), expected_single_hash);
+        ASSERT_EQ(hasher(context.sigmaX(0) * context.sigmaY(1)), expected_nn_hash);
+
+        for (size_t base_index = 0; base_index < chain_length; ++base_index) {
+            // Single qubit
+            const auto shifted_single_sequence = context.sigmaX(base_index);
+            const auto shifted_single_hash = hasher(shifted_single_sequence);
+            EXPECT_EQ(hasher.minimal_hash(shifted_single_sequence),
+                      std::make_pair(expected_single_hash, shifted_single_hash))
+                      << "site = " << base_index;
+
+            // Nearest neighbour
+            const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
+            const auto shifted_nn_hash = hasher(shifted_nn_sequence);
+            EXPECT_EQ(hasher.minimal_hash(shifted_nn_sequence),
+                      std::make_pair(expected_nn_hash, shifted_nn_hash))
+                      << "site = " << base_index;
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_ChainLarger) {
+        const size_t chain_length = 70;
+        PauliContext context{chain_length, true, true}; // 20-qubit chain
+        SiteHasher<3> hasher{chain_length};
+
+        // Canonical results:
+        const SiteHasher<3>::Datum expected_single_hash{1, 0, 0};
+        const SiteHasher<3>::Datum expected_nn_hash{9, 0, 0};
+        ASSERT_EQ(hasher(context.sigmaX(0)), expected_single_hash);
+        ASSERT_EQ(hasher(context.sigmaX(0) * context.sigmaY(1)), expected_nn_hash);
+
+        for (size_t base_index = 0; base_index < chain_length; ++base_index) {
+            // Single qubit
+            const auto shifted_single_sequence = context.sigmaX(base_index);
+            const auto shifted_single_hash = hasher(shifted_single_sequence);
+            EXPECT_EQ(hasher.minimal_hash(shifted_single_sequence),
+                      std::make_pair(expected_single_hash, shifted_single_hash))
+                      << "site = " << base_index;
+
+            // Nearest neighbour
+            const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
+            const auto shifted_nn_hash = hasher(shifted_nn_sequence);
+            EXPECT_EQ(hasher.minimal_hash(shifted_nn_sequence),
+                      std::make_pair(expected_nn_hash, shifted_nn_hash))
+                      << "site = " << base_index;
+        }
+    }
+
+    TEST(Scenarios_Pauli_SiteHasher, MinimizeHash_LatticeSmall) {
+        PauliContext context{4, true, true, 2}; // 2x2 lattice
+        SiteHasher<1> hasher{4, 2};
+
+        // Single qubits
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000001}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000004}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000010}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000040}));
+
+        // X1Z2 vertical pair (prefers Z1X2...!)
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 0) * context.sigmaZ(1, 0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x000000000000000d}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 0) * context.sigmaZ(0, 0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x0000000000000007}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 1) * context.sigmaZ(1, 1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x00000000000000d0}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 1) * context.sigmaZ(0, 1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x0000000000000070}));
+
+        // X1Z3 horizontal pair (prefers Z1X3...!)
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 0) * context.sigmaZ(0, 1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x0000000000000031}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 0) * context.sigmaZ(1, 1)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x00000000000000c4}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 1) * context.sigmaZ(0, 0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x0000000000000013}));
+        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 1) * context.sigmaZ(1, 0)),
+                  (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x000000000000004c}));
+    }
+
 }

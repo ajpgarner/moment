@@ -13,17 +13,18 @@
 
 #include <array>
 #include <bit>
-#include <bitset>
 #include <concepts>
 #include <limits>
 #include <span>
-#include <vector>
 
 namespace Moment::Pauli {
 
-    class SiteHasherBase {
+    /**
+     * Common information for hasher.
+     */
+    class SiteHasherImplBase {
     public:
-        using storage_t = uint64_t;
+         using storage_t = uint64_t;
 
         /** The number of qubits we can fit on each slide */
         constexpr static oper_name_t qubits_per_slide = sizeof(storage_t) * 4; // should be 32
@@ -46,12 +47,13 @@ namespace Moment::Pauli {
         /** The mask for a single column (max size, 32 qubits). */
         const storage_t column_mask;
 
+    protected:
         /**
          * Construct a site-hasher
          * @param qubit_count The maximum number of qubits in the hasher.
          * @param col_size The number of qubits in a column.
          */
-        explicit constexpr SiteHasherBase(const size_t qubit_count, const size_t col_size = 0)
+        explicit constexpr SiteHasherImplBase(const size_t qubit_count, const size_t col_size = 0)
                 : qubits{qubit_count},
                   column_height{col_size > 0 ? col_size : qubit_count},
                   row_width{col_size > 0 ? (qubit_count / col_size) : 1},
@@ -98,8 +100,12 @@ namespace Moment::Pauli {
 
     };
 
+    /**
+     * General hasher implementation, for arbitrary number of qubits, but maximum column size of 16.
+     * @tparam num_slides
+     */
     template <size_t num_slides>
-    class SiteHasher : public SiteHasherBase {
+    class SiteHasherImpl : public SiteHasherImplBase {
     public:
         /** Hash result. */
         using Datum = std::array<storage_t, num_slides>;
@@ -107,11 +113,13 @@ namespace Moment::Pauli {
         /** Maximum number of allowed slides by hasher. */
         constexpr static const size_t slides = num_slides;
 
-        explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
-            : SiteHasherBase{qubit_count, col_size} {
+    protected:
+        explicit constexpr SiteHasherImpl(const size_t qubit_count, const size_t col_size = 0)
+            : SiteHasherImplBase{qubit_count, col_size} {
             assert(qubit_count <= slides * qubits_per_slide);
         }
 
+    public:
 
         /**
          * Hash the data from an operator sequence into a Pauli site hash.
@@ -130,8 +138,13 @@ namespace Moment::Pauli {
             return output;
         }
 
-        [[nodiscard]] inline constexpr Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
-            return this->hash(sequence);
+        /**
+         * Gets the hash of an empty string
+         */
+        [[nodiscard]] constexpr inline static Datum empty_hash() noexcept {
+            Datum output;
+            output.fill(0);
+            return output;
         }
 
         /**
@@ -225,13 +238,6 @@ namespace Moment::Pauli {
         }
 
         /**
-          * Offset along major axis:
-          */
-        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
-            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
-        }
-
-        /**
          * Offset along minor axis:
          */
         [[nodiscard]] constexpr Datum row_shift(const Datum& input, size_t offset) const noexcept {
@@ -302,13 +308,24 @@ namespace Moment::Pauli {
             return output;
         }
 
+        [[nodiscard]] constexpr bool less(const Datum& lhs, const Datum& rhs) const noexcept {
+            for (ptrdiff_t idx = slides-1; idx >= 0; --idx) {
+                if (lhs[idx] < rhs[idx]) {
+                    return true;
+                } else if (lhs[idx] > rhs[idx]) {
+                    return false;
+                }
+            }
+            return false;
+        }
+
     };
 
     /**
      * Specialized hasher for up to 32 qubits, stored in one 64-bit number
      */
     template<>
-    class SiteHasher<1> : public SiteHasherBase {
+    class SiteHasherImpl<1> : public SiteHasherImplBase {
     public:
         /** Hash result type. */
         using Datum = storage_t;
@@ -321,8 +338,8 @@ namespace Moment::Pauli {
          * @param qubit_count
          * @param col_size The number of qubits per column for a lattice, or set to 0 for a chain.
          */
-        explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherBase{qubit_count, col_size} {
+        explicit constexpr SiteHasherImpl(const size_t qubit_count, const size_t col_size = 0)
+                : SiteHasherImplBase{qubit_count, col_size} {
             assert(qubit_count <= qubits_per_slide);
         }
 
@@ -341,10 +358,13 @@ namespace Moment::Pauli {
             return output;
         }
 
-        [[nodiscard]] inline constexpr Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
-            return this->hash(sequence);
-        }
 
+        /**
+         * Gets the hash of an empty string
+         */
+        [[nodiscard]] constexpr inline static Datum empty_hash() noexcept {
+            return Datum{0};
+        }
 
         /**
        * Reconstruct a sequence from its Pauli site hash.
@@ -386,13 +406,6 @@ namespace Moment::Pauli {
         }
 
         /**
-         * Offset along major axis:
-         */
-        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
-            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
-        }
-
-        /**
          * Offset along minor axis:
          */
         [[nodiscard]] constexpr Datum row_shift(const Datum input, size_t offset) const noexcept {
@@ -422,13 +435,17 @@ namespace Moment::Pauli {
             return ((input >> (column*this->column_height*2)) & this->column_mask);
         }
 
+        [[nodiscard]] constexpr inline bool less(const Datum lhs, const Datum rhs) const noexcept {
+            return lhs < rhs;
+        }
+
     };
 
     /**
      * Specialized hasher for up to 64 qubits, stored in two 64-bit numbers.
      */
     template<>
-    class SiteHasher<2> : public SiteHasherBase {
+    class SiteHasherImpl<2> : public SiteHasherImplBase {
     public:
         /** Hash result type. */
         using Datum = std::array<storage_t, 2>;
@@ -493,8 +510,9 @@ namespace Moment::Pauli {
         } boundary_info;
 
 
-        explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherBase{qubit_count, col_size}, boundary_info{col_size} {
+        explicit constexpr SiteHasherImpl(const size_t qubit_count, const size_t col_size = 0)
+                : SiteHasherImplBase{qubit_count, col_size}, boundary_info{col_size} {
+            assert(qubit_count > qubits_per_slide);
             assert(qubit_count <= 2*qubits_per_slide);
         }
 
@@ -503,8 +521,7 @@ namespace Moment::Pauli {
          * Nominally is a monotonic function on operator's own hash.
          */
         [[nodiscard]] constexpr Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
-            Datum output;
-            output.fill(0);
+            Datum output{0, 0};
             for (const auto op: sequence) {
                 const storage_t qubit_number = op / 3;
                 const storage_t pauli_op = (op % 3); // I=00, X=01, Y=10, Z=11
@@ -515,8 +532,11 @@ namespace Moment::Pauli {
             return output;
         }
 
-        [[nodiscard]] inline constexpr Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
-            return this->hash(sequence);
+        /**
+         * Gets the hash of an empty string
+         */
+        [[nodiscard]] constexpr inline static Datum empty_hash() noexcept {
+            return Datum{0, 0};
         }
 
         /**
@@ -602,14 +622,6 @@ namespace Moment::Pauli {
             return output;
         }
 
-
-        /**
-         * Offset along major axis:
-         */
-        [[nodiscard]] inline constexpr Datum col_shift(const Datum input, const size_t offset) const noexcept {
-            return cyclic_shift(input, (offset % this->row_width) * this->column_height);
-        }
-
         /**
          * Offset along minor axis:
          */
@@ -654,7 +666,6 @@ namespace Moment::Pauli {
             return output;
         }
 
-
         /**
          * Slice out value of a single column
          */
@@ -674,8 +685,105 @@ namespace Moment::Pauli {
         }
 
 
+        [[nodiscard]] constexpr inline bool less(const Datum& lhs, const Datum& rhs) const noexcept {
+            if (lhs[1] < rhs[1]) {
+                return true;
+            } else if (lhs[1] > rhs[1]) {
+                return false;
+            }
+            return lhs[0] < rhs[0];
+        }
     };
 
+
+    template<size_t num_slides>
+    class SiteHasher : public SiteHasherImpl<num_slides> {
+    public:
+        using Datum = typename SiteHasherImpl<num_slides>::Datum;
+
+    public:
+        explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
+            : SiteHasherImpl<num_slides>{qubit_count, col_size} { }
+
+        /**
+         * Rotate around columns (i.e. major-axis shift).
+         */
+        [[nodiscard]] inline constexpr Datum col_shift(const Datum& input, const size_t offset) const noexcept {
+            return SiteHasherImpl<num_slides>::cyclic_shift(input, (offset % this->row_width) * this->column_height);
+        }
+
+        /**
+         * Alias for hash function.
+         */
+        [[nodiscard]] inline constexpr Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
+            return this->hash(sequence);
+        }
+
+        /**
+         * Lattice shift.
+         * @param input Input hash value.
+         * @param row_offset Rotation within columns (offsets row number of each operator)
+         * @param col_offset Rotation within rows (offsets col number of each operator)
+         * @return Shifted hash value.
+         */
+        [[nodiscard]] inline constexpr Datum
+        lattice_shift(const Datum& input, const size_t row_offset, const size_t col_offset) const noexcept {
+            return SiteHasherImpl<num_slides>::row_shift(col_shift(input, col_offset), row_offset);
+        }
+
+        /**
+         * Gets the minimized and current hash of an operator sequence
+         * @param sequence
+         * @return Pair; first: with minimum value of hash after shifts, second: hash of original sequence
+         */
+        [[nodiscard]] inline std::pair<Datum, Datum>
+        minimal_hash(const std::span<const oper_name_t> sequence) const noexcept {
+            return (this->row_width == 1) ? do_minimal_hash<false>(sequence)
+                                          : do_minimal_hash<true>(sequence);
+        }
+
+    private:
+        template<bool is_lattice_mode>
+        [[nodiscard]] std::pair<Datum, Datum>
+        do_minimal_hash(const std::span<const oper_name_t> sequence) const noexcept {
+            // Empty sequence is always hash 0:
+            if (sequence.empty()) {
+                return {SiteHasherImpl<num_slides>::empty_hash(), SiteHasherImpl<num_slides>::empty_hash()};
+            }
+
+            // First, calculate hash of supplied sequence
+            std::pair<Datum, Datum> output;
+            output.second = this->hash(sequence);
+            output.first = output.second;
+
+            // Now, try offsetting each element
+            for (const oper_name_t oper : sequence) {
+                const oper_name_t qubit_number = oper / 3;
+                if constexpr (is_lattice_mode) {
+                    // lattice offset
+                    const oper_name_t col_number = qubit_number / this->column_height;
+                    const oper_name_t row_number = qubit_number % this->column_height;
+                    const size_t col_shift = this->row_width - col_number;
+                    const size_t row_shift = this->column_height - row_number;
+
+                    Datum candidate_hash = this->lattice_shift(output.second, row_shift, col_shift);
+                    if (SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
+                        output.first = candidate_hash;
+                    }
+
+                } else {
+                    // chain offset
+                    const size_t shift = this->qubits - qubit_number;
+                    Datum candidate_hash = this->cyclic_shift(output.second, shift);
+                    if (SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
+                        output.first = candidate_hash;
+                    }
+                }
+            }
+            return output;
+        }
+
+    };
 
 
 }
