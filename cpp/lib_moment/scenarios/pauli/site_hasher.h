@@ -70,13 +70,14 @@ namespace Moment::Pauli {
          * @param input A view to operator sequence data.
          * @return A representation of the equivalence class the operator sequence is in.
          */
-        [[nodiscard]] virtual sequence_storage_t minimize_sequence(const std::span<const oper_name_t> input) const = 0;
+        [[nodiscard]] virtual sequence_storage_t
+        canonical_sequence(const std::span<const oper_name_t> input) const = 0;
 
         /**
          * Test if a sequence is canonical or not
          * @param input A view to operator sequence data.
          */
-        [[nodiscard]] virtual bool can_be_minimized(const std::span<const oper_name_t> input) const noexcept = 0;
+        [[nodiscard]] virtual bool is_canonical(const std::span<const oper_name_t> input) const noexcept = 0;
 
     private:
         /**
@@ -747,22 +748,21 @@ namespace Moment::Pauli {
         }
 
         /**
-         * Gets the minimized and current hash of an operator sequence
-         * @param sequence
-         * @return Pair; first: with minimum value of hash after shifts, second: hash of original sequence
+         * Gets the equivalence class hash and current hash of an operator sequence.
+         * The equivalence value is not the strict minimum over all translations, but over all translations such that
+         * one qubit aligns with lattice position [0,0].
+         * @param sequence The sequence to hash and translate.
+         * @return Pair; first: with equivalence value of hash after shifts, second: hash of original sequence
          */
         [[nodiscard]] inline std::pair<Datum, Datum>
-        minimal_hash(const std::span<const oper_name_t> sequence) const noexcept {
-            return (this->row_width == 1) ? do_minimal_hash<false>(sequence)
-                                          : do_minimal_hash<true>(sequence);
+        canonical_hash(const std::span<const oper_name_t> sequence) const noexcept {
+            return (this->row_width == 1) ? do_canonical_hash<false>(sequence)
+                                          : do_canonical_hash<true>(sequence);
         }
 
-        /**
-         * Gets canonical version of operator sequence
-         */
-        [[nodiscard]] sequence_storage_t minimize_sequence(const std::span<const oper_name_t> input) const final {
+        [[nodiscard]] sequence_storage_t canonical_sequence(const std::span<const oper_name_t> input) const final {
             // Find equivalence class
-            const auto [smallest_hash, actual_hash] = minimal_hash(input);
+            const auto [smallest_hash, actual_hash] = canonical_hash(input);
 
             // Operator sequence is already minimal
             if (smallest_hash == actual_hash) {
@@ -781,9 +781,9 @@ namespace Moment::Pauli {
         /**
          * Tests canonical version of operator sequence
          */
-        [[nodiscard]] bool can_be_minimized(const std::span<const oper_name_t> input) const noexcept final {
+        [[nodiscard]] bool is_canonical(const std::span<const oper_name_t> input) const noexcept final {
             // Find equivalence class
-            const auto [smallest_hash, actual_hash] = minimal_hash(input);
+            const auto [smallest_hash, actual_hash] = canonical_hash(input);
 
             // Is input operator sequence already minimal?
             return (smallest_hash != actual_hash);
@@ -793,18 +793,18 @@ namespace Moment::Pauli {
     private:
         template<bool is_lattice_mode>
         [[nodiscard]] std::pair<Datum, Datum>
-        do_minimal_hash(const std::span<const oper_name_t> sequence) const noexcept {
+        do_canonical_hash(const std::span<const oper_name_t> sequence) const noexcept {
             // Empty sequence is always hash 0:
             if (sequence.empty()) {
                 return {SiteHasherImpl<num_slides>::empty_hash(), SiteHasherImpl<num_slides>::empty_hash()};
             }
 
             // First, calculate hash of supplied sequence
-            std::pair<Datum, Datum> output;
+            std::pair<Datum, Datum> output; // first remains uninitialized...
             output.second = this->hash(sequence);
-            output.first = output.second;
 
             // Now, try offsetting each element
+            bool done_once = false;
             for (const oper_name_t oper : sequence) {
                 const oper_name_t qubit_number = oper / 3;
                 if constexpr (is_lattice_mode) {
@@ -815,16 +815,18 @@ namespace Moment::Pauli {
                     const size_t row_shift = this->column_height - row_number;
 
                     Datum candidate_hash = this->lattice_shift(output.second, row_shift, col_shift);
-                    if (SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
+                    if (!done_once || SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
                         output.first = candidate_hash;
+                        done_once = true;
                     }
 
                 } else {
                     // chain offset
                     const size_t shift = this->qubits - qubit_number;
                     Datum candidate_hash = this->cyclic_shift(output.second, shift);
-                    if (SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
+                    if (!done_once || SiteHasherImpl<num_slides>::less(candidate_hash, output.first)) {
                         output.first = candidate_hash;
+                        done_once = true;
                     }
                 }
             }

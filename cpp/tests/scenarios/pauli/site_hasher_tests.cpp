@@ -622,27 +622,27 @@ namespace Moment::Tests {
         SiteHasher<1> hasher{5};
 
         // Single qubits
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000001}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000004}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(2)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000010}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(3)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000040}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(4)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(4)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000100}));
 
         // Neighbouring pairs
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0) * context.sigmaZ(1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0) * context.sigmaZ(1)),
                   (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x000000000000000d}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1) * context.sigmaZ(2)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1) * context.sigmaZ(2)),
                   (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000034}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2) * context.sigmaZ(3)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(2) * context.sigmaZ(3)),
                   (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x00000000000000d0}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3) * context.sigmaZ(4)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(3) * context.sigmaZ(4)),
                   (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000340}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(4) * context.sigmaZ(0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(4) * context.sigmaZ(0)),
                   (std::pair<uint64_t, uint64_t>{0x000000000000000d, 0x0000000000000103}));
 
     }
@@ -662,14 +662,14 @@ namespace Moment::Tests {
             // Single qubit
             const auto shifted_single_sequence = context.sigmaX(base_index);
             const auto shifted_single_hash = hasher(shifted_single_sequence);
-            EXPECT_EQ(hasher.minimal_hash(shifted_single_sequence),
+            EXPECT_EQ(hasher.canonical_hash(shifted_single_sequence),
                       std::make_pair(expected_single_hash, shifted_single_hash))
                       << "site = " << base_index;
 
             // Nearest neighbour
             const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
             const auto shifted_nn_hash = hasher(shifted_nn_sequence);
-            EXPECT_EQ(hasher.minimal_hash(shifted_nn_sequence),
+            EXPECT_EQ(hasher.canonical_hash(shifted_nn_sequence),
                       std::make_pair(expected_nn_hash, shifted_nn_hash))
                       << "site = " << base_index;
         }
@@ -690,14 +690,14 @@ namespace Moment::Tests {
             // Single qubit
             const auto shifted_single_sequence = context.sigmaX(base_index);
             const auto shifted_single_hash = hasher(shifted_single_sequence);
-            EXPECT_EQ(hasher.minimal_hash(shifted_single_sequence),
+            EXPECT_EQ(hasher.canonical_hash(shifted_single_sequence),
                       std::make_pair(expected_single_hash, shifted_single_hash))
                       << "site = " << base_index;
 
             // Nearest neighbour
             const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
             const auto shifted_nn_hash = hasher(shifted_nn_sequence);
-            EXPECT_EQ(hasher.minimal_hash(shifted_nn_sequence),
+            EXPECT_EQ(hasher.canonical_hash(shifted_nn_sequence),
                       std::make_pair(expected_nn_hash, shifted_nn_hash))
                       << "site = " << base_index;
         }
@@ -708,33 +708,33 @@ namespace Moment::Tests {
         SiteHasher<1> hasher{4, 2};
 
         // Single qubits
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000001}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000004}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(2)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(2)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000010}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(3)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(3)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000001, 0x0000000000000040}));
 
         // X1Z2 vertical pair (prefers Z1X2...!)
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 0) * context.sigmaZ(1, 0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0, 0) * context.sigmaZ(1, 0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x000000000000000d}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 0) * context.sigmaZ(0, 0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1, 0) * context.sigmaZ(0, 0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x0000000000000007}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 1) * context.sigmaZ(1, 1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0, 1) * context.sigmaZ(1, 1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x00000000000000d0}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 1) * context.sigmaZ(0, 1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1, 1) * context.sigmaZ(0, 1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000007, 0x0000000000000070}));
 
         // X1Z3 horizontal pair (prefers Z1X3...!)
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 0) * context.sigmaZ(0, 1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0, 0) * context.sigmaZ(0, 1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x0000000000000031}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 0) * context.sigmaZ(1, 1)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1, 0) * context.sigmaZ(1, 1)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x00000000000000c4}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(0, 1) * context.sigmaZ(0, 0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0, 1) * context.sigmaZ(0, 0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x0000000000000013}));
-        EXPECT_EQ(hasher.minimal_hash(context.sigmaX(1, 1) * context.sigmaZ(1, 0)),
+        EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1, 1) * context.sigmaZ(1, 0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x000000000000004c}));
     }
 
@@ -751,14 +751,14 @@ namespace Moment::Tests {
         for (size_t base_index = 0; base_index < chain_length; ++base_index) {
             // Single qubit
             const auto shifted_single_sequence = context.sigmaX(base_index);
-            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+            const OperatorSequence canonical_single{hasher.canonical_sequence(shifted_single_sequence), context};
 
             EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
 
             // Nearest neighbour
             const auto shifted_nn_sequence =
                     context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
-            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            const OperatorSequence canonical_nn{hasher.canonical_sequence(shifted_nn_sequence), context};
             EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
         }
     }
@@ -775,14 +775,14 @@ namespace Moment::Tests {
         for (size_t base_index = 0; base_index < chain_length; ++base_index) {
             // Single qubit
             const auto shifted_single_sequence = context.sigmaX(base_index);
-            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+            const OperatorSequence canonical_single{hasher.canonical_sequence(shifted_single_sequence), context};
 
             EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
 
             // Nearest neighbour
             const auto shifted_nn_sequence =
                     context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
-            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            const OperatorSequence canonical_nn{hasher.canonical_sequence(shifted_nn_sequence), context};
             EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
         }
     }
@@ -799,14 +799,14 @@ namespace Moment::Tests {
         for (size_t base_index = 0; base_index < chain_length; ++base_index) {
             // Single qubit
             const auto shifted_single_sequence = context.sigmaX(base_index);
-            const OperatorSequence canonical_single{hasher.minimize_sequence(shifted_single_sequence), context};
+            const OperatorSequence canonical_single{hasher.canonical_sequence(shifted_single_sequence), context};
 
             EXPECT_EQ(canonical_single, expected_single) << "site = " << base_index;
 
             // Nearest neighbour
             const auto shifted_nn_sequence =
                     context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
-            const OperatorSequence canonical_nn{hasher.minimize_sequence(shifted_nn_sequence), context};
+            const OperatorSequence canonical_nn{hasher.canonical_sequence(shifted_nn_sequence), context};
             EXPECT_EQ(canonical_nn, expected_nn) << "site = " << base_index;
         }
     }

@@ -487,13 +487,13 @@ namespace Moment::Pauli {
         assert(this->tx_hasher); // assert hasher was instantiated
 
         // TODO: Construct without sort flag
-        return OperatorSequence{this->tx_hasher->minimize_sequence(seq), *this};
+        return OperatorSequence{this->tx_hasher->canonical_sequence(seq), *this};
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
         assert(this->translational_symmetry);
 
         // Do test
-        return this->tx_hasher->can_be_minimized(seq);
+        return this->tx_hasher->is_canonical(seq);
     }
 }
