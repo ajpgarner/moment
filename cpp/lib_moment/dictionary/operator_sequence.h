@@ -139,7 +139,7 @@ namespace Moment {
          * Concatenate an OperatorSequence to the end of this sequence, then simplifies to canonical form.
          * @param rhs The operator sequence to append to this sequence.
          */
-        OperatorSequence& operator *= (const OperatorSequence& rhs);
+        OperatorSequence& operator*= (const OperatorSequence& rhs);
 
         /**
         * Concatenates two OperatorSequences, putting the output in a new sequence, and simplifying to canonical form.
@@ -147,14 +147,6 @@ namespace Moment {
         * @param rhs The operator sequence to take as the end of the new sequence.
         */
         friend OperatorSequence operator* (const OperatorSequence& lhs, const OperatorSequence& rhs);
-
-        /**
-        * Concatenates two OperatorSequences, putting the output in a new sequence, and simplifying to canonical form.
-        * This overload avoids copying the LHS sequence.
-        * @param lhs The operator sequence to take as the beginning of the new sequence
-        * @param rhs The operator sequence to take as the end of the new sequence.
-        */
-        friend OperatorSequence operator* (OperatorSequence&& lhs, const OperatorSequence& rhs);
 
         /**
          * Construct sequence equal to algebraic zero.

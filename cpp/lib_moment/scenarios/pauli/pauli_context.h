@@ -113,7 +113,8 @@ namespace Moment {
 
             bool additional_simplification(sequence_storage_t &op_sequence, SequenceSignType &sign) const final;
 
-            void multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const final;
+            [[nodiscard]] OperatorSequence
+            multiply(const OperatorSequence &lhs, const OperatorSequence &rhs) const final;
 
             /**
              * 1/2 [lhs, rhs] = (lhs * rhs - rhs * lhs)

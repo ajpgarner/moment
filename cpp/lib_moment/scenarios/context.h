@@ -71,7 +71,7 @@ namespace Moment {
           * @param lhs The left-hand-side of the multiplication (stores result also).
           * @param rhs The right-hand-side of the multiplication.
           */
-         virtual void multiply(OperatorSequence& lhs, const OperatorSequence& rhs) const;
+         virtual OperatorSequence multiply(const OperatorSequence& lhs, const OperatorSequence& rhs) const;
 
          /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.

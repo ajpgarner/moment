@@ -29,12 +29,23 @@ namespace Moment {
         return false;
     }
 
-    void Context::multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const {
-        // Append
-        lhs.operators.insert(lhs.operators.end(), rhs.operators.begin(), rhs.operators.end());
+    OperatorSequence Context::multiply(const OperatorSequence &lhs, const OperatorSequence &rhs) const {
+        // Check not identically zero
+        if (lhs.zero() || rhs.zero()) [[unlikely]] {
+            return OperatorSequence::Zero(*this);
+        }
 
-        // Simplify
-        lhs.to_canonical_form();
+        // Append RHS to LHS
+        auto make_data = [&lhs, &rhs]() -> sequence_storage_t {
+            sequence_storage_t data;
+            data.reserve(lhs.size() + rhs.size());
+            std::copy(lhs.begin(), lhs.end(), std::back_inserter(data));
+            std::copy(rhs.begin(), rhs.end(), std::back_inserter(data));
+            return data;
+        };
+
+        // Construct operator sequence (including simplification and hashing)
+        return OperatorSequence{make_data(), *this, lhs.get_sign() * rhs.get_sign()};
     }
 
     OperatorSequence Context::zero() const {

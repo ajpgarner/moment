@@ -105,26 +105,6 @@ namespace Moment::Algebraic {
         return false;
     }
 
-    void AlgebraicContext::multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const {
-        // Append
-        lhs.raw().insert(lhs.raw().end(), rhs.begin(), rhs.end());
-
-        // Account for signs
-        SequenceSignType sign_type = lhs.get_sign() * rhs.get_sign();
-
-        // Check for simplification
-        bool set_to_zero = this->additional_simplification(lhs.raw(), sign_type);
-        if (set_to_zero) {
-            lhs.raw().clear();
-            lhs.set_sign(SequenceSignType::Positive);
-            lhs.rehash(0);
-        } else {
-            // Rehash & resign
-            lhs.set_sign(sign_type);
-            lhs.rehash(this->hasher);
-        }
-    }
-
     std::string AlgebraicContext::to_string() const {
         const size_t rule_count = this->rules.size();
 

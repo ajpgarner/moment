@@ -206,37 +206,30 @@ namespace Moment::Pauli {
         return false;
     }
 
-    void PauliContext::multiply(OperatorSequence &lhs, const OperatorSequence &rhs) const {
+    OperatorSequence PauliContext::multiply(const OperatorSequence &lhs, const OperatorSequence &rhs) const {
 
         // Get initial sign of product
         SequenceSignType sign = lhs.get_sign() * rhs.get_sign();
 
-        // First, if RHS is empty...
+        // First, if RHS has no operators:
         if (rhs.empty()) {
-            // If RHS is zero, product is zero
             if (rhs.zero()) {
-                lhs.raw().clear();
-                lhs.set_sign(SequenceSignType::Positive);
-                lhs.rehash(0);
-                return;
+                // RHS is zero, so product is zero
+                return OperatorSequence::Zero(*this);
             } else {
-                // RHS is identity, -1, i or -i, so only do sign change.
-                lhs.set_sign(sign);
-                return;
+                // RHS is +1, +i, -1, or -i, so copy LHS with sign change.
+                return OperatorSequence(OperatorSequence::ConstructRawFlag{}, lhs.raw(), lhs.hash(), *this, sign);
             }
         }
 
-        // Second, if LHS is empty and not zero, copy in RHS
+        // Second, if LHS has no operators:
         if (lhs.empty()) {
             if (lhs.zero()) {
-                // LHS is zero, so nothing changes.
-                return;
+                // LHS is zero, so product is zero
+                return OperatorSequence::Zero(*this);
             } else {
-                assert(!rhs.empty()); // <- would have already returned.
-                lhs.raw().insert(lhs.raw().begin(), rhs.begin(), rhs.end());
-                lhs.set_sign(sign);
-                lhs.rehash(rhs.hash());
-                return;
+                // LHS is +1, +i, -1, or -i, so copy RHS with sign change.
+                return OperatorSequence(OperatorSequence::ConstructRawFlag{}, rhs.raw(), rhs.hash(), *this, sign);
             }
         }
 
@@ -336,10 +329,9 @@ namespace Moment::Pauli {
             }
         }
 
-        // Move in multiplied sequence
-        lhs.raw() = std::move(result);
-        lhs.set_sign(sign);
-        lhs.rehash(this->hasher);
+        // Hash result, and construct sequence with it
+        const hash_t the_hash = this->hash(result);
+        return OperatorSequence{OperatorSequence::ConstructRawFlag{}, std::move(result), the_hash, *this, sign};
     }
 
     OperatorSequence PauliContext::commutator(const OperatorSequence& lhs, const OperatorSequence& rhs) const {
