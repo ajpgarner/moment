@@ -238,8 +238,15 @@ namespace Moment::Inflation {
 
         /**
          * Calculate equivalent variant of operator string with lowest possible source indices (e.g. 'A2' -> 'A0' etc.).
+         * Unlike simplify_as_moment, this is also defined if aliasing is disabled.
          */
-        [[nodiscard]] OperatorSequence canonical_moment(const OperatorSequence& input) const;
+        [[nodiscard]] inline OperatorSequence canonical_moment(const OperatorSequence& input) const {
+            if (this->can_have_aliases()) {
+                return this->simplify_as_moment(OperatorSequence{input});
+            } else {
+                return OperatorSequence{input};
+            }
+        }
 
 
         /**

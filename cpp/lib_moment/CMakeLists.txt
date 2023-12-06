@@ -108,7 +108,6 @@ add_library(lib_moment
         utilities/format_factor.cpp
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp
-        utilities/shortlex_hasher.cpp
         utilities/utf_conversion.cpp
 )
 

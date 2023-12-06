@@ -9,6 +9,7 @@
 #include "integer_types.h"
 #include "sequence_sign_type.h"
 
+#include "shortlex_hasher.h"
 #include "utilities/small_vector.h"
 
 #include <cassert>
@@ -23,18 +24,6 @@ namespace Moment {
     using sequence_storage_t = SmallVector<oper_name_t, op_seq_stack_length>;
 
     /**
-     * Concept: 'hasher' classes that can provide a hash to an operator sequence.
-     */
-    template<class hasher_class_t>
-    concept OperatorHasher = requires(const hasher_class_t& hasher, const sequence_storage_t& seq) {
-        {
-            hasher(seq)
-        } -> std::convertible_to<uint64_t>;
-    };
-
-
-
-    /**
      * Sequence of operators, and associated hash.
      */
     class HashedSequence {
@@ -43,7 +32,7 @@ namespace Moment {
         using const_iter_t = sequence_storage_t::const_iterator;
 
     protected:
-        uint64_t the_hash;
+        hash_t the_hash;
 
         sequence_storage_t operators;
 
@@ -58,7 +47,9 @@ namespace Moment {
          * @param zero True if sequence corresponds to zero, otherwise sequence is identity.
          */
         constexpr explicit HashedSequence(const bool zero)
-            : operators{}, the_hash{zero ? 0U : 1U}, sign{SequenceSignType::Positive} { }
+            : operators{},
+              the_hash{zero ? static_cast<hash_t>(0) : static_cast<hash_t>(1)},
+              sign{SequenceSignType::Positive} { }
 
         /** Copy constructor */
         constexpr HashedSequence(const HashedSequence& rhs) = default;
@@ -80,7 +71,7 @@ namespace Moment {
          */
         HashedSequence(sequence_storage_t oper_ids, const uint64_t hash,
                        SequenceSignType sign_type = SequenceSignType::Positive)
-                : operators{std::move(oper_ids)}, the_hash{hash}, sign{sign_type} { }
+                : the_hash{hash}, operators{std::move(oper_ids)}, sign{sign_type} { }
 
         /**
          * Construct a sequence, from a list of operators.
@@ -88,17 +79,16 @@ namespace Moment {
          * @param oper_ids Sequence of operator names.
          * @param hasher Functional that applies hash to sequence.
          */
-        template<OperatorHasher hasher_t>
-        HashedSequence(sequence_storage_t oper_ids, const hasher_t& hasher,
+        HashedSequence(sequence_storage_t oper_ids, const ShortlexHasher& hasher,
                        SequenceSignType sign_type = SequenceSignType::Positive)
-            :   the_hash{hasher(static_cast<const std::span<const oper_name_t>>(oper_ids))},
+            :   the_hash{hasher.hash(oper_ids)},
                 operators{std::move(oper_ids)},
                 sign{sign_type} { }
 
         /**
          * Get sequence hash
          */
-        [[nodiscard]] constexpr uint64_t hash() const noexcept {
+        [[nodiscard]] constexpr hash_t hash() const noexcept {
             return this->the_hash;
         }
 
@@ -198,13 +188,12 @@ namespace Moment {
             return this->operators;
         }
 
-        /** Recalculate sequence's hash (only required after raw access write!) */
-        template<OperatorHasher hasher_t>
-        inline void rehash(const hasher_t& hasher) {
-            this->the_hash = hasher(static_cast<std::span<const oper_name_t>>(this->operators));
+        /** Recalculate sequence's hash  (only required after raw access write or re-contextualizing sequence) */
+        inline void rehash(const ShortlexHasher& hasher) {
+            this->the_hash = hasher(this->operators);
         }
 
-        /** Manually reset sequence's hash (only required after raw access write!), or recontextualizing sequence. */
+        /** Manually reset sequence's hash (only required after raw access write or re-contextualizing sequence). */
         inline void rehash(const uint64_t hash) {
             this->the_hash = hash;
         }
@@ -216,7 +205,7 @@ namespace Moment {
             this->sign = SequenceSignType::Positive;
         }
 
-        /** Ordering by hash value (e.g. shortlex) */
+        /** Ordering by hash value (e.g. shortlex); ignores sequence sign type */
         [[nodiscard]] constexpr bool operator<(const HashedSequence& rhs) const noexcept {
             return this->the_hash < rhs.the_hash;
         }

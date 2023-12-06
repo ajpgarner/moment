@@ -37,6 +37,14 @@ namespace Moment {
         this->to_canonical_form();
     }
 
+    OperatorSequence::OperatorSequence(const ConstructPresortedFlag&,
+                                       sequence_storage_t operators,
+                                       const Context &context,
+                                       const SequenceSignType sign_type) noexcept
+        : HashedSequence{std::move(operators), context.hash(operators), sign_type}, context{&context} {
+
+    }
+
 
     void OperatorSequence::to_canonical_form() noexcept {
         // Contextual simplifications

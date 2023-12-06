@@ -486,8 +486,8 @@ namespace Moment::Pauli {
         assert(this->wrap);
         assert(this->tx_hasher); // assert hasher was instantiated
 
-        // TODO: Construct without sort flag
-        return OperatorSequence{this->tx_hasher->canonical_sequence(seq), *this};
+        return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
+                                this->tx_hasher->canonical_sequence(seq), *this};
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {

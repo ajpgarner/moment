@@ -9,7 +9,7 @@
 #include "operator_rule.h"
 #include "algebraic_precontext.h"
 
-#include "utilities/shortlex_hasher.h"
+#include "shortlex_hasher.h"
 
 #include <iosfwd>
 #include <map>

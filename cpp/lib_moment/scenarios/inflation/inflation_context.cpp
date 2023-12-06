@@ -354,8 +354,9 @@ namespace Moment::Inflation {
 
 
     OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
+        assert(this->can_have_aliases());
         // If 0, or I, or no inflation, then just pass through
-        if (input.empty() || (!this->can_have_aliases())) {
+        if (input.empty()) {
             return std::move(input);
         }
 
@@ -425,11 +426,6 @@ namespace Moment::Inflation {
         }
 
         return OperatorSequence{std::move(permuted_operators), *this};
-    }
-
-
-    OperatorSequence InflationContext::canonical_moment(const OperatorSequence& input) const {
-        return this->simplify_as_moment(OperatorSequence{input});
     }
 
     std::vector<OVOIndex>

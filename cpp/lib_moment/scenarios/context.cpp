@@ -61,15 +61,15 @@ namespace Moment {
         return OperatorSequence{std::move(str), *this, Moment::conjugate(seq.get_sign())};
     }
 
-    OperatorSequence Context::simplify_as_moment(OperatorSequence &&seq) const {
-        // Pass through
+    OperatorSequence Context::simplify_as_moment(OperatorSequence&& seq) const {
+        assert (this->can_have_aliases()); // Should not be called except when aliases are enabled.
+
+        // Pass through sequence
         return std::move(seq);
     }
 
-    bool Context::can_be_simplified_as_moment(const OperatorSequence &seq) const {
-        if (!this->can_have_aliases()) {
-            return false;
-        }
+    bool Context::can_be_simplified_as_moment(const OperatorSequence& seq) const {
+        assert (this->can_have_aliases()); // Should not be called except when aliases are enabled.
 
         auto compare = this->simplify_as_moment(OperatorSequence{seq});
         return compare.hash() != seq.hash();

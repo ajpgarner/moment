@@ -6,7 +6,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "utilities/shortlex_hasher.h"
+#include "shortlex_hasher.h"
 
 
 namespace Moment::Tests {

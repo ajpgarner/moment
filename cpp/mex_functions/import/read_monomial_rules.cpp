@@ -13,7 +13,7 @@
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 
-#include "utilities/shortlex_hasher.h"
+#include "shortlex_hasher.h"
 #include "utilities/utf_conversion.h"
 
 #include "scenarios/algebraic/algebraic_precontext.h"

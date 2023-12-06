@@ -25,7 +25,12 @@ namespace Moment {
      */
     class OperatorSequence : public HashedSequence {
     public:
+
+        /** Flag to use in constructor, when no simplification or rehashing should be done. */
         struct ConstructRawFlag { };
+
+        /** Flag to use in constructor when no simplification should be done, but hashing is still required. */
+        struct ConstructPresortedFlag{ };
 
     private:
         const Context * context;
@@ -40,27 +45,40 @@ namespace Moment {
          * Constructs empty operator sequence; treated as identity.
          * @param context (Non-owning) point to the Context (if any) for further simplification.
          */
-        constexpr explicit OperatorSequence(const Context& context, const bool is_zero = false)
+        constexpr explicit OperatorSequence(const Context& context, const bool is_zero = false) noexcept
             : HashedSequence{is_zero}, context{&context} { }
 
         /**
          * Constructs a sequence of operators, in canonical order, with all known simplifications applied.
          * @param operators A list of operators to include in the sequence
          * @param context Context for further simplification.
-         * @param negated True if sequence should be interpreted with a minus sign in front of it.
+         * @param sign_type Whether to interpret the sequence with +1, +i, -1, -i in front of it.
          */
         OperatorSequence(sequence_storage_t operators, const Context& context,
                          SequenceSignType sign_type = SequenceSignType::Positive) noexcept;
 
         /**
-         * Constructs a sequence of operators, with no further simplifications added
-         * @param rhs
+         * Constructs a sequence of operators, with no further simplifications or rehashing.
+         * Undefined behaviour if hash is incorrect, or input operators are unsimplified.
+         * @param operators A list of operators to include in the sequence
+         * @param context Associated context.
+         * @param sign_type Whether to interpret the sequence with +1, +i, -1, -i in front of it.
          */
          OperatorSequence(const ConstructRawFlag&, sequence_storage_t operators, uint64_t hash,
                           const Context& context, SequenceSignType sign_type = SequenceSignType::Positive) noexcept
               : HashedSequence{std::move(operators), hash, sign_type}, context{&context} {
              // No simplification, or check-sum of hash!
          }
+
+         /**
+         * Constructs a sequence of operators, with no further simplifications, but hashing is required.
+         * Undefined behaviour if input operators are unsimplified.
+         * @param operators A list of operators to include in the sequence.
+         * @param context Associated context.
+         * @param sign_type Whether to interpret the sequence with +1, +i, -1, -i in front of it.
+         */
+         OperatorSequence(const ConstructPresortedFlag&, sequence_storage_t operators,
+                          const Context& context, SequenceSignType sign_type = SequenceSignType::Positive) noexcept;
 
         constexpr OperatorSequence(const OperatorSequence& rhs) = default;
 
