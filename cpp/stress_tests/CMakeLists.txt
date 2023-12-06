@@ -14,9 +14,16 @@ add_executable(stresstest_inflation
 target_link_libraries(stresstest_inflation
     lib_moment)
 
-# Add symmetrizatoin stress test
+# Add symmetrization stress test
 add_executable(stresstest_symmetrization
     test_symmetrized_i4422.cpp
 )
 target_link_libraries(stresstest_symmetrization
+    lib_moment)
+
+# Add Pauli lattice stress test
+add_executable(stresstest_pauli_lattice
+    test_pauli_lattice.cpp
+)
+target_link_libraries(stresstest_pauli_lattice
     lib_moment)

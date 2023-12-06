@@ -40,4 +40,5 @@ namespace Moment::StressTests {
         }
         std::cout << "." << std::endl;
     }
+
 }

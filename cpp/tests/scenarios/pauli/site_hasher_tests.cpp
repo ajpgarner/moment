@@ -23,8 +23,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher({}), 0);
     }
 
-
-    TEST(Scenarios_Pauli_SiteHasher, Hash_SmallChain) {
+    TEST(Scenarios_Pauli_SiteHasher, Hash_Small) {
         PauliContext context{5};
         SiteHasher<1> hasher{5};
 
@@ -42,7 +41,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaZ(1))), 0x000000000000000d);
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, Hash_MediumChain40) {
+    TEST(Scenarios_Pauli_SiteHasher, Hash_Medium) {
         PauliContext context{40};
         SiteHasher<2> hasher{40};
         ASSERT_EQ(hasher.qubits_per_slide, 32);
@@ -94,6 +93,67 @@ namespace Moment::Tests {
                   (std::array<uint64_t, 2>{0x0000000000000004, 0x0000000000000008}));
         EXPECT_EQ(hasher((context.sigmaX(2) * context.sigmaZ(33))),
                   (std::array<uint64_t, 2>{0x0000000000000010, 0x000000000000000c}));
+    }
+
+
+    TEST(Scenarios_Pauli_SiteHasher, Hash_Larger) {
+        PauliContext context{70};
+        SiteHasher<3> hasher{70};
+        ASSERT_EQ(hasher.qubits_per_slide, 32);
+        
+        EXPECT_EQ(hasher(context.identity()),
+                  (std::array<uint64_t, 3>{0x0000000000000000, 0, 0}));
+
+        EXPECT_EQ(hasher(context.sigmaX(0)),
+                  (std::array<uint64_t, 3>{0x0000000000000001, 0, 0}));
+        EXPECT_EQ(hasher(context.sigmaY(0)),
+                  (std::array<uint64_t, 3>{0x0000000000000002, 0, 0}));
+        EXPECT_EQ(hasher(context.sigmaZ(0)),
+                  (std::array<uint64_t, 3>{0x0000000000000003, 0, 0}));
+
+
+        EXPECT_EQ(hasher(context.sigmaX(16)),
+                  (std::array<uint64_t, 3>{0x0000000100000000, 0, 0}));
+        EXPECT_EQ(hasher(context.sigmaY(16)),
+                  (std::array<uint64_t, 3>{0x0000000200000000, 0, 0}));
+        EXPECT_EQ(hasher(context.sigmaZ(16)),
+                  (std::array<uint64_t, 3>{ 0x0000000300000000, 0, 0}));
+
+
+        EXPECT_EQ(hasher(context.sigmaX(32)),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000001, 0}));
+        EXPECT_EQ(hasher(context.sigmaY(32)),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000002, 0}));
+        EXPECT_EQ(hasher(context.sigmaZ(32)),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000003, 0}));
+
+        EXPECT_EQ(hasher(context.sigmaX(64)),
+                  (std::array<uint64_t, 3>{0, 0, 0x0000000000000001}));
+        EXPECT_EQ(hasher(context.sigmaY(64)),
+                  (std::array<uint64_t, 3>{0, 0, 0x0000000000000002}));
+        EXPECT_EQ(hasher(context.sigmaZ(64)),
+                  (std::array<uint64_t, 3>{0, 0, 0x0000000000000003}));
+
+        EXPECT_EQ(hasher(context.sigmaX(33)),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000004, 0}));
+        EXPECT_EQ(hasher(context.sigmaY(33)),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000008, 0}));
+        EXPECT_EQ(hasher(context.sigmaZ(33)),
+                  (std::array<uint64_t, 3>{0, 0x000000000000000c, 0}));
+
+        EXPECT_EQ(hasher((context.sigmaX(32) * context.sigmaX(33))),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000005, 0}));
+        EXPECT_EQ(hasher((context.sigmaX(32) * context.sigmaY(33))),
+                  (std::array<uint64_t, 3>{0, 0x0000000000000009, 0}));
+        EXPECT_EQ(hasher((context.sigmaX(32) * context.sigmaZ(33))),
+                  (std::array<uint64_t, 3>{0, 0x000000000000000d, 0}));
+
+        EXPECT_EQ(hasher((context.sigmaX(0) * context.sigmaX(33))),
+                  (std::array<uint64_t, 3>{0x0000000000000001, 0x0000000000000004, 0}));
+        EXPECT_EQ(hasher((context.sigmaX(1) * context.sigmaY(33))),
+                  (std::array<uint64_t, 3>{0x0000000000000004, 0x0000000000000008, 0}));
+        EXPECT_EQ(hasher((context.sigmaX(2) * context.sigmaZ(33))),
+                  (std::array<uint64_t, 3>{0x0000000000000010, 0x000000000000000c, 0}));
     }
 
     TEST(Scenarios_Pauli_SiteHasher, Unhash_SmallChain) {

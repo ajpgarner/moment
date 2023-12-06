@@ -20,7 +20,7 @@ namespace Moment {
         /**
          * Error thrown if context cannot be created for some reason.
          */
-        class bad_pauli_context : std::runtime_error {
+        class bad_pauli_context : public std::runtime_error {
         public:
             explicit bad_pauli_context(const std::string& what) : std::runtime_error{what} { }
         };

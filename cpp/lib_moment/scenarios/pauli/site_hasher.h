@@ -712,6 +712,11 @@ namespace Moment::Pauli {
     };
 
 
+    /**
+     * Final hasher implementation, with common functions.
+     * @tparam num_slides Number of slides in implementation
+     */
+
     template<size_t num_slides>
     class SiteHasher final : public SiteHasherImpl<num_slides> {
     public:

@@ -61,12 +61,18 @@ namespace Moment::Pauli {
 
 
         [[nodiscard]] std::unique_ptr<SiteHasherImplBase> make_tx_hasher(const PauliContext& context) {
+
             size_t slides = context.qubit_size / SiteHasherImplBase::qubits_per_slide;
             size_t remainder = context.qubit_size % SiteHasherImplBase::qubits_per_slide;
             if (0 != remainder) {
                 ++slides;
             }
 
+            if (slides > 16) {
+                throw errors::bad_pauli_context{"Cannot generate hasher for more than 512 qubits!"};
+            }
+
+            // r/programming_horror
             switch (slides) {
                 case 0:
                 case 1: // Specialist 1:
@@ -115,7 +121,7 @@ namespace Moment::Pauli {
             }
             // Construct appropriate hasher
             if (this->qubit_size > 256) {
-                throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 16x16 grids."};
+                throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
             }
             this->tx_hasher = make_tx_hasher(*this);
         }
