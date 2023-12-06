@@ -242,6 +242,16 @@ namespace Moment::Pauli {
             return sequences.size() - init_size;
         }
 
+        template<bool wrapped>
+        size_t add_lattice_neighbour_triplets(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
+            if constexpr(!wrapped) {
+                throw std::runtime_error{"Currently, nearest-neighbour triplets are only supported with wrapping."};
+            }
+
+            // TODO: NN implementation of triplets
+            throw std::runtime_error{"Currently, nearest-neighbour triplets are not even supported with wrapping(!)"};
+        }
+
         /** Calculates nearest neighbour sequences, with and without wrapping */
         template<bool wrapped>
         size_t add_lattice_neighbours(std::vector<OperatorSequence>& sequences, const PauliContext& context,
@@ -252,7 +262,11 @@ namespace Moment::Pauli {
             add_lattice_neighbour_pairs<wrapped>(sequences, context);
 
             if (word_length >= 3) {
-                throw std::runtime_error{"Currently only nearest-neighbour pairs are supported in 2D."};
+                add_lattice_neighbour_triplets<wrapped>(sequences, context);
+            }
+
+            if (word_length >= 4) {
+                throw std::runtime_error{"Currently only nearest-neighbour pairs and triplets are supported in 2D."};
             }
 
             return sequences.size() - init_size;

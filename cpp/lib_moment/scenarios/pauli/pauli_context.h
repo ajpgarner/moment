@@ -27,11 +27,10 @@ namespace Moment {
     }
 
     namespace Pauli {
-
         struct NearestNeighbourIndex;
         class PauliSequenceGenerator;
         class PauliDictionary;
-        class SiteHasherImplBase;
+        class SiteHasher;
 
         /**
          * Context for spin system.
@@ -74,7 +73,7 @@ namespace Moment {
              PauliDictionary* dictionary_ptr = nullptr;
 
              /** Hasher, for calculating translational symmetry equivalence classes */
-             std::unique_ptr<SiteHasherImplBase> tx_hasher;
+             std::unique_ptr<SiteHasher> tx_hasher;
 
         public:
             /**
@@ -180,6 +179,8 @@ namespace Moment {
                                                          SequenceSignType sign = SequenceSignType::Positive) const {
                 return sigmaZ(col*this->col_height + row, sign);
             }
+
+            [[nodiscard]] const SiteHasher& site_hasher() const;
 
         protected:
             [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;

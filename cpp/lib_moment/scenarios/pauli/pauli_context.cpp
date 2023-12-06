@@ -58,44 +58,6 @@ namespace Moment::Pauli {
             assert(right >= 0 && right < 4);
             return cayley_table_ixyz[(left<<2) + right];
         }
-
-
-        [[nodiscard]] std::unique_ptr<SiteHasherImplBase> make_tx_hasher(const PauliContext& context) {
-
-            size_t slides = context.qubit_size / SiteHasherImplBase::qubits_per_slide;
-            size_t remainder = context.qubit_size % SiteHasherImplBase::qubits_per_slide;
-            if (0 != remainder) {
-                ++slides;
-            }
-
-            if (slides > 16) {
-                throw errors::bad_pauli_context{"Cannot generate hasher for more than 512 qubits!"};
-            }
-
-            // r/programming_horror
-            switch (slides) {
-                case 0:
-                case 1: // Specialist 1:
-                    return std::make_unique<SiteHasher<1>>(context.qubit_size, context.col_height);
-                case 2: // Specialist 2:
-                    return std::make_unique<SiteHasher<2>>(context.qubit_size, context.col_height);
-                case 3: // 'Generalist' 3:
-                    return std::make_unique<SiteHasher<3>>(context.qubit_size, context.col_height);
-                case 4: // 'Generalist' 4:
-                    return std::make_unique<SiteHasher<4>>(context.qubit_size, context.col_height);
-                case 5: // 'Generalist' 5:
-                    return std::make_unique<SiteHasher<5>>(context.qubit_size, context.col_height);
-                case 6: // 'Generalist' 6:
-                    return std::make_unique<SiteHasher<6>>(context.qubit_size, context.col_height);
-                case 7: // 'Generalist' 7:
-                    return std::make_unique<SiteHasher<7>>(context.qubit_size, context.col_height);
-                case 8: // 'Generalist' 8:
-                    return std::make_unique<SiteHasher<8>>(context.qubit_size, context.col_height);
-                default:
-                    return nullptr;
-            }
-        }
-
     }
 
     PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const bool tx_sym,
@@ -123,7 +85,7 @@ namespace Moment::Pauli {
             if (this->qubit_size > 256) {
                 throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
             }
-            this->tx_hasher = make_tx_hasher(*this);
+            this->tx_hasher = SiteHasher::make(this->qubit_size, this->col_height);
         }
 
 
@@ -493,5 +455,12 @@ namespace Moment::Pauli {
 
         // Do test
         return this->tx_hasher->is_canonical(seq);
+    }
+
+    const SiteHasher& PauliContext::site_hasher() const {
+        if (!this->tx_hasher) {
+            throw errors::bad_pauli_context{"SiteHasher not defined for this PauliContext."};
+        }
+        return *this->tx_hasher;
     }
 }

@@ -89,6 +89,7 @@ add_library(lib_moment
         scenarios/pauli/pauli_polynomial_lm_indices.cpp
         scenarios/pauli/pauli_polynomial_localizing_matrix.cpp
         scenarios/pauli/polynomial_commutator_matrix.cpp
+        scenarios/pauli/site_hasher.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp
