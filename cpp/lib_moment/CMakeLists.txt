@@ -78,6 +78,7 @@ add_library(lib_moment
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         scenarios/pauli/commutator_matrix.cpp
+        scenarios/pauli/lattice_duplicator.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_matrix_system.cpp

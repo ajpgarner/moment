@@ -37,13 +37,16 @@ namespace Moment::Pauli {
         /** The total number of columns (i.e. row size), in lattice mode. */
         const size_t row_width;
 
+        /** Helper tag for polymorphism. */
+        const uint64_t impl_label;
+
     protected:
         /**
          * Construct a site-hasher with information known already
-         * @param qubit_count The maximum number of qubits in the hasher.
-         * @param col_size The number of qubits in a column.
+         * @param context The Pauli context defining the chain or lattice
+         * @param impl_label Helper tag for polymorphism.
          */
-        explicit SiteHasher(const PauliContext& context);
+        explicit SiteHasher(const PauliContext& context, uint64_t impl_label);
 
     public:
         /**

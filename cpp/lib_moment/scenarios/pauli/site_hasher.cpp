@@ -12,10 +12,8 @@
 #include "dictionary/operator_sequence.h"
 
 namespace Moment::Pauli {
-
-
-    SiteHasher::SiteHasher(const PauliContext& context)
-            : context{context}, qubits{static_cast<size_t>(context.qubit_size)},
+    SiteHasher::SiteHasher(const PauliContext& context, const uint64_t label)
+            : context{context}, impl_label{label}, qubits{static_cast<size_t>(context.qubit_size)},
               column_height{context.col_height > 0 ? context.col_height : qubits},
               row_width{context.col_height > 0 ? context.row_width : static_cast<size_t>(1)} {
         assert(column_height * row_width == qubits);

@@ -19,7 +19,7 @@ namespace Moment::Pauli {
      */
     class PauliSequenceGenerator : public OperatorSequenceGenerator {
     public:
-        const PauliContext& pauliContext;
+        const PauliContext& pauli_context;
 
         /**
          * The index labelling this OSG (NPA level, and nearest neighbour filter).
@@ -46,6 +46,19 @@ namespace Moment::Pauli {
 
         /** True, if only a limited subset of sequences are considered (i.e. nearest neighbour mode). */
         [[nodiscard]] constexpr bool limited() const noexcept { return this->nearest_neighbour_index.neighbours != 0; }
+
+    private:
+        /** Calculates everything for OSG */
+        void compute_all_sequences();
+
+        /** Calculates nearest-neighbours for OSG */
+        void compute_nearest_neighbour_sequences();
+
+        /** Adds identity. */
+        void add_length_zero_sequence();
+
+        /** Adds all one-operator terms. */
+        void add_length_one_sequences();
 
     };
 

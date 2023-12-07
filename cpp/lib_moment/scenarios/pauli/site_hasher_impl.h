@@ -43,8 +43,8 @@ namespace Moment::Pauli {
          * @param qubit_count The maximum number of qubits in the hasher.
          * @param col_size The number of qubits in a column.
          */
-        explicit SiteHasherImplBase(const PauliContext& context)
-            : SiteHasher{context}, qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
+        explicit SiteHasherImplBase(const PauliContext& context, const uint64_t label)
+            : SiteHasher{context, label}, qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
               final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
               column_mask(calculate_mask_from_qubits(column_height)) { }
 
@@ -117,7 +117,7 @@ namespace Moment::Pauli {
 
     protected:
         explicit constexpr SiteHasherSized(const PauliContext& context)
-                : SiteHasherImplBase{context} {
+                : SiteHasherImplBase{context, num_slides} {
             assert(qubits <= slides * qubits_per_slide);
         }
 
@@ -342,7 +342,7 @@ namespace Moment::Pauli {
          * @param qubit_count
          * @param col_size The number of qubits per column for a lattice, or set to 0 for a chain.
          */
-        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context} {
+        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context, 1} {
             assert(qubits <= qubits_per_slide);
         }
 
@@ -512,7 +512,8 @@ namespace Moment::Pauli {
             }
         } boundary_info;
 
-        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context},
+        explicit SiteHasherSized(const PauliContext& context)
+            : SiteHasherImplBase{context, 2},
                 boundary_info{column_height} {
             assert(qubits > qubits_per_slide);
             assert(qubits <= 2 * qubits_per_slide);

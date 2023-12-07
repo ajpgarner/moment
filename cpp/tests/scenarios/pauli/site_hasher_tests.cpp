@@ -7,7 +7,6 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/site_hasher.h"
 #include "scenarios/pauli/site_hasher_impl.h"
 
 #include <array>

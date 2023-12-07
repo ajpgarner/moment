@@ -38,20 +38,20 @@ namespace Moment::Tests {
             check_and_advance(pauli_context.sigmaZ(party));
         }
 
-        void test_pauli_pairs(const size_t party_A, const size_t party_B) {
-            std::string added_context = std::string("Qubit ") + std::to_string(party_A)
+        void test_pauli_pairs(size_t party_A, size_t party_B) {
+              std::string added_context = std::string("Qubit ") + std::to_string(party_A)
                                         + " with " + std::to_string(party_B) + "\n";
 
             const auto& pauli_context = dynamic_cast<const Pauli::PauliContext&>(context);
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaX(party_B), added_context);
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaY(party_B), added_context);
-            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaZ(party_B), added_context);
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaX(party_B), added_context);
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaY(party_B), added_context);
-            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaZ(party_B), added_context);
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaX(party_B), added_context);
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaY(party_B), added_context);
-            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaZ(party_B), added_context);
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaX(party_B), added_context + " XX");
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaY(party_B), added_context + " XY");
+            check_and_advance(pauli_context.sigmaX(party_A) * pauli_context.sigmaZ(party_B), added_context + " XZ");
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaX(party_B), added_context + " YX");
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaY(party_B), added_context + " YY");
+            check_and_advance(pauli_context.sigmaY(party_A) * pauli_context.sigmaZ(party_B), added_context + " YZ");
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaX(party_B), added_context + " ZX");
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaY(party_B), added_context + " ZY");
+            check_and_advance(pauli_context.sigmaZ(party_A) * pauli_context.sigmaZ(party_B), added_context + " ZZ");
         }
 
         void expected_finished() {
