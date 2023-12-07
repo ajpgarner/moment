@@ -176,10 +176,33 @@ namespace Moment::Pauli {
             if constexpr(!wrapped) {
                 throw std::runtime_error{"Currently, nearest-neighbour triplets are only supported with wrapping."};
             }
+            size_t initial_count = sequences.size();
 
-            // TODO
-            throw std::runtime_error{"Nearest-neighbour triplets are not yet supported."};
+            // TODO: Fix 'aliasing' issue for some words that might occur for 2x2, 2x3, 3x2 and 3x3 grids.
 
+            LatticeDuplicator ld{context, sequences};
+            // Horizontal NN
+            if (context.row_width >= 3) {
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, 2*context.col_height}); // Add every permutation
+            }
+
+            // Vertical NN
+            if (context.col_height >= 3) {
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2}); // Add every permutation
+            }
+
+            if ((context.row_width >=2) && (context.col_height >=2)) {
+                // Top left corner
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height});
+                // Top right corner
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1});
+                // Bottom left corner
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1});
+                // Bottom right corner
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1});
+            }
+
+            return sequences.size() - initial_count;
         }
 
         /** Calculates nearest neighbour sequences, with and without wrapping */
