@@ -38,23 +38,23 @@ namespace Moment {
         class PauliContext : public Context {
         public:
             /**
-            * The total number of qubits defined.
+            * The total number of qubits defined in context.
             */
-            const oper_name_t qubit_size;
+            const size_t qubit_size;
 
             /**
              * If a 2D spin lattice, the number of qubits in one column.
              * Adopting a COLUMN MAJOR scheme, this is the stride of the major index.
              * If zero, then context is set to chain mode for purposes of neighbours.
              */
-            const oper_name_t col_height = 0;
+            const size_t col_height = 0;
 
             /**
              * If a 2D spin lattice, the number of qubits in one row.
              * Adopting a COLUMN MAJOR scheme, this is the number of major elements
              * In 2D mode, indexing is COLUMN MAJOR: qubit number = col * col_height + row.
              */
-            const oper_name_t row_width = 0;
+            const size_t row_width = 0;
 
             /**
              * Does the system wrap or tile?
@@ -77,14 +77,24 @@ namespace Moment {
 
         public:
             /**
-             * Construct a context for Pauli matrices
+             * Construct a context for a chain of qubits.
              * @param qubits The number of unique qubits in the scenario.
              * @param wrap True to make the system wrap (or tile in 2D), in terms of neighbouring qubits.
              * @param lattice_col_height The number of qubits in one column, of 2D lattice, or set to 0 for a 1D chain.
              * @throws bad_pauli_context If the lattice row size is not valid (0, or divisor of qubits).
              */
-            explicit PauliContext(oper_name_t qubits, bool wrap = false, bool translational_symmetry = false,
-                                  oper_name_t lattice_col_height = 0);
+            explicit PauliContext(size_t qubits, bool wrap = false, bool translational_symmetry = false);
+
+            /**
+             * Construct a context for a lattice of qubits.
+             * @param qubits The number of unique qubits in the scenario.
+             * @param wrap True to make the system wrap (or tile in 2D), in terms of neighbouring qubits.
+             * @param col_height The number of qubits in one column (i.e. number of rows in lattice).
+             * @param row_width The number of qubits in one row (i.e. number of columns in lattice).
+             * @throws bad_pauli_context If the lattice row size is not valid (e.g. because col_height is 0)
+             */
+            explicit PauliContext(size_t col_height, size_t row_width,
+                                  bool wrap = false, bool translational_symmetry = false);
 
             ~PauliContext() noexcept;
 

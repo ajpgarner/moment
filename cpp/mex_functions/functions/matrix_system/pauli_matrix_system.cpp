@@ -11,6 +11,7 @@
 #include "scenarios/pauli/pauli_matrix_system.h"
 
 #include "utilities/read_as_scalar.h"
+#include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 #include "utilities/io_parameters.h"
 
@@ -21,9 +22,12 @@ namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Pauli::PauliContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                 const PauliMatrixSystemParams &input) {
-            return std::make_unique<Pauli::PauliContext>(
-                    static_cast<oper_name_t>(input.qubit_count), input.wrap, input.symmetrized, input.row_width
-            );
+            if (input.lattice_mode) {
+                return std::make_unique<Pauli::PauliContext>(input.col_height, input.row_width,
+                                                             input.wrap, input.symmetrized);
+            } else {
+                return std::make_unique<Pauli::PauliContext>(input.qubit_count, input.wrap, input.symmetrized);
+            }
         }
     }
 
@@ -31,7 +35,7 @@ namespace Moment::mex::functions {
             : SortedInputs(std::move(rawInput)) {
 
         // Read number of qubits
-        this->qubit_count = read_positive_integer<size_t>(matlabEngine, "Qubit count", this->inputs[0], 0);
+        this->read_dimensions_parameter(this->inputs[0]);
 
         // Optional parameters
         this->find_and_parse(u"tolerance", [this](matlab::data::Array& tol_param) {
@@ -53,31 +57,27 @@ namespace Moment::mex::functions {
             }
             this->symmetrized = true;
         }
+    }
 
-        // What about lattice?
-        auto col_iter = this->params.find(u"columns");
-        const bool has_columns_value = col_iter != this->params.cend();
-        if (this->flags.contains(u"lattice") || has_columns_value) {
-            if (has_columns_value) {
-                this->row_width = read_positive_integer(matlabEngine, "Parameter 'columns'", col_iter->second, 1);
-                auto remainder = this->qubit_count % this->row_width;
-                if (remainder != 0) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "If the 'columns' parameter is set,"
-                                " then it must be a factor of the number of qubits.");
-                }
-            } else {
-                double sqrt_qubits = std::sqrt(static_cast<double>(this->qubit_count));
-                auto rounded_qubits = static_cast<size_t>(sqrt_qubits);
-                if ((rounded_qubits * rounded_qubits) != this->qubit_count) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "If 'lattice' flag is set, but column size is not provided,"
-                                " then the number of qubits should be a square number.");
-                }
-                this->row_width = rounded_qubits;
+    void PauliMatrixSystemParams::read_dimensions_parameter(const matlab::data::Array& input) {
+        if (1 == input.getNumberOfElements()) {
+            this->qubit_count = read_positive_integer<size_t>(matlabEngine, "Qubit count", input, 0);
+            this->col_height = this->row_width = 0;
+            this->lattice_mode = false;
+        } else if (2 == input.getNumberOfElements()) {
+            auto lattice_dims = read_positive_integer_array(matlabEngine, "Lattice dimensions", input, 1);
+            if (2 != lattice_dims.size()) [[unlikely]] {
+                throw_error(this->matlabEngine, errors::bad_param,
+                            "Qubit parameter to lattice should be 2-dimensional.");
             }
+            this->col_height = lattice_dims[0];
+            this->row_width = lattice_dims[1];
+
+            this->qubit_count = this->col_height * this->row_width;
+            this->lattice_mode = true;
         } else {
-            this->row_width = 0;
+            throw_error(this->matlabEngine, errors::bad_param,
+                        "Qubit size parameter should be 1 or 2 dimensional.");
         }
     }
 
@@ -86,11 +86,8 @@ namespace Moment::mex::functions {
         this->min_outputs = 1;
         this->max_outputs = 1;
 
-        this->flag_names.emplace(u"lattice");
         this->flag_names.emplace(u"wrap");
         this->flag_names.emplace(u"symmetrized");
-
-        this->param_names.emplace(u"columns");
         this->param_names.emplace(u"tolerance");
 
         this->min_inputs = 1;

@@ -31,8 +31,7 @@ namespace Moment::StressTests {
         using namespace Moment::Pauli;
 
         this->pms_ptr = std::make_unique<PauliMatrixSystem>(
-                std::make_unique<PauliContext>(this->row_width * this->column_height, true, true,
-                                               this->column_height)
+                std::make_unique<PauliContext>(this->column_height, this->row_width, true, true)
         );
         if (!this->pms_ptr) {
             throw std::runtime_error{"PMS was not created...!"};

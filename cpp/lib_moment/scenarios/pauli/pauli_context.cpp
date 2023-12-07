@@ -60,23 +60,51 @@ namespace Moment::Pauli {
         }
     }
 
-    PauliContext::PauliContext(const oper_name_t qubits, const bool is_wrapped, const bool tx_sym,
-                               const oper_name_t col_height_in)
-        : Context{static_cast<size_t>(qubits*3)}, qubit_size{qubits}, wrap{is_wrapped}, translational_symmetry{tx_sym},
-            col_height{col_height_in},
-            row_width{(col_height_in> 0) ? static_cast<oper_name_t>(qubits / col_height_in)
-                                         : static_cast<oper_name_t>(0)} {
+    PauliContext::PauliContext(const size_t chain_length, const bool is_wrapped, const bool tx_sym)
+    :Context{chain_length*3}, qubit_size{chain_length}, col_height{0}, row_width{0},
+        wrap{is_wrapped}, translational_symmetry{tx_sym} {
+        // Check we can support qubit size
+        if (this->size() >= std::numeric_limits<oper_name_t>::max()) {
+            throw errors::bad_pauli_context{"Cannot represent a lattice of this size in Moment."};
+        }
+
+        // Check symmetry
+        if (translational_symmetry) {
+            if (!wrap) {
+                throw errors::bad_pauli_context{"Translational symmetry without wrapping (i.e. 'thermodynamic limit' mode) is not currently supported."};
+            }
+            // Construct appropriate hasher
+            if (this->qubit_size > 256) {
+                throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
+            }
+            this->tx_hasher = SiteHasher::make(*this);
+        }
+
+        // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
+        this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
+        this->dictionary_ptr = dynamic_cast<PauliDictionary*>(&this->dictionary());
+        assert(this->dictionary_ptr != nullptr);
+    }
+
+    PauliContext::PauliContext(const size_t col_height_in, const size_t row_width_in,
+                               const bool is_wrapped, const bool tx_sym)
+        : Context{static_cast<size_t>(col_height_in * row_width_in*3)}, qubit_size{col_height_in * row_width_in},
+            wrap{is_wrapped}, translational_symmetry{tx_sym},
+            col_height{col_height_in}, row_width{col_height != 0 ? row_width_in : 0} {
+        // Check we can support qubit size
+        if (this->size() >= std::numeric_limits<oper_name_t>::max()) {
+            throw errors::bad_pauli_context{"Cannot represent a lattice of this size in Moment."};
+        }
+
         // Check validity of col_height
         if (col_height != 0) {
             if (col_height < 0) {
                 throw errors::bad_pauli_context{"Row width must be a positive integer or zero."};
             }
-            auto remainder = qubits % col_height;
-            if (remainder != 0) {
-                throw errors::bad_pauli_context{"Row width must be a divisor of the number of qubits."};
-            }
             assert((row_width * col_height) == qubit_size);
         }
+
+        // Check symmetry
         if (translational_symmetry) {
             if (!wrap) {
                 throw errors::bad_pauli_context{"Translational symmetry cannot be imposed on non-wrapping scenarios"};
@@ -85,7 +113,7 @@ namespace Moment::Pauli {
             if (this->qubit_size > 256) {
                 throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
             }
-            this->tx_hasher = SiteHasher::make(this->qubit_size, this->col_height);
+            this->tx_hasher = SiteHasher::make(*this);
         }
 
 
@@ -446,8 +474,7 @@ namespace Moment::Pauli {
         assert(this->wrap);
         assert(this->tx_hasher); // assert hasher was instantiated
 
-        return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
-                                this->tx_hasher->canonical_sequence(seq), *this};
+        return this->tx_hasher->canonical_sequence(seq);
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {

@@ -13,8 +13,11 @@
 
 #include <span>
 
-namespace Moment::Pauli {
+namespace Moment {
+    class OperatorSequence;
+}
 
+namespace Moment::Pauli {
     class PauliContext;
 
     /**
@@ -22,6 +25,9 @@ namespace Moment::Pauli {
      */
     class SiteHasher {
     public:
+        /** Attached context */
+        const PauliContext& context;
+
          /** Number of qubits in this particular hasher instance. */
         const size_t qubits;
 
@@ -33,16 +39,11 @@ namespace Moment::Pauli {
 
     protected:
         /**
-         * Construct a site-hasher
+         * Construct a site-hasher with information known already
          * @param qubit_count The maximum number of qubits in the hasher.
          * @param col_size The number of qubits in a column.
          */
-        explicit constexpr SiteHasher(const size_t qubit_count, const size_t col_size = 0)
-                : qubits{qubit_count},
-                  column_height{col_size > 0 ? col_size : qubit_count},
-                  row_width{col_size > 0 ? (qubit_count / col_size) : 1} {
-            assert(column_height * row_width == qubits);
-        }
+        explicit SiteHasher(const PauliContext& context);
 
     public:
         /**
@@ -51,19 +52,25 @@ namespace Moment::Pauli {
         virtual ~SiteHasher() noexcept = default;
 
         /**
-         * Return the equivalence class the operator sequence is in.
+         * Return a canonical representative of the equivalence class a string of operators is in.
          * @param input A view to operator sequence data.
-         * @return A representation of the equivalence class the operator sequence is in.
+         * @return A representative of the equivalence class the operator sequence is in, as a raw vector of operators.
          */
         [[nodiscard]] virtual sequence_storage_t
         canonical_sequence(const std::span<const oper_name_t> input) const = 0;
 
         /**
+         * Return a canonical representative of the equivalence class an operator sequence is in
+         * @param input A view to operator sequence data.
+         * @return A representative of the equivalence class the operator sequence is in, as an OperatorSequence.
+         */
+        [[nodiscard]] OperatorSequence canonical_sequence(const OperatorSequence& input) const;
+
+        /**
          * Test if a sequence is canonical or not
          * @param input A view to operator sequence data.
          */
-        [[nodiscard]] virtual bool
-        is_canonical(const std::span<const oper_name_t> input) const noexcept = 0;
+        [[nodiscard]] virtual bool is_canonical(const std::span<const oper_name_t> input) const noexcept = 0;
 
         /**
          * Return an instantiation of a site hasher.
@@ -71,6 +78,6 @@ namespace Moment::Pauli {
          * @param col_size The number of qubits in a column.
          * @return
          */
-        [[nodiscard]] static std::unique_ptr<SiteHasher> make(size_t qubit_count, size_t col_size = 0);
+        [[nodiscard]] static std::unique_ptr<SiteHasher> make(const PauliContext& context);
     };
 }

@@ -16,8 +16,14 @@ namespace Moment::mex::functions {
         /** The number of qubit sites. */
         size_t qubit_count = 0;
 
-        /** The row size, if a 2D lattice; 0 for a chain */
+        /** The column height (number of rows), if a 2D lattice; 0 for a chain */
+        size_t col_height = 0;
+
+        /** The row width (number of columns), if a 2D lattice; 0 for a chain */
         size_t row_width = 0;
+
+        /** True if in lattice mode, false for chain */
+        bool lattice_mode = false;
 
         /** True to wrap or tile the qubits for the purpose of identifying neighbours */
         bool wrap = false;
@@ -30,6 +36,8 @@ namespace Moment::mex::functions {
 
     public:
         explicit PauliMatrixSystemParams(SortedInputs &&inputs);
+
+        void read_dimensions_parameter(const matlab::data::Array& input);
     };
 
 

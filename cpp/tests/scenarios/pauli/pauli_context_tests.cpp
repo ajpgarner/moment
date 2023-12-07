@@ -67,8 +67,10 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SigmaXYZ_Lattice) {
-        PauliContext context{4, true, true, 2};
+        PauliContext context{2, 2, true, true};
         ASSERT_EQ(context.qubit_size, 4);
+        ASSERT_EQ(context.col_height, 2);
+        ASSERT_EQ(context.row_width, 2);
         ASSERT_EQ(context.size(), 12);
 
         EXPECT_EQ(context.sigmaX(0), context.sigmaX(0, 0));
@@ -577,7 +579,7 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_SingleQubit) {
-        PauliContext context{16, true, true, 4};
+        PauliContext context{4, 4, true, true};
         ASSERT_TRUE(context.wrap);
         ASSERT_TRUE(context.translational_symmetry);
         ASSERT_EQ(context.qubit_size, 16);

@@ -13,79 +13,67 @@ classdef PauliScenario < MTKScenario
         Symmetrized
         % True, if the system is a lattice
         IsLattice;
-        % Number of columns in lattice, or just number of qubits in chain.
-        NumberOfColumns;
-        % Number of rows in lattice, or just 1 if a chain.
+        % Number of rows in lattice, or just number of qubits in chain.
         NumberOfRows;
+        % Number of columns in lattice, or 1 if a chain.
+        NumberOfColumns;      
     end
     
     %% Construction and initialization
     methods
-        function obj = PauliScenario(qubits, varargin)
+        function obj = PauliScenario(dimensions, varargin)
         % Constructs an inflation causal-compatibility scenario.
         % 
         % PARAMS:
-        %   qubits - The number of qubits
+        %   dimensions - The number of qubits in chain, or lattice
+        %                dimensions.
         %
         % OPTIONAL [KEY,VALUE] PARAMETERS:
         %  tolerance - The multiplier of eps(1) to treat as zero.
             
             % Number of qubits level (or set default)
-            if (nargin < 1) || ~isnumeric(qubits) ...
-                    || (numel(qubits)~=1) || (qubits < 0)
-                error("Must specify a positive scalar integer number of qubits.");
+            if (nargin < 1) || ~isnumeric(dimensions)
+                error("Must specify an integer number of qubits.");
+            end
+            
+            % Parse dimensions
+            if numel(dimensions) == 1
+                assert(dimensions >= 1, ...
+                       "Chain length must be a positive integer");
+                qubits = uint64(dimensions);
+                lattice_mode = false;
+            elseif numel(dimensions) == 2
+                assert(dimensions(1) >= 1 && dimensions(2) >= 1, ...
+                       "Lattice dimensions must be a positive integer");
+                rows = uint64(dimensions(1));
+                cols = uint64(dimensions(2));
+                qubits = uint64(rows * cols);
+                lattice_mode = true;
             else
-                qubits = uint64(qubits);
+                error("First parameter must be 1 or 2 dimensional")
             end
             
             % Extract arguments of interest
             [pauli_options, other_options] = ...
                 MTKUtil.split_varargin_keys( ...
-                    ["wrap", "symmetrized", "lattice", "columns"], ...
+                    ["wrap", "symmetrized"], ...
                     varargin);
-            other_options = MTKUtil.check_varargin_keys(["tolerance"],...
+            other_options = MTKUtil.check_varargin_keys(["tolerance"], ...
                                                         other_options);
             other_options = [other_options, {"hermitian"}, true];
             
             % Check specific Pauli scenario arguments
             wrap = false;
             symmetrized = false;
-            set_lattice = false;
-            lattice = false;
-            columns = 0;
             for idx = 1:2:numel(pauli_options)
                 switch pauli_options{idx}
                     case 'wrap'
                        wrap = logical(pauli_options{idx+1});
                     case 'symmetrized'
                         symmetrized = logical(pauli_options{idx+1});
-                    case 'lattice'
-                       set_lattice = true;
-                       lattice = logical(pauli_options{idx+1});
-                    case 'columns'
-                       columns = uint64(pauli_options{idx+1});
                 end
             end
             
-            % Check for inconsistencies with lattice specification
-            if lattice
-                if columns == 0
-                    columns = uint64(sqrt(double(qubits)));
-                    assert(columns * columns == qubits, ...
-                        "If lattice mode is set and no column number is provided," ...
-                       + " number of qubits should be a square number.");
-                    
-                end
-            elseif columns > 1
-                if (set_lattice && ~lattice)
-                    assert(columns~=0, ...
-                        "If lattice is false, no column parameter should be set.");
-                end
-                lattice = true;
-            end            
-            assert(~lattice || (mod(qubits, columns) == 0), ...
-                "Number of qubits should be divisible by number of columns");
-
             % Call Superclass c'tor
             obj = obj@MTKScenario(other_options{:});
             
@@ -93,16 +81,16 @@ classdef PauliScenario < MTKScenario
             obj.QubitCount = qubits;
             obj.Wrapped = wrap;
             obj.Symmetrized = symmetrized;
-            obj.IsLattice = lattice;
+            obj.IsLattice = lattice_mode;
             if obj.IsLattice
-                obj.NumberOfColumns = columns;
-                obj.NumberOfRows = uint64(obj.QubitCount / columns);
+                obj.NumberOfRows = rows;
+                obj.NumberOfColumns = cols;                
             else
-                obj.NumberOfColumns = obj.QubitCount;
-                obj.NumberOfRows = 1;
+                obj.NumberOfRows = obj.QubitCount;
+                obj.NumberOfColumns = 1;                
             end
             
-            % If symmetrized, then flag alias warning
+            % If symmetrized, then flag that can alias.
             if obj.Symmetrized
                 obj.PermitsSymbolAliases = true;
             end
@@ -332,13 +320,16 @@ classdef PauliScenario < MTKScenario
             if obj.Symmetrized
                 named_args{end+1} = 'symmetrized';
             end
+           
             if obj.IsLattice
-                named_args{end+1} = 'columns';
-                named_args{end+1} = obj.NumberOfColumns;
-            end
-            % Call for matrix system
-            ref_id = mtk('pauli_matrix_system', ...
-                obj.QubitCount, named_args{:});            
+                % Call for lattice matrix system
+                ref_id = mtk('pauli_matrix_system', ...
+                    [obj.NumberOfRows, obj.NumberOfColumns], named_args{:});
+            else
+                % Call for chainmatrix system
+                ref_id = mtk('pauli_matrix_system', ...
+                             obj.QubitCount, named_args{:});                
+            end            
         end
     end
     

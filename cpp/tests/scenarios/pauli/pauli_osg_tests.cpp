@@ -253,9 +253,10 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeUnwrapped) {
-        PauliContext context{9, false, false, 3};
+        PauliContext context{3, 3, false, false};
         ASSERT_EQ(context.size(), 27);
         ASSERT_FALSE(context.wrap);
+        ASSERT_EQ(context.qubit_size, 9);
         ASSERT_EQ(context.row_width, 3);
         ASSERT_EQ(context.col_height, 3);
         ASSERT_TRUE(context.is_lattice());
@@ -289,11 +290,12 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, SixQubits_LatticeWrapped) {
-        PauliContext context{6, true, false, 3}; // 2x3 lattice
+        PauliContext context{3, 2, true, false}; // 3x2 lattice
         ASSERT_TRUE(context.wrap);
         ASSERT_EQ(context.size(), 18);
-        ASSERT_EQ(context.row_width, 2);
+        ASSERT_EQ(context.qubit_size, 6);
         ASSERT_EQ(context.col_height, 3);
+        ASSERT_EQ(context.row_width, 2);
         ASSERT_TRUE(context.is_lattice());
 
         PauliSequenceGenerator psg{context, 2, 1};
@@ -326,9 +328,10 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeWrapped) {
-        PauliContext context{9, true, false, 3};
+        PauliContext context{3, 3, true, false};
         ASSERT_TRUE(context.wrap);
         ASSERT_EQ(context.size(), 27);
+        ASSERT_EQ(context.qubit_size, 9);
         ASSERT_EQ(context.row_width, 3);
         ASSERT_EQ(context.col_height, 3);
         ASSERT_TRUE(context.is_lattice());

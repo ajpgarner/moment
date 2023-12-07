@@ -43,13 +43,11 @@ namespace Moment::Pauli {
          * @param qubit_count The maximum number of qubits in the hasher.
          * @param col_size The number of qubits in a column.
          */
-        explicit constexpr SiteHasherImplBase(const size_t qubit_count, const size_t col_size = 0)
-            : SiteHasher{qubit_count, col_size},
-                qubits_on_final_slide{calculate_last_slide_qubit_count(qubit_count)},
-                final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
-                column_mask(calculate_mask_from_qubits(col_size)) {
-            assert(column_height * row_width == qubits);
-        }
+        explicit SiteHasherImplBase(const PauliContext& context)
+            : SiteHasher{context}, qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
+              final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
+              column_mask(calculate_mask_from_qubits(column_height)) { }
+
     public:
         virtual ~SiteHasherImplBase() noexcept = default;
 
@@ -118,9 +116,9 @@ namespace Moment::Pauli {
         constexpr static const size_t slides = num_slides;
 
     protected:
-        explicit constexpr SiteHasherSized(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherImplBase{qubit_count, col_size} {
-            assert(qubit_count <= slides * qubits_per_slide);
+        explicit constexpr SiteHasherSized(const PauliContext& context)
+                : SiteHasherImplBase{context} {
+            assert(qubits <= slides * qubits_per_slide);
         }
 
     public:
@@ -344,9 +342,8 @@ namespace Moment::Pauli {
          * @param qubit_count
          * @param col_size The number of qubits per column for a lattice, or set to 0 for a chain.
          */
-        explicit constexpr SiteHasherSized(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherImplBase{qubit_count, col_size} {
-            assert(qubit_count <= qubits_per_slide);
+        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context} {
+            assert(qubits <= qubits_per_slide);
         }
 
         /**
@@ -447,9 +444,9 @@ namespace Moment::Pauli {
 
     };
 
-/**
- * Specialized hasher for up to 64 qubits, stored in two 64-bit numbers.
- */
+    /**
+     * Specialized hasher for between 33 and 64 qubits (inclusive), stored in two 64-bit numbers.
+     */
     template<>
     class SiteHasherSized<2> : public SiteHasherImplBase {
     public:
@@ -515,11 +512,10 @@ namespace Moment::Pauli {
             }
         } boundary_info;
 
-
-        explicit constexpr SiteHasherSized(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherImplBase{qubit_count, col_size}, boundary_info{col_size} {
-            assert(qubit_count > qubits_per_slide);
-            assert(qubit_count <= 2 * qubits_per_slide);
+        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context},
+                boundary_info{column_height} {
+            assert(qubits > qubits_per_slide);
+            assert(qubits <= 2 * qubits_per_slide);
         }
 
         /**
@@ -714,8 +710,8 @@ namespace Moment::Pauli {
         using Datum = typename SiteHasherSized<num_slides>::Datum;
 
     public:
-        explicit constexpr SiteHasherImpl(const size_t qubit_count, const size_t col_size = 0)
-                : SiteHasherSized<num_slides>{qubit_count, col_size} {}
+        explicit constexpr SiteHasherImpl(const PauliContext& context)
+                : SiteHasherSized<num_slides>{context} { }
 
         /**
          * Rotate around columns (i.e. major-axis shift).
@@ -755,6 +751,8 @@ namespace Moment::Pauli {
             return (this->row_width == 1) ? do_canonical_hash<false>(sequence)
                                           : do_canonical_hash<true>(sequence);
         }
+
+        using SiteHasher::canonical_sequence;
 
         [[nodiscard]] sequence_storage_t canonical_sequence(const std::span<const oper_name_t> input) const final {
             // Find equivalence class
