@@ -763,7 +763,7 @@ namespace Moment::Pauli {
             const auto [smallest_hash, actual_hash] = canonical_hash(input);
 
             // Is input operator sequence already minimal?
-            return (smallest_hash != actual_hash);
+            return (smallest_hash == actual_hash);
         }
 
 

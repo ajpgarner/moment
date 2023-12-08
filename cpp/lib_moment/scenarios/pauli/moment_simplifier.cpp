@@ -6,6 +6,7 @@
  */
 
 #include "moment_simplifier.h"
+#include "nonwrapping_simplifier.h"
 #include "site_hasher.h"
 
 #include "pauli_context.h"
@@ -20,25 +21,29 @@ namespace Moment::Pauli {
     }
 
     std::unique_ptr<MomentSimplifier> MomentSimplifier::make(const PauliContext& context) {
-
-        // TODO: Alternative simplifier
+        // If not wrapping, we can make an easy enough simplifier...
         if (!context.wrap) {
-            throw errors::bad_pauli_context{
-                "Translational symmetry without wrapping (i.e. 'thermodynamic limit' mode) is not currently supported."};
+            if (context.is_lattice()) {
+                return std::make_unique<NonwrappingLatticeSimplifier>(context);
+            } else {
+                return std::make_unique<NonwrappingChainSimplifier>(context);
+            }
         }
 
-        // Test if we can make simplifier
+        // Otherwise, test if we can support size of the wrapping simplifier...
         if (context.qubit_size > 256) {
             throw errors::bad_pauli_context{
                 "Wrapping translational symmetry currently only supported for up to 256 qubits."};
         }
 
+        // Calculate how many data slides are needed for the wrapping simplifier
         size_t slides = context.qubit_size / SiteHasherImplBase::qubits_per_slide;
         size_t remainder = context.qubit_size % SiteHasherImplBase::qubits_per_slide;
         if (0 != remainder) {
             ++slides;
         }
 
+        // Switch and construct:
         switch (slides) {
             case 0:
             case 1: // Specialist 1:

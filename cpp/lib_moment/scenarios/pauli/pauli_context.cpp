@@ -456,23 +456,24 @@ namespace Moment::Pauli {
         if (!this->translational_symmetry) [[unlikely]] {
             return seq;
         }
-        assert(this->wrap);
-        assert(this->tx_hasher); // assert hasher was instantiated
 
+        assert(this->tx_hasher); // assert hasher was instantiated
         return this->tx_hasher->canonical_sequence(seq);
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
         assert(this->translational_symmetry);
 
-        // Do test
-        return this->tx_hasher->is_canonical(seq);
+        // If sequence isn't canonical, it can be simplified as a moment:
+        assert(this->tx_hasher);
+        return !this->tx_hasher->is_canonical(seq);
     }
 
     const MomentSimplifier& PauliContext::moment_simplifier() const {
-        if (!this->tx_hasher) {
+        if (!this->tx_hasher) [[unlikely]] {
             throw errors::bad_pauli_context{"SiteHasher not defined for this PauliContext."};
         }
+
         return *this->tx_hasher;
     }
 }

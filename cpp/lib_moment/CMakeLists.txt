@@ -80,6 +80,7 @@ add_library(lib_moment
         scenarios/pauli/commutator_matrix.cpp
         scenarios/pauli/lattice_duplicator.cpp
         scenarios/pauli/moment_simplifier.cpp
+        scenarios/pauli/nonwrapping_simplifier.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_matrix_system.cpp

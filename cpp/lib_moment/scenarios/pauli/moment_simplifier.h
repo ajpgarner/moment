@@ -1,5 +1,8 @@
 /**
- * site_hasher.h
+ * moment_simplifier.h
+ *
+ * Abstract base class for Pauli moment simplification.
+ * For implementations of this class, see nonwrapping_simplifier.cpp/.h and site_hasher.h.
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -23,6 +26,10 @@ namespace Moment::Pauli {
      */
     class MomentSimplifier {
     public:
+        /** Helper tag for polymorphism. */
+        const uint64_t impl_label;
+
+    public:
         /** Attached context */
         const PauliContext& context;
 
@@ -34,9 +41,6 @@ namespace Moment::Pauli {
 
         /** The total number of columns (i.e. row size), in lattice mode. */
         const size_t row_width;
-
-        /** Helper tag for polymorphism. */
-        const uint64_t impl_label;
 
     protected:
         /**

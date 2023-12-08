@@ -47,27 +47,27 @@ namespace Moment {
              * Adopting a COLUMN MAJOR scheme, this is the stride of the major index.
              * If zero, then context is set to chain mode for purposes of neighbours.
              */
-            const size_t col_height = 0;
+            const size_t col_height;
 
             /**
              * If a 2D spin lattice, the number of qubits in one row.
              * Adopting a COLUMN MAJOR scheme, this is the number of major elements
              * In 2D mode, indexing is COLUMN MAJOR: qubit number = col * col_height + row.
              */
-            const size_t row_width = 0;
+            const size_t row_width;
 
             /**
              * Does the system wrap or tile?
              * In 1D, this means qubit N-1 neighbours qubit 0.
              * In 2D, this means the right  column neighbours the left column, and the top row neighbours the bottom.
              */
-             const bool wrap = false;
+             const bool wrap;
 
             /**
              * Does the system have translational symmetry?
              * Undefined (probably mathematically meaningless!) results if set to true when wrap is set to false.
              */
-             const bool translational_symmetry = false;
+             const bool translational_symmetry;
 
         private:
              PauliDictionary* dictionary_ptr = nullptr;
@@ -116,9 +116,9 @@ namespace Moment {
                 return this->translational_symmetry;
             }
 
-            OperatorSequence simplify_as_moment(OperatorSequence&& seq) const override;
+            [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence&& seq) const final;
 
-            bool can_be_simplified_as_moment(const OperatorSequence& seq) const final;
+            [[nodiscard]] bool can_be_simplified_as_moment(const OperatorSequence& seq) const final;
 
             bool additional_simplification(sequence_storage_t &op_sequence, SequenceSignType &sign) const final;
 

@@ -271,8 +271,128 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_SymmetricChain) {
+        PauliContext context{5, true, true};
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_TRUE(context.wrap);
+
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity(SequenceSignType::Negative)));
+
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            const bool can_be_simplified = (0 != qubit);
+            // Normal
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaY(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaZ(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+
+            // Imaginary
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit, SequenceSignType::Imaginary)),
+                      can_be_simplified) << "qubit = " << qubit;
+        }
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            const bool can_be_simplified = (0 != qubit);
+            // X1Z2
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit) * context.sigmaZ(qubit+1)),
+                      can_be_simplified) << "base qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_UnwrappedChain) {
+        PauliContext context{5, false, true};
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_FALSE(context.wrap);
+
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity(SequenceSignType::Negative)));
+
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            const bool can_be_simplified = (0 != qubit);
+            // Normal
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaY(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaZ(qubit)), can_be_simplified)
+                << "qubit = " << qubit;
+
+            // Imaginary
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit, SequenceSignType::Imaginary)),
+                      can_be_simplified) << "qubit = " << qubit;
+        }
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            const bool can_be_simplified = (0 != qubit);
+            // X1Z2
+            EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(qubit) * context.sigmaZ(qubit+1)),
+                      can_be_simplified) << "base qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_SymmetricLattice) {
+        PauliContext context{4, 4, true, true};
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_TRUE(context.wrap);
+
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity(SequenceSignType::Negative)));
+
+
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const bool can_be_simplified = ((0 != col) || (0 != row));
+                // Normal
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaY(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaZ(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+
+                // Imaginary
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(col, row, SequenceSignType::Imaginary)),
+                          can_be_simplified) << "col = " << col << ", row = " << row;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_UnwrappedLattice) {
+        PauliContext context{4, 4, false, true};
+        ASSERT_TRUE(context.translational_symmetry);
+        ASSERT_FALSE(context.wrap);
+
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
+        EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity(SequenceSignType::Negative)));
+
+
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const bool can_be_simplified = ((0 != col) || (0 != row));
+                // Normal
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaY(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaZ(col, row)), can_be_simplified)
+                    << "col = " << col << ", row = " << row;
+
+                // Imaginary
+                EXPECT_EQ(context.can_be_simplified_as_moment(context.sigmaX(col, row, SequenceSignType::Imaginary)),
+                          can_be_simplified) << "col = " << col << ", row = " << row;
+            }
+        }
+    }
+
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricChain) {
         PauliContext context{5, true, true};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -296,6 +416,8 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricLattice) {
         PauliContext context{4, 4, true, true};
+        ASSERT_TRUE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -303,7 +425,6 @@ namespace Moment::Tests {
 
         for (size_t col = 0; col < 4; ++col) {
             for (size_t row = 0; row < 4; ++row) {
-
                 // Normal
                 EXPECT_EQ(context.simplify_as_moment(context.sigmaX(col, row)), context.sigmaX(0))
                     << "col = " << col << ", row = " << row;
@@ -318,7 +439,58 @@ namespace Moment::Tests {
                     << "col = " << col << ", row = " << row;
             }
         }
+    }
 
+    TEST(Scenarios_Pauli_Context, SimplifyAsMoment_UnwrappedChain) {
+        PauliContext context{5, false, true};
+        ASSERT_FALSE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
+        EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
+        EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
+        EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
+                  context.identity(SequenceSignType::Negative));
+
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            // Normal
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit)), context.sigmaX(0)) << "qubit = " << qubit;
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaY(qubit)), context.sigmaY(0)) << "qubit = " << qubit;
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaZ(qubit)), context.sigmaZ(0)) << "qubit = " << qubit;
+            // Imaginary
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit, SequenceSignType::Imaginary)),
+                      context.sigmaX(0, SequenceSignType::Imaginary)) << "qubit = " << qubit;
+        }
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            // X1Z2
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit) * context.sigmaZ(qubit+1)),
+                      context.sigmaX(0) * context.sigmaZ(1)) << "base qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, SimplifyAsMoment_UnwrappedLattice) {
+        PauliContext context{4, 4, false, true};
+        ASSERT_FALSE(context.wrap);
+        ASSERT_TRUE(context.translational_symmetry);
+        EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
+        EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
+        EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
+                  context.identity(SequenceSignType::Negative));
+
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                // Normal
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaX(col, row)), context.sigmaX(0))
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaY(col, row)), context.sigmaY(0))
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaZ(col, row)), context.sigmaZ(0))
+                    << "col = " << col << ", row = " << row;
+
+                // Imaginary
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaX(col, row, SequenceSignType::Imaginary)),
+                          context.sigmaX(0, SequenceSignType::Imaginary))
+                    << "col = " << col << ", row = " << row;
+            }
+        }
     }
 
     TEST(Scenarios_Pauli_Context, Multiply_SingleQubit) {

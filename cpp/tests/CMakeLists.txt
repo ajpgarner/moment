@@ -51,6 +51,7 @@ add_executable(moment_tests
         scenarios/locality/virtual_polynomial_view_tests.cpp
         scenarios/pauli/commutator_matrix_tests.cpp
         scenarios/pauli/lattice_duplicator_tests.cpp
+        scenarios/pauli/nonwrapping_simplifier_tests.cpp
         scenarios/pauli/pauli_context_tests.cpp
         scenarios/pauli/pauli_matrix_system_tests.cpp
         scenarios/pauli/pauli_osg_tests.cpp
