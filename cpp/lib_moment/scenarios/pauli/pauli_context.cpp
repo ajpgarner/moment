@@ -10,7 +10,7 @@
 #include "nearest_neighbour_index.h"
 #include "pauli_dictionary.h"
 #include "pauli_osg.h"
-#include "site_hasher.h"
+#include "moment_simplifier.h"
 
 #include "utilities/shift_sorter.h"
 
@@ -68,16 +68,9 @@ namespace Moment::Pauli {
             throw errors::bad_pauli_context{"Cannot represent a lattice of this size in Moment."};
         }
 
-        // Check symmetry
+        // In symmetric mode, make hasher object
         if (translational_symmetry) {
-            if (!wrap) {
-                throw errors::bad_pauli_context{"Translational symmetry without wrapping (i.e. 'thermodynamic limit' mode) is not currently supported."};
-            }
-            // Construct appropriate hasher
-            if (this->qubit_size > 256) {
-                throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
-            }
-            this->tx_hasher = SiteHasher::make(*this);
+            this->tx_hasher = MomentSimplifier::make(*this);
         }
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
@@ -104,18 +97,10 @@ namespace Moment::Pauli {
             assert((row_width * col_height) == qubit_size);
         }
 
-        // Check symmetry
+        // In symmetric mode, make hasher object
         if (translational_symmetry) {
-            if (!wrap) {
-                throw errors::bad_pauli_context{"Translational symmetry cannot be imposed on non-wrapping scenarios"};
-            }
-            // Construct appropriate hasher
-            if (this->qubit_size > 256) {
-                throw errors::bad_pauli_context{"Translational symmetry currently only supported for up to 256 qubits."};
-            }
-            this->tx_hasher = SiteHasher::make(*this);
+            this->tx_hasher = MomentSimplifier::make(*this);
         }
-
 
         // Replace with a dictionary that can handle nearest-neighbour NPA sublevels.
         this->replace_dictionary(std::make_unique<PauliDictionary>(*this));
@@ -484,7 +469,7 @@ namespace Moment::Pauli {
         return this->tx_hasher->is_canonical(seq);
     }
 
-    const SiteHasher& PauliContext::site_hasher() const {
+    const MomentSimplifier& PauliContext::moment_simplifier() const {
         if (!this->tx_hasher) {
             throw errors::bad_pauli_context{"SiteHasher not defined for this PauliContext."};
         }

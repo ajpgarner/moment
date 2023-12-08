@@ -9,8 +9,8 @@
 
 #include "pauli_context.h"
 
+#include "moment_simplifier.h"
 #include "site_hasher.h"
-#include "site_hasher_impl.h"
 
 #include "dictionary/multi_operator_iterator.h"
 
@@ -42,8 +42,8 @@ namespace Moment::Pauli {
 
         template<size_t num_slides>
         void do_unaliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                    const SiteHasherImpl<num_slides>& hasher,
-                                    const std::span<const typename SiteHasherImpl<num_slides>::Datum> base_hashes) {
+                                    const SiteHasher<num_slides>& hasher,
+                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
             // Chain
             for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
                 for (const auto& base_hash : base_hashes) {
@@ -56,8 +56,8 @@ namespace Moment::Pauli {
 
         template<size_t num_slides>
         void do_unaliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                    const SiteHasherImpl<num_slides>& hasher,
-                                    const std::span<const typename SiteHasherImpl<num_slides>::Datum> base_hashes) {
+                                    const SiteHasher<num_slides>& hasher,
+                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
             // Lattice
             for (size_t col = 0; col < hasher.row_width; ++col) {
                 for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
@@ -83,8 +83,8 @@ namespace Moment::Pauli {
                                                     const std::span<const size_t> lattice_indices,
                                                     const bool check_for_aliases) {
             // Convert hasher to implementation:~
-            const auto& hasher = dynamic_cast<const SiteHasherImpl<num_slides>&>(duplicator.context.site_hasher());
-            using Datum = typename SiteHasherImpl<num_slides>::Datum;
+            const auto& hasher = dynamic_cast<const SiteHasher<num_slides>&>(duplicator.context.moment_simplifier());
+            using Datum = typename SiteHasher<num_slides>::Datum;
 
             // First, make base elements
             const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
@@ -192,7 +192,7 @@ namespace Moment::Pauli {
         }
 
         // Otherwise, we use cyclic hasher to facilitate our duplications
-        switch(this->context.site_hasher().impl_label) {
+        switch(this->context.moment_simplifier().impl_label) {
             case 1:
                 return do_symmetric_fill<1>(*this, this->output, lattice_sites, check_for_aliases);
             case 2:

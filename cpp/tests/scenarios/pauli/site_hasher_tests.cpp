@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/site_hasher_impl.h"
+#include "scenarios/pauli/site_hasher.h"
 
 #include <array>
 #include <stdexcept>
@@ -17,16 +17,16 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_SmallEmpty) {
         PauliContext empty{0};
-        SiteHasherImpl<1> hasher{empty};
-        EXPECT_EQ(sizeof(SiteHasherImpl<1>::Datum), 8);
-        EXPECT_EQ(SiteHasherImpl<1>::qubits_per_slide, 32);
+        SiteHasher<1> hasher{empty};
+        EXPECT_EQ(sizeof(SiteHasher<1>::Datum), 8);
+        EXPECT_EQ(SiteHasher<1>::qubits_per_slide, 32);
 
         EXPECT_EQ(hasher({}), 0);
     }
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_Small) {
         PauliContext context{5};
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
         EXPECT_EQ(hasher.qubits, 5);
         EXPECT_EQ(hasher.column_height, 5);
         EXPECT_EQ(hasher.row_width, 1);
@@ -47,7 +47,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_Medium) {
         PauliContext context{40};
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.qubits_per_slide, 32);
 
         EXPECT_EQ(hasher(context.identity()),
@@ -102,7 +102,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_Larger) {
         PauliContext context{70};
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.qubits_per_slide, 32);
         
         EXPECT_EQ(hasher(context.identity()),
@@ -162,7 +162,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Unhash_SmallChain) {
         PauliContext context{5};
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         // Single qubits
         for (size_t q = 0; q < 5; ++q) {
@@ -209,7 +209,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Unhash_MediumChain) {
         PauliContext context{40};
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
 
         // Single qubits
         for (size_t q = 0; q < 40; ++q) {
@@ -244,7 +244,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_SmallAligned) {
         PauliContext context{32};
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
         EXPECT_EQ(hasher.final_slide_mask, 0xffffffffffffffff);
 
         // Small shift
@@ -262,7 +262,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_SmallUnaligned) {
         PauliContext context{25};
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
         EXPECT_EQ(hasher.final_slide_mask, 0x0003ffffffffffff);
 
         // Small shift
@@ -281,7 +281,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_MediumAligned) {
         PauliContext context{64};
         ASSERT_EQ(context.qubit_size, 64);
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.impl_label, 2);
         EXPECT_EQ(hasher.qubits, 64);
         EXPECT_EQ(hasher.column_height, 64);
@@ -315,7 +315,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_MediumUnaligned) {
         PauliContext context{40};
-        SiteHasherImpl<2> hasher{context}; // So, 8 qubits [16 bits] on second page
+        SiteHasher<2> hasher{context}; // So, 8 qubits [16 bits] on second page
         ASSERT_EQ(hasher.final_slide_mask, 0x000000000000ffff);
         ASSERT_EQ(hasher.qubits_on_final_slide, 8);
 
@@ -342,7 +342,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_LargerAligned) {
         PauliContext context{96};
-        SiteHasherImpl<3> hasher{context}; // So, 16 qubits [32 bits] on final page
+        SiteHasher<3> hasher{context}; // So, 16 qubits [32 bits] on final page
         ASSERT_EQ(hasher.qubits_on_final_slide, 32);
         ASSERT_EQ(hasher.final_slide_mask, 0xffffffffffffffff);
 
@@ -362,7 +362,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_LargerUnaligned) {
         PauliContext context{80};
-        SiteHasherImpl<3> hasher{context}; // So, 16 qubits [32 bits] on final page
+        SiteHasher<3> hasher{context}; // So, 16 qubits [32 bits] on final page
         ASSERT_EQ(hasher.qubits_on_final_slide, 16);
         ASSERT_EQ(hasher.final_slide_mask, 0x00000000ffffffff);
 
@@ -382,7 +382,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Small) {
         PauliContext context{4, 2, true, true}; // 4x2 wrapping grid
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
         ASSERT_EQ(hasher.qubits, 8);
         ASSERT_EQ(hasher.column_height, 4);
         ASSERT_EQ(hasher.row_width, 2);
@@ -399,7 +399,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Medium) {
         PauliContext context{8, 5, true, true}; // 8x5 wrapping grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.qubits, 40);
         ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 5);
@@ -414,7 +414,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Larger) {
         PauliContext context{4, 5, true, true}; // 4x5 wrapping grid
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 4);
         ASSERT_EQ(hasher.row_width, 5);
 
@@ -428,7 +428,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_MediumAligned) {
         PauliContext context{8, 8, true, true}; // 8x8 grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 8);
 
@@ -447,7 +447,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_MediumUnaligned) {
         PauliContext context{5, 10, true, true}; // 10x5 grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.column_height, 5);
         ASSERT_EQ(hasher.row_width, 10);
 
@@ -466,7 +466,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_LargerAligned) {
         PauliContext context{8, 12, true, true}; // 8x12 grid
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 12);
 
@@ -480,7 +480,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_LargerUnaligned) {
         PauliContext context{5, 14, true, true}; // 5x14 grid
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 5);
         ASSERT_EQ(hasher.row_width, 14);
 
@@ -494,7 +494,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_Small) {
         PauliContext context{4, 2, true, true}; // 4x2 wrapping grid
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         for (size_t row_id = 0; row_id < 4; ++row_id) {
             EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 0)), 0),
@@ -511,7 +511,7 @@ namespace Moment::Tests {
         const size_t column_height = 12;
         const size_t column_count = 4;
         PauliContext context{column_height, column_count, true, true}; // 12x4 wrapping grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         EXPECT_EQ(hasher.column_height, 12);
         EXPECT_EQ(hasher.row_width, 4);
 
@@ -535,7 +535,7 @@ namespace Moment::Tests {
         const size_t column_height = 8;
         const size_t column_count = 8;
         PauliContext context{8, 8, true, true}; // 8x8 wrapping grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 8);
 
@@ -559,7 +559,7 @@ namespace Moment::Tests {
         const size_t column_height = 8;
         const size_t column_count = 10;
         PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
-        SiteHasherImpl<3>  hasher{context};
+        SiteHasher<3>  hasher{context};
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 10);
 
@@ -583,7 +583,7 @@ namespace Moment::Tests {
         const size_t column_height = 7;
         const size_t column_count = 10;
         PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
@@ -604,7 +604,7 @@ namespace Moment::Tests {
         const size_t column_height = 4;
         const size_t column_count = 4;
         PauliContext context{column_height, column_count, true, true}; // 4x4 wrapping grid
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
@@ -637,7 +637,7 @@ namespace Moment::Tests {
         const size_t column_height = 6;
         const size_t column_count = 6;
         PauliContext context{column_height, column_count, true, true};  // 6x6 wrapping grid
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
@@ -670,7 +670,7 @@ namespace Moment::Tests {
         const size_t column_height = 9;
         const size_t column_count = 9;
         PauliContext context{column_height, column_count, true, true}; // 9x9 wrapping grid
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
@@ -701,7 +701,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainSmall) {
         PauliContext context{5, true, true}; // 5-qubit chain
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         // Single qubits
         EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0)),
@@ -732,11 +732,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainMedium) {
         const size_t chain_length = 40;
         PauliContext context{chain_length, true, true};
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
 
         // Canonical results:
-        const SiteHasherImpl<2>::Datum expected_single_hash{1, 0};
-        const SiteHasherImpl<2>::Datum expected_nn_hash{9, 0};
+        const SiteHasher<2>::Datum expected_single_hash{1, 0};
+        const SiteHasher<2>::Datum expected_nn_hash{9, 0};
         ASSERT_EQ(hasher(context.sigmaX(0)), expected_single_hash);
         ASSERT_EQ(hasher(context.sigmaX(0) * context.sigmaY(1)), expected_nn_hash);
 
@@ -760,11 +760,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainLarger) {
         const size_t chain_length = 70;
         PauliContext context{chain_length, true, true};
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
 
         // Canonical results:
-        const SiteHasherImpl<3>::Datum expected_single_hash{1, 0, 0};
-        const SiteHasherImpl<3>::Datum expected_nn_hash{9, 0, 0};
+        const SiteHasher<3>::Datum expected_single_hash{1, 0, 0};
+        const SiteHasher<3>::Datum expected_nn_hash{9, 0, 0};
         ASSERT_EQ(hasher(context.sigmaX(0)), expected_single_hash);
         ASSERT_EQ(hasher(context.sigmaX(0) * context.sigmaY(1)), expected_nn_hash);
 
@@ -787,7 +787,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_LatticeSmall) {
         PauliContext context{2, 2, true, true}; // 2x2 lattice
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         // Single qubits
         EXPECT_EQ(hasher.canonical_hash(context.sigmaX(0)),
@@ -824,7 +824,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainSmall) {
         const size_t chain_length = 5;
         PauliContext context{chain_length, true, true};
-        SiteHasherImpl<1> hasher{context};
+        SiteHasher<1> hasher{context};
 
         // Canonical results:
         const auto expected_single = context.sigmaX(0);
@@ -848,7 +848,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainMedium) {
         const size_t chain_length = 40;
         PauliContext context{chain_length, true, true};
-        SiteHasherImpl<2> hasher{context};
+        SiteHasher<2> hasher{context};
 
         // Canonical results:
         const auto expected_single = context.sigmaX(0);
@@ -872,7 +872,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainLarge) {
         const size_t chain_length = 72;
         PauliContext context{chain_length, true, true};
-        SiteHasherImpl<3> hasher{context};
+        SiteHasher<3> hasher{context};
 
         // Canonical results:
         const auto expected_single = context.sigmaX(0);

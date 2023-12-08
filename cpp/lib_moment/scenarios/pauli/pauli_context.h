@@ -27,10 +27,10 @@ namespace Moment {
     }
 
     namespace Pauli {
+        class MomentSimplifier;
         struct NearestNeighbourIndex;
-        class PauliSequenceGenerator;
         class PauliDictionary;
-        class SiteHasher;
+        class PauliSequenceGenerator;
 
         /**
          * Context for spin system.
@@ -73,7 +73,7 @@ namespace Moment {
              PauliDictionary* dictionary_ptr = nullptr;
 
              /** Hasher, for calculating translational symmetry equivalence classes */
-             std::unique_ptr<SiteHasher> tx_hasher;
+             std::unique_ptr<MomentSimplifier> tx_hasher;
 
         public:
             /**
@@ -193,7 +193,7 @@ namespace Moment {
             /**
              * Simplifier object.
              */
-            [[nodiscard]] const SiteHasher& site_hasher() const;
+            [[nodiscard]] const MomentSimplifier& moment_simplifier() const;
 
             /**
              * Convert qubit offset to [row, col] pair.

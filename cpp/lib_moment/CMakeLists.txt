@@ -79,6 +79,7 @@ add_library(lib_moment
         scenarios/symmetrized/symmetrized_matrix_system.cpp
         scenarios/pauli/commutator_matrix.cpp
         scenarios/pauli/lattice_duplicator.cpp
+        scenarios/pauli/moment_simplifier.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_matrix_system.cpp
@@ -90,7 +91,6 @@ add_library(lib_moment
         scenarios/pauli/pauli_polynomial_lm_indices.cpp
         scenarios/pauli/pauli_polynomial_localizing_matrix.cpp
         scenarios/pauli/polynomial_commutator_matrix.cpp
-        scenarios/pauli/site_hasher.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp
