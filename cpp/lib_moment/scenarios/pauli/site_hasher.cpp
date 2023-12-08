@@ -51,8 +51,11 @@ namespace Moment::Pauli {
     }
 
     OperatorSequence SiteHasher::canonical_sequence(const OperatorSequence& input) const {
+        if (input.zero()) [[unlikely]] {
+            return OperatorSequence::Zero(this->context);
+        }
         return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
-                                this->canonical_sequence(input.raw()), this->context};
+                                this->canonical_sequence(input.raw()), this->context, input.get_sign()};
     }
 
 }
