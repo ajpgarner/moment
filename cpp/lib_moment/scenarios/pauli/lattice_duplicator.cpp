@@ -40,6 +40,36 @@ namespace Moment::Pauli {
 
         }
 
+        template<size_t num_slides>
+        void do_unaliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                    const SiteHasherImpl<num_slides>& hasher,
+                                    const std::span<const typename SiteHasherImpl<num_slides>::Datum> base_hashes) {
+            // Chain
+            for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
+                for (const auto& base_hash : base_hashes) {
+                    output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
+                                        hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
+                                        hasher.context);
+                }
+            }
+        }
+
+        template<size_t num_slides>
+        void do_unaliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                    const SiteHasherImpl<num_slides>& hasher,
+                                    const std::span<const typename SiteHasherImpl<num_slides>::Datum> base_hashes) {
+            // Lattice
+            for (size_t col = 0; col < hasher.row_width; ++col) {
+                for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
+                    for (const auto& base_hash : base_hashes) {
+                        output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
+                                            hasher.unhash(hasher.lattice_shift(base_hash, row, col)),
+                                            hasher.context);
+                    }
+                }
+            }
+        }
+
         /**
          * Cast hasher to appropriate type, and do sweep through values
          * @tparam num_slides Number of slides in the hasher
@@ -50,19 +80,14 @@ namespace Moment::Pauli {
         template<size_t num_slides>
         std::pair<size_t, size_t> do_symmetric_fill(LatticeDuplicator& duplicator,
                                                     std::vector<OperatorSequence>& output,
-                                                    const std::span<const size_t> lattice_sites) {
-            // Nothing to do if no lattice sites
-            if (lattice_sites.empty()) {
-                return {output.size(), output.size()};
-            }
-
+                                                    const std::span<const size_t> lattice_indices,
+                                                    const bool check_for_aliases) {
             // Convert hasher to implementation:~
             const auto& hasher = dynamic_cast<const SiteHasherImpl<num_slides>&>(duplicator.context.site_hasher());
             using Datum = typename SiteHasherImpl<num_slides>::Datum;
 
-            // Make base elements
-            const auto& context = hasher.context;
-            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_sites);
+            // First, make base elements
+            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
 
             // Calculate hashes of base elements
             std::vector<Datum> base_hashes;
@@ -71,29 +96,15 @@ namespace Moment::Pauli {
                 base_hashes.emplace_back(hasher.hash(output[v]));
             }
 
+            // Invoke appropriate duplicator
             if (hasher.context.is_lattice()) {
-                // Lattice
-                for (size_t col = 0; col < hasher.row_width; ++col) {
-                    for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
-                        for (const auto& base_hash : base_hashes) {
-                            output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
-                                                hasher.unhash(hasher.lattice_shift(base_hash, row, col)),
-                                                hasher.context);
-                        }
-                    }
-                }
+                do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
             } else {
-                // Chain
-                for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
-                    for (const auto& base_hash : base_hashes) {
-                        output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
-                                            hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
-                                            hasher.context);
-                    }
-                }
+                do_unaliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
             }
 
-            return {first_variant, output.size()};
+            // Report number of created elements in total
+            return std::make_pair(first_variant, output.size());
         }
     }
 
@@ -167,29 +178,48 @@ namespace Moment::Pauli {
         return {initial_size, output.size()};
     }
 
+    std::pair<size_t, size_t> LatticeDuplicator::symmetrical_fill(const std::span<const size_t> lattice_sites,
+                                                                  const bool check_for_aliases) {
 
+        // Nothing to do if no lattice sites
+        if (lattice_sites.empty()) {
+            return {output.size(), output.size()};
+        }
 
-    std::pair<size_t, size_t> LatticeDuplicator::symmetrical_fill(const std::span<const size_t> lattice_sites) {
+        // If context has no wrapping, filling is (much!) easier
+        if (!this->context.wrap) {
+            return this->wrapless_symmetrical_fill(lattice_sites);
+        }
+
+        // Otherwise, we use cyclic hasher to facilitate our duplications
         switch(this->context.site_hasher().impl_label) {
             case 1:
-                return do_symmetric_fill<1>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<1>(*this, this->output, lattice_sites, check_for_aliases);
             case 2:
-                return do_symmetric_fill<2>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<2>(*this, this->output, lattice_sites, check_for_aliases);
             case 3:
-                return do_symmetric_fill<3>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<3>(*this, this->output, lattice_sites, check_for_aliases);
             case 4:
-                return do_symmetric_fill<4>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<4>(*this, this->output, lattice_sites, check_for_aliases);
             case 5:
-                return do_symmetric_fill<5>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<5>(*this, this->output, lattice_sites, check_for_aliases);
             case 6:
-                return do_symmetric_fill<6>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<6>(*this, this->output, lattice_sites, check_for_aliases);
             case 7:
-                return do_symmetric_fill<7>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<7>(*this, this->output, lattice_sites, check_for_aliases);
             case 8:
-                return do_symmetric_fill<8>(*this, this->output, lattice_sites);
+                return do_symmetric_fill<8>(*this, this->output, lattice_sites, check_for_aliases);
             default:
                 throw std::runtime_error{"Cannot invoke symmetrical duplication for this specialization."};
         }
+    }
+
+    std::pair<size_t, size_t>
+    LatticeDuplicator::wrapless_symmetrical_fill(std::span<const size_t> lattice_sites) {
+
+        // TODO
+
+        return std::pair<size_t, size_t>(this->output.size(), this->output.size());
     }
 
 }

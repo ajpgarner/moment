@@ -190,10 +190,32 @@ namespace Moment {
                 return sigmaZ(col*this->col_height + row, sign);
             }
 
+            /**
+             * Simplifier object.
+             */
             [[nodiscard]] const SiteHasher& site_hasher() const;
+
+            /**
+             * Convert qubit offset to [row, col] pair.
+             * Undefined behaviour if context is not a lattice.
+             */
+             [[nodiscard]] inline std::pair<size_t, size_t>
+             qubit_offset_to_indices(const size_t offset) const noexcept {
+                 return {offset % this->col_height, offset / this->col_height};
+             }
+
+             /**
+              * Convert row, column pair to qubit offset.
+              * Undefined behaviour if context is not a lattice.
+              */
+             [[nodiscard]] inline size_t qubit_indices_to_offset(const size_t row, const size_t col) const noexcept {
+                 return (col * this->col_height) + row;
+             }
 
         protected:
             [[nodiscard]] std::unique_ptr<OperatorSequenceGenerator> new_osg(size_t word_length) const override;
+
+
         };
 
 

@@ -50,7 +50,15 @@ namespace Moment::Pauli {
          * Undefined behaviour if any site indices overlap, or are out of bounds.
          * @return Pair with index to first and one-past last element added to output list.
          */
-        std::pair<size_t, size_t> symmetrical_fill(std::span<const size_t> lattice_sites);
+        std::pair<size_t, size_t> symmetrical_fill(std::span<const size_t> lattice_sites,
+                                                   bool check_for_aliases = false);
+
+        /**
+         * Adds all unique offsets of supplied input sequence to the output, but do not wrap around.
+         * Undefined behaviour if any site indices overlap, or are out of bounds.
+         * @return Pair with index to first and one-past last element added to output list.
+         */
+        std::pair<size_t, size_t> wrapless_symmetrical_fill(std::span<const size_t> lattice_sites);
 
 
     };

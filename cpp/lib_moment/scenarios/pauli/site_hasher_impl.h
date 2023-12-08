@@ -226,7 +226,7 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] Datum row_shift(const Datum& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_cyclic_shift(const Datum& input, size_t offset) const noexcept {
 
             // Normalize rotation, and get within-column offsets
             offset = offset % this->row_width;
@@ -394,7 +394,7 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] Datum row_shift(const Datum input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_cyclic_shift(const Datum input, size_t offset) const noexcept {
             assert(this->column_height != 0);
             offset = offset % this->column_height;
             if (0 == offset) {
@@ -609,7 +609,7 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] Datum row_shift(const Datum& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_cyclic_shift(const Datum& input, size_t offset) const noexcept {
 
             offset = offset % this->column_height;
             if (0 == offset) {
@@ -716,7 +716,7 @@ namespace Moment::Pauli {
          */
         [[nodiscard]] inline Datum
         lattice_shift(const Datum& input, const size_t row_offset, const size_t col_offset) const noexcept {
-            return SiteHasherSized<num_slides>::row_shift(col_shift(input, col_offset), row_offset);
+            return SiteHasherSized<num_slides>::row_cyclic_shift(col_shift(input, col_offset), row_offset);
         }
 
         /**
@@ -786,9 +786,9 @@ namespace Moment::Pauli {
                     const oper_name_t col_number = qubit_number / this->column_height;
                     const oper_name_t row_number = qubit_number % this->column_height;
                     const size_t col_shift = this->row_width - col_number;
-                    const size_t row_shift = this->column_height - row_number;
+                    const size_t row_cyclic_shift = this->column_height - row_number;
 
-                    Datum candidate_hash = this->lattice_shift(output.second, row_shift, col_shift);
+                    Datum candidate_hash = this->lattice_shift(output.second, row_cyclic_shift, col_shift);
                     if (!done_once || SiteHasherSized<num_slides>::less(candidate_hash, output.first)) {
                         output.first = candidate_hash;
                         done_once = true;

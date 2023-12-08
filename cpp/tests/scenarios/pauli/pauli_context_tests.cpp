@@ -128,7 +128,6 @@ namespace Moment::Tests {
         }
     }
 
-
     TEST(Scenarios_Pauli_Context, OperatorSequence_SingleByMult) {
         PauliContext context{1};
         ASSERT_EQ(context.qubit_size, 1);
@@ -269,6 +268,57 @@ namespace Moment::Tests {
                           OperatorSequence({off_qubitA, off_qubitB}, context));
             }
         }
+    }
+
+
+    TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricChain) {
+        PauliContext context{5, true, true};
+        EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
+        EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
+        EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
+                  context.identity(SequenceSignType::Negative));
+
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            // Normal
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit)), context.sigmaX(0)) << "qubit = " << qubit;
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaY(qubit)), context.sigmaY(0)) << "qubit = " << qubit;
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaZ(qubit)), context.sigmaZ(0)) << "qubit = " << qubit;
+            // Imaginary
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit, SequenceSignType::Imaginary)),
+                      context.sigmaX(0, SequenceSignType::Imaginary)) << "qubit = " << qubit;
+        }
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            // X1Z2
+            EXPECT_EQ(context.simplify_as_moment(context.sigmaX(qubit) * context.sigmaZ(qubit+1)),
+                      context.sigmaX(0) * context.sigmaZ(1)) << "base qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricLattice) {
+        PauliContext context{4, 4, true, true};
+        EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
+        EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
+        EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
+                  context.identity(SequenceSignType::Negative));
+
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+
+                // Normal
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaX(col, row)), context.sigmaX(0))
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaY(col, row)), context.sigmaY(0))
+                    << "col = " << col << ", row = " << row;
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaZ(col, row)), context.sigmaZ(0))
+                    << "col = " << col << ", row = " << row;
+
+                // Imaginary
+                EXPECT_EQ(context.simplify_as_moment(context.sigmaX(col, row, SequenceSignType::Imaginary)),
+                          context.sigmaX(0, SequenceSignType::Imaginary))
+                    << "col = " << col << ", row = " << row;
+            }
+        }
+
     }
 
     TEST(Scenarios_Pauli_Context, Multiply_SingleQubit) {

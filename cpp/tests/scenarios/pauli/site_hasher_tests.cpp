@@ -492,22 +492,22 @@ namespace Moment::Tests {
 
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, RowShift_Small) {
+    TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_Small) {
         PauliContext context{4, 2, true, true}; // 4x2 wrapping grid
         SiteHasherImpl<1> hasher{context};
 
         for (size_t row_id = 0; row_id < 4; ++row_id) {
-            EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, 0)), 0),
+            EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 0)), 0),
                       hasher(context.sigmaX(row_id, 0))) << "row = " << row_id;
-            EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, 0)), 1),
+            EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 0)), 1),
                       hasher(context.sigmaX((row_id+1)%4, 0))) << "row = " << row_id;
-            EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, 1)), 1),
+            EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 1)), 1),
                       hasher(context.sigmaX((row_id+1)%4, 1))) << "row = " << row_id;
         }
     }
 
 
-    TEST(Scenarios_Pauli_SiteHasher, RowShift_MediumUnaligned) {
+    TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_MediumUnaligned) {
         const size_t column_height = 12;
         const size_t column_count = 4;
         PauliContext context{column_height, column_count, true, true}; // 12x4 wrapping grid
@@ -519,19 +519,19 @@ namespace Moment::Tests {
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 0),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
                           hasher(context.sigmaX(row_id, col_id)))
                           << "row = " << row_id << ", col = " << col_id;
 
                 // Shift by 1
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 1),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 1),
                           hasher(context.sigmaX((row_id + 1) % column_height, col_id)))
                           << "row = " << row_id << ", col = " << col_id;
             }
         }
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, RowShift_MediumAligned) {
+    TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_MediumAligned) {
         const size_t column_height = 8;
         const size_t column_count = 8;
         PauliContext context{8, 8, true, true}; // 8x8 wrapping grid
@@ -542,12 +542,12 @@ namespace Moment::Tests {
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 0),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
                           hasher(context.sigmaX(row_id, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
 
                 // Shift by 1
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 1),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 1),
                           hasher(context.sigmaX((row_id + 1) % column_height, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
             }
@@ -555,7 +555,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Pauli_SiteHasher, RowShift_LargerAligned) {
+    TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerAligned) {
         const size_t column_height = 8;
         const size_t column_count = 10;
         PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
@@ -567,19 +567,19 @@ namespace Moment::Tests {
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 0),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
                           hasher(context.sigmaX(row_id, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
 
                 // Shift by 1
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 1),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 1),
                           hasher(context.sigmaX((row_id + 1) % column_height, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
             }
         }
     }
 
-    TEST(Scenarios_Pauli_SiteHasher, RowShift_LargerUnaligned) {
+    TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerUnaligned) {
         const size_t column_height = 7;
         const size_t column_count = 10;
         PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
@@ -588,12 +588,12 @@ namespace Moment::Tests {
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 0),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
                           hasher(context.sigmaX(row_id, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
 
                 // Shift by 1
-                EXPECT_EQ(hasher.row_shift(hasher(context.sigmaX(row_id, col_id)), 1),
+                EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 1),
                           hasher(context.sigmaX((row_id + 1) % column_height, col_id)))
                                     << "row = " << row_id << ", col = " << col_id;
             }
