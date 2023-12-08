@@ -11,6 +11,7 @@
 
 #include <cassert>
 
+#include <memory>
 #include <span>
 
 namespace Moment {

@@ -90,7 +90,7 @@ namespace Moment::Pauli {
                                const bool is_wrapped, const bool tx_sym)
         : Context{static_cast<size_t>(col_height_in * row_width_in*3)}, qubit_size{col_height_in * row_width_in},
             wrap{is_wrapped}, translational_symmetry{tx_sym},
-            col_height{col_height_in}, row_width{col_height != 0 ? row_width_in : 0} {
+            col_height{col_height_in}, row_width{col_height_in != 0 ? row_width_in : 0} {
         // Check we can support qubit size
         if (this->size() >= std::numeric_limits<oper_name_t>::max()) {
             throw errors::bad_pauli_context{"Cannot represent a lattice of this size in Moment."};

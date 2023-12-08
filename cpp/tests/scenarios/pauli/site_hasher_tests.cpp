@@ -280,9 +280,16 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CyclicShift_MediumAligned) {
         PauliContext context{64};
+        ASSERT_EQ(context.qubit_size, 64);
         SiteHasherImpl<2> hasher{context};
+        ASSERT_EQ(hasher.impl_label, 2);
+        EXPECT_EQ(hasher.qubits, 64);
+        EXPECT_EQ(hasher.column_height, 64);
+        EXPECT_EQ(hasher.row_width, 1);
+        EXPECT_EQ(hasher.qubits_per_slide, 32);
         EXPECT_EQ(hasher.final_slide_mask, 0xffffffffffffffff);
         EXPECT_EQ(hasher.qubits_on_final_slide, 32);
+
 
         // One qubit shifts
         for (size_t shift_index = 0; shift_index < 64; ++shift_index) {

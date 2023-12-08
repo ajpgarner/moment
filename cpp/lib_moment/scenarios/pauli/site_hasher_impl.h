@@ -19,17 +19,17 @@
 
 namespace Moment::Pauli {
     /**
-   * Common information for hasher.
-   */
+     * Common information for implementation of site hasher.
+     */
     class SiteHasherImplBase : public SiteHasher {
     public:
         using storage_t = uint64_t;
 
         /** The number of qubits we can fit on each slide */
-        constexpr static oper_name_t qubits_per_slide = sizeof(storage_t) * 4; // should be 32
+        constexpr static storage_t qubits_per_slide = sizeof(storage_t) * 4ULL; // should be 32
 
         /** Number of qubits on the final slide of this hasher. */
-        const size_t qubits_on_final_slide;
+        const storage_t qubits_on_final_slide;
 
         /** The mask for final slide when rotating */
         const storage_t final_slide_mask;
@@ -47,23 +47,6 @@ namespace Moment::Pauli {
             : SiteHasher{context, label}, qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
               final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
               column_mask(calculate_mask_from_qubits(column_height)) { }
-
-    public:
-        virtual ~SiteHasherImplBase() noexcept = default;
-
-        /**
-         * Return the equivalence class the operator sequence is in.
-         * @param input A view to operator sequence data.
-         * @return A representation of the equivalence class the operator sequence is in.
-         */
-        [[nodiscard]] virtual sequence_storage_t
-        canonical_sequence(const std::span<const oper_name_t> input) const = 0;
-
-        /**
-         * Test if a sequence is canonical or not
-         * @param input A view to operator sequence data.
-         */
-        [[nodiscard]] virtual bool is_canonical(const std::span<const oper_name_t> input) const noexcept = 0;
 
     protected:
         /**
@@ -94,7 +77,7 @@ namespace Moment::Pauli {
          * @param num_qubits The number of qubits N
          * @return An integer with the first N bits set
          */
-        [[nodiscard]] constexpr static storage_t
+        [[nodiscard]] constexpr inline static storage_t
         calculate_mask_from_qubits(const size_t num_qubits) noexcept {
             return calculate_mask_from_bits(num_qubits*2);
         }
@@ -116,7 +99,7 @@ namespace Moment::Pauli {
         constexpr static const size_t slides = num_slides;
 
     protected:
-        explicit constexpr SiteHasherSized(const PauliContext& context)
+        explicit SiteHasherSized(const PauliContext& context)
                 : SiteHasherImplBase{context, num_slides} {
             assert(qubits <= slides * qubits_per_slide);
         }
@@ -127,7 +110,7 @@ namespace Moment::Pauli {
          * Hash the data from an operator sequence into a Pauli site hash.
          * Nominally is a monotonic function on operator's own hash.
          */
-        [[nodiscard]] constexpr Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
+        [[nodiscard]] Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
             Datum output;
             output.fill(0);
             for (const auto op: sequence) {
@@ -184,7 +167,7 @@ namespace Moment::Pauli {
         /**
          * Shift the data about in a chain
          */
-        [[nodiscard]] constexpr inline Datum cyclic_shift(const Datum& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum cyclic_shift(const Datum& input, size_t offset) const noexcept {
             // Number of slides that have to be outright pushed around
             offset = offset % this->qubits;
 
@@ -243,12 +226,12 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] constexpr Datum row_shift(const Datum& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_shift(const Datum& input, size_t offset) const noexcept {
 
             // Normalize rotation, and get within-column offsets
             offset = offset % this->row_width;
-            const storage_t bit_offset = 2 * offset;
-            const storage_t bit_anti_offset = (this->column_height * 2) - bit_offset;
+            const storage_t bit_offset = 2ULL * offset;
+            const storage_t bit_anti_offset = (this->column_height * 2ULL) - bit_offset;
 
             // Skip trivial offset
             if (0 == offset) {
@@ -290,7 +273,7 @@ namespace Moment::Pauli {
         /**
          * Slice out value of a single column
          */
-        [[nodiscard]] constexpr storage_t extract_column(const Datum& input, size_t column) const noexcept {
+        [[nodiscard]] storage_t extract_column(const Datum& input, size_t column) const noexcept {
             assert(column < this->row_width);
 
             const size_t first_slide = (column * this->column_height) / qubits_per_slide;
@@ -312,8 +295,8 @@ namespace Moment::Pauli {
             return output;
         }
 
-        [[nodiscard]] constexpr bool less(const Datum& lhs, const Datum& rhs) const noexcept {
-            for (ptrdiff_t idx = slides - 1; idx >= 0; --idx) {
+        [[nodiscard]] constexpr static bool less(const Datum& lhs, const Datum& rhs) noexcept {
+            for (ptrdiff_t idx = num_slides - 1; idx >= 0; --idx) {
                 if (lhs[idx] < rhs[idx]) {
                     return true;
                 } else if (lhs[idx] > rhs[idx]) {
@@ -349,7 +332,7 @@ namespace Moment::Pauli {
         /**
          * Hash: Specialization to 1 slide (up to 32 qubits).
          */
-        [[nodiscard]] constexpr Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
+        [[nodiscard]] Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
             // Prepare all zero output
             Datum output{0};
 
@@ -400,7 +383,7 @@ namespace Moment::Pauli {
         /**
          * Bit rotation for chain
          */
-        [[nodiscard]] constexpr Datum cyclic_shift(const Datum input, size_t offset) const noexcept {
+        [[nodiscard]] Datum cyclic_shift(const Datum input, size_t offset) const noexcept {
             offset = 2 * (offset % qubits_per_slide);
             if (0 == offset) {
                 return input;
@@ -411,15 +394,15 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] constexpr Datum row_shift(const Datum input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_shift(const Datum input, size_t offset) const noexcept {
             assert(this->column_height != 0);
             offset = offset % this->column_height;
             if (0 == offset) {
                 return input;
             }
 
-            const storage_t bit_offset = 2 * offset;
-            const storage_t bit_anti_offset = (this->column_height * 2) - bit_offset;
+            const storage_t bit_offset = 2ULL * offset;
+            const storage_t bit_anti_offset = (this->column_height * 2ULL) - bit_offset;
 
             Datum output{0};
             for (size_t cIdx = 0; cIdx < this->row_width; ++cIdx) { // Cycle through columns
@@ -433,12 +416,12 @@ namespace Moment::Pauli {
         /**
          * Slice out hash page from a single column.
          */
-        [[nodiscard]] inline constexpr storage_t extract_column(const Datum input, size_t column) const noexcept {
+        [[nodiscard]] storage_t extract_column(const Datum input, size_t column) const noexcept {
             assert(column < this->row_width);
             return ((input >> (column * this->column_height * 2)) & this->column_mask);
         }
 
-        [[nodiscard]] constexpr inline bool less(const Datum lhs, const Datum rhs) const noexcept {
+        [[nodiscard]] constexpr inline static bool less(const Datum lhs, const Datum rhs) noexcept {
             return lhs < rhs;
         }
 
@@ -523,7 +506,7 @@ namespace Moment::Pauli {
          * Hash the data from an operator sequence into a Pauli site hash.
          * Nominally is a monotonic function on operator's own hash.
          */
-        [[nodiscard]] constexpr Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
+        [[nodiscard]] Datum hash(const std::span<const oper_name_t> sequence) const noexcept {
             Datum output{0, 0};
             for (const auto op: sequence) {
                 const storage_t qubit_number = op / 3;
@@ -576,8 +559,7 @@ namespace Moment::Pauli {
         /**
          * Bit rotation for chain
          */
-        [[nodiscard]] constexpr std::array<storage_t, 2>
-        cyclic_shift(const std::array<storage_t, 2>& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum cyclic_shift(const Datum& input, size_t offset) const noexcept {
             // Number of slides that have to be pushed around
             offset = (offset % this->qubits);
 
@@ -587,37 +569,34 @@ namespace Moment::Pauli {
             }
 
             // Otherwise, do shift
-            std::array<storage_t, 2> output;
+            Datum output;
 
             // Right shift the start of input to end of output
-            const bool flip_front = offset >= qubits_per_slide;
-            if (!flip_front) {
-                const size_t front_bit_offset = 2 * offset;
-                const size_t front_bit_anti_offset = std::numeric_limits<storage_t>::digits - front_bit_offset;
+            if (offset < qubits_per_slide) {
+                const uint64_t front_bit_offset = 2ULL * offset;
+                const uint64_t front_bit_anti_offset = std::numeric_limits<storage_t>::digits - front_bit_offset;
 
                 // Right shift start of input to end of output
                 output[0] = input[0] << front_bit_offset;
                 output[1] = (input[0] >> front_bit_anti_offset) | (input[1] << front_bit_offset);
             } else {
-                const size_t front_bit_offset =
-                        (2 * (offset - qubits_per_slide)) - std::numeric_limits<storage_t>::digits;
+                const uint64_t front_bit_offset = 2ULL * (offset - qubits_per_slide);
 
                 output[0] = 0;
                 output[1] = (input[0] << front_bit_offset); // input[1] term is obliterated by large shift!
             }
 
             // Now do rightward shift
-            const size_t back_offset = this->qubits - offset;
-            const bool flip_back = back_offset >= qubits_per_slide;
-            if (!flip_back) {
-                const size_t back_bit_offset = back_offset * 2;
-                const size_t back_bit_anti_offset = std::numeric_limits<storage_t>::digits - back_bit_offset;
+            const uint64_t back_offset = this->qubits - offset;
+            if (back_offset < qubits_per_slide) {
+                const uint64_t back_bit_offset = back_offset * 2;
+                const uint64_t back_bit_anti_offset = std::numeric_limits<storage_t>::digits - back_bit_offset;
 
                 // Some overlap for second slide, as offset is small compared to remainder
                 output[0] |= (input[1] << back_bit_anti_offset) | (input[0] >> back_bit_offset);
                 output[1] |= (input[1] >> back_bit_offset);
             } else {
-                const size_t back_bit_offset = (back_offset - qubits_per_slide) * 2;
+                const uint64_t back_bit_offset = 2ULL * (back_offset - qubits_per_slide);
 
                 // Otherwise, we have wrapping behaviour. Nothing from input 0, as jump is big enough to skip.
                 output[0] |= (input[1] >> back_bit_offset);
@@ -630,7 +609,7 @@ namespace Moment::Pauli {
         /**
          * Offset along minor axis:
          */
-        [[nodiscard]] constexpr Datum row_shift(const Datum& input, size_t offset) const noexcept {
+        [[nodiscard]] Datum row_shift(const Datum& input, size_t offset) const noexcept {
 
             offset = offset % this->column_height;
             if (0 == offset) {
@@ -674,7 +653,7 @@ namespace Moment::Pauli {
         /**
          * Slice out value of a single column
          */
-        [[nodiscard]] constexpr storage_t extract_column(const Datum& input, size_t column) const noexcept {
+        [[nodiscard]] storage_t extract_column(const Datum& input, size_t column) const noexcept {
             assert(column < this->row_width);
 
             // Trivially on first page?
@@ -690,7 +669,7 @@ namespace Moment::Pauli {
         }
 
 
-        [[nodiscard]] constexpr inline bool less(const Datum& lhs, const Datum& rhs) const noexcept {
+        [[nodiscard]] constexpr inline static bool less(const Datum& lhs, const Datum& rhs) noexcept {
             if (lhs[1] < rhs[1]) {
                 return true;
             } else if (lhs[1] > rhs[1]) {
@@ -711,20 +690,20 @@ namespace Moment::Pauli {
         using Datum = typename SiteHasherSized<num_slides>::Datum;
 
     public:
-        explicit constexpr SiteHasherImpl(const PauliContext& context)
+        explicit SiteHasherImpl(const PauliContext& context)
                 : SiteHasherSized<num_slides>{context} { }
 
         /**
          * Rotate around columns (i.e. major-axis shift).
          */
-        [[nodiscard]] inline constexpr Datum col_shift(const Datum& input, const size_t offset) const noexcept {
+        [[nodiscard]] inline Datum col_shift(const Datum& input, const size_t offset) const noexcept {
             return SiteHasherSized<num_slides>::cyclic_shift(input, (offset % this->row_width) * this->column_height);
         }
 
         /**
          * Alias for hash function.
          */
-        [[nodiscard]] inline constexpr Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
+        [[nodiscard]] inline Datum operator()(const std::span<const oper_name_t> sequence) const noexcept {
             return this->hash(sequence);
         }
 
@@ -735,7 +714,7 @@ namespace Moment::Pauli {
          * @param col_offset Rotation within rows (offsets col number of each operator)
          * @return Shifted hash value.
          */
-        [[nodiscard]] inline constexpr Datum
+        [[nodiscard]] inline Datum
         lattice_shift(const Datum& input, const size_t row_offset, const size_t col_offset) const noexcept {
             return SiteHasherSized<num_slides>::row_shift(col_shift(input, col_offset), row_offset);
         }
@@ -747,7 +726,7 @@ namespace Moment::Pauli {
          * @param sequence The sequence to hash and translate.
          * @return Pair; first: with equivalence value of hash after shifts, second: hash of original sequence
          */
-        [[nodiscard]] inline std::pair <Datum, Datum>
+        [[nodiscard]] inline std::pair<Datum, Datum>
         canonical_hash(const std::span<const oper_name_t> sequence) const noexcept {
             return (this->row_width == 1) ? do_canonical_hash<false>(sequence)
                                           : do_canonical_hash<true>(sequence);
