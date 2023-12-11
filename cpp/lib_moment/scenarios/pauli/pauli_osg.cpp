@@ -304,7 +304,7 @@ namespace Moment::Pauli {
     void PauliSequenceGenerator::compute_nearest_neighbour_sequences() {
         assert(nearest_neighbour_index.neighbours > 0);
 
-        const bool wrap = pauli_context.wrap;
+        const bool wrap = (pauli_context.wrap == WrapType::Wrap);
         if (pauli_context.is_lattice() && (nearest_neighbour_index.neighbours > 1)) {
             throw std::runtime_error{"Only nearest-neighbour and glass mode are currently supported for 2D lattices."};
         }

@@ -381,7 +381,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Small) {
-        PauliContext context{4, 2, true, true}; // 4x2 wrapping grid
+        PauliContext context{4, 2, WrapType::Wrap, SymmetryType::Translational}; // 4x2 wrapping grid
         SiteHasher<1> hasher{context};
         ASSERT_EQ(hasher.qubits, 8);
         ASSERT_EQ(hasher.column_height, 4);
@@ -398,7 +398,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Medium) {
-        PauliContext context{8, 5, true, true}; // 8x5 wrapping grid
+        PauliContext context{8, 5, WrapType::Wrap, SymmetryType::Translational}; // 8x5 wrapping grid
         SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.qubits, 40);
         ASSERT_EQ(hasher.column_height, 8);
@@ -413,7 +413,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ColShift_Larger) {
-        PauliContext context{4, 5, true, true}; // 4x5 wrapping grid
+        PauliContext context{4, 5, WrapType::Wrap, SymmetryType::Translational}; // 4x5 wrapping grid
         SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 4);
         ASSERT_EQ(hasher.row_width, 5);
@@ -427,7 +427,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_MediumAligned) {
-        PauliContext context{8, 8, true, true}; // 8x8 grid
+        PauliContext context{8, 8, WrapType::Wrap, SymmetryType::Translational}; // 8x8 grid
         SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 8);
@@ -446,7 +446,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_MediumUnaligned) {
-        PauliContext context{5, 10, true, true}; // 10x5 grid
+        PauliContext context{5, 10, WrapType::Wrap, SymmetryType::Translational}; // 10x5 grid
         SiteHasher<2> hasher{context};
         ASSERT_EQ(hasher.column_height, 5);
         ASSERT_EQ(hasher.row_width, 10);
@@ -465,7 +465,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_LargerAligned) {
-        PauliContext context{8, 12, true, true}; // 8x12 grid
+        PauliContext context{8, 12, WrapType::Wrap, SymmetryType::Translational}; // 8x12 grid
         SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 8);
         ASSERT_EQ(hasher.row_width, 12);
@@ -479,7 +479,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, ExtractColumn_LargerUnaligned) {
-        PauliContext context{5, 14, true, true}; // 5x14 grid
+        PauliContext context{5, 14, WrapType::Wrap, SymmetryType::Translational}; // 5x14 grid
         SiteHasher<3> hasher{context};
         ASSERT_EQ(hasher.column_height, 5);
         ASSERT_EQ(hasher.row_width, 14);
@@ -493,7 +493,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_Small) {
-        PauliContext context{4, 2, true, true}; // 4x2 wrapping grid
+        PauliContext context{4, 2, WrapType::Wrap, SymmetryType::Translational}; // 4x2 wrapping grid
         SiteHasher<1> hasher{context};
 
         for (size_t row_id = 0; row_id < 4; ++row_id) {
@@ -510,7 +510,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_MediumUnaligned) {
         const size_t column_height = 12;
         const size_t column_count = 4;
-        PauliContext context{column_height, column_count, true, true}; // 12x4 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 12x4 wrapping grid
         SiteHasher<2> hasher{context};
         EXPECT_EQ(hasher.column_height, 12);
         EXPECT_EQ(hasher.row_width, 4);
@@ -534,7 +534,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_MediumAligned) {
         const size_t column_height = 8;
         const size_t column_count = 8;
-        PauliContext context{8, 8, true, true}; // 8x8 wrapping grid
+        PauliContext context{8, 8, WrapType::Wrap, SymmetryType::Translational}; // 8x8 wrapping grid
         SiteHasher<2> hasher{context};
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 8);
@@ -558,7 +558,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerAligned) {
         const size_t column_height = 8;
         const size_t column_count = 10;
-        PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 7x10 wrapping grid
         SiteHasher<3>  hasher{context};
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 10);
@@ -582,7 +582,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerUnaligned) {
         const size_t column_height = 7;
         const size_t column_count = 10;
-        PauliContext context{column_height, column_count, true, true}; // 7x10 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 7x10 wrapping grid
         SiteHasher<3> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
@@ -603,7 +603,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Small) {
         const size_t column_height = 4;
         const size_t column_count = 4;
-        PauliContext context{column_height, column_count, true, true}; // 4x4 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 4x4 wrapping grid
         SiteHasher<1> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
@@ -636,7 +636,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Medium) {
         const size_t column_height = 6;
         const size_t column_count = 6;
-        PauliContext context{column_height, column_count, true, true};  // 6x6 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational};  // 6x6 wrapping grid
         SiteHasher<2> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
@@ -669,7 +669,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Larger) {
         const size_t column_height = 9;
         const size_t column_count = 9;
-        PauliContext context{column_height, column_count, true, true}; // 9x9 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 9x9 wrapping grid
         SiteHasher<3> hasher{context};
 
         for (size_t row_id = 0; row_id < column_height ; ++row_id) {
@@ -700,7 +700,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainSmall) {
-        PauliContext context{5, true, true}; // 5-qubit chain
+        PauliContext context{5, WrapType::Wrap, SymmetryType::Translational}; // 5-qubit chain
         SiteHasher<1> hasher{context};
 
         // Single qubits
@@ -731,7 +731,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainMedium) {
         const size_t chain_length = 40;
-        PauliContext context{chain_length, true, true};
+        PauliContext context{chain_length, WrapType::Wrap, SymmetryType::Translational};
         SiteHasher<2> hasher{context};
 
         // Canonical results:
@@ -759,7 +759,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_ChainLarger) {
         const size_t chain_length = 70;
-        PauliContext context{chain_length, true, true};
+        PauliContext context{chain_length, WrapType::Wrap, SymmetryType::Translational};
         SiteHasher<3> hasher{context};
 
         // Canonical results:
@@ -786,7 +786,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalHash_LatticeSmall) {
-        PauliContext context{2, 2, true, true}; // 2x2 lattice
+        PauliContext context{2, 2, WrapType::Wrap, SymmetryType::Translational}; // 2x2 lattice
         SiteHasher<1> hasher{context};
 
         // Single qubits
@@ -823,7 +823,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainSmall) {
         const size_t chain_length = 5;
-        PauliContext context{chain_length, true, true};
+        PauliContext context{chain_length, WrapType::Wrap, SymmetryType::Translational};
         SiteHasher<1> hasher{context};
 
         // Canonical results:
@@ -847,7 +847,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainMedium) {
         const size_t chain_length = 40;
-        PauliContext context{chain_length, true, true};
+        PauliContext context{chain_length, WrapType::Wrap, SymmetryType::Translational};
         SiteHasher<2> hasher{context};
 
         // Canonical results:
@@ -871,7 +871,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, CanonicalSequence_ChainLarge) {
         const size_t chain_length = 72;
-        PauliContext context{chain_length, true, true};
+        PauliContext context{chain_length, WrapType::Wrap, SymmetryType::Translational};
         SiteHasher<3> hasher{context};
 
         // Canonical results:

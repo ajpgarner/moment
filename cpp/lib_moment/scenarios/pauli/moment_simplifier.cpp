@@ -21,8 +21,8 @@ namespace Moment::Pauli {
     }
 
     std::unique_ptr<MomentSimplifier> MomentSimplifier::make(const PauliContext& context) {
-        // If not wrapping, we can make an easy enough simplifier...
-        if (!context.wrap) {
+        // If not wrapping, we can make a simpler simplifier...
+        if (context.wrap == WrapType::None) {
             if (context.is_lattice()) {
                 return std::make_unique<NonwrappingLatticeSimplifier>(context);
             } else {

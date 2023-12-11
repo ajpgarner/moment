@@ -137,9 +137,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, ThreeQubits_NearestNeighbours) {
-        PauliContext context{3, false};
+        PauliContext context{3, WrapType::None};
         ASSERT_EQ(context.size(), 9);
-        ASSERT_FALSE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::None);
 
         PauliSequenceGenerator psg{context, 2, 1};
         
@@ -162,9 +162,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, ThreeQubits_NearestNeighboursWrapped) {
-        PauliContext context{3, true};
+        PauliContext context{3, WrapType::Wrap};
         ASSERT_EQ(context.size(), 9);
-        ASSERT_TRUE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
 
         PauliSequenceGenerator psg{context, 2, 1};
         EXPECT_TRUE(psg.limited());
@@ -187,9 +187,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, FiveQubits_NextNearestNeighbours) {
-        PauliContext context{5, false};
+        PauliContext context{5, WrapType::None};
         ASSERT_EQ(context.size(), 15);
-        EXPECT_FALSE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::None);
 
         PauliSequenceGenerator psg{context, 2, 2};
         EXPECT_TRUE(psg.limited());
@@ -218,9 +218,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, FiveQubits_NextNearestNeighboursWrapped) {
-        PauliContext context{5, true};
+        PauliContext context{5, WrapType::Wrap};
         ASSERT_EQ(context.size(), 15);
-        EXPECT_TRUE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
 
         PauliSequenceGenerator psg{context, 2, 2};
         EXPECT_TRUE(psg.limited());
@@ -253,9 +253,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeUnwrapped) {
-        PauliContext context{3, 3, false, false};
+        PauliContext context{3, 3, WrapType::None, SymmetryType::None};
         ASSERT_EQ(context.size(), 27);
-        ASSERT_FALSE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::None);
         ASSERT_EQ(context.qubit_size, 9);
         ASSERT_EQ(context.row_width, 3);
         ASSERT_EQ(context.col_height, 3);
@@ -290,8 +290,8 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, SixQubits_LatticeWrapped) {
-        PauliContext context{3, 2, true, false}; // 3x2 lattice
-        ASSERT_TRUE(context.wrap);
+        PauliContext context{3, 2, WrapType::Wrap, SymmetryType::None}; // 3x2 lattice
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
         ASSERT_EQ(context.size(), 18);
         ASSERT_EQ(context.qubit_size, 6);
         ASSERT_EQ(context.col_height, 3);
@@ -328,8 +328,8 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_OSG, NineQubits_LatticeWrapped) {
-        PauliContext context{3, 3, true, false};
-        ASSERT_TRUE(context.wrap);
+        PauliContext context{3, 3, WrapType::Wrap, SymmetryType::None};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
         ASSERT_EQ(context.size(), 27);
         ASSERT_EQ(context.qubit_size, 9);
         ASSERT_EQ(context.row_width, 3);
@@ -373,8 +373,8 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Pauli_OSG, SixteenQubitLattice_Wrapped) {
-        PauliContext context{4, 4, true, true};
-        ASSERT_TRUE(context.wrap);
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
         ASSERT_EQ(context.size(), 48);
         ASSERT_EQ(context.qubit_size, 16);
         ASSERT_EQ(context.row_width, 4);

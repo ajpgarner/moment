@@ -67,7 +67,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SigmaXYZ_Lattice) {
-        PauliContext context{2, 2, true, true};
+        PauliContext context{2, 2, WrapType::Wrap, SymmetryType::Translational};
         ASSERT_EQ(context.qubit_size, 4);
         ASSERT_EQ(context.col_height, 2);
         ASSERT_EQ(context.row_width, 2);
@@ -272,9 +272,9 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_SymmetricChain) {
-        PauliContext context{5, true, true};
-        ASSERT_TRUE(context.translational_symmetry);
-        ASSERT_TRUE(context.wrap);
+        PauliContext context{5, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
 
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
@@ -303,9 +303,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_UnwrappedChain) {
-        PauliContext context{5, false, true};
-        ASSERT_TRUE(context.translational_symmetry);
-        ASSERT_FALSE(context.wrap);
+        PauliContext context{5, WrapType::None, SymmetryType::Translational};
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.wrap, WrapType::None);
 
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
@@ -334,9 +334,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_SymmetricLattice) {
-        PauliContext context{4, 4, true, true};
-        ASSERT_TRUE(context.translational_symmetry);
-        ASSERT_TRUE(context.wrap);
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
 
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
@@ -362,9 +362,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, CanBeSimplifiedAsMoment_UnwrappedLattice) {
-        PauliContext context{4, 4, false, true};
-        ASSERT_TRUE(context.translational_symmetry);
-        ASSERT_FALSE(context.wrap);
+        PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.wrap, WrapType::None);
 
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.zero()));
         EXPECT_FALSE(context.can_be_simplified_as_moment(context.identity()));
@@ -390,9 +390,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricChain) {
-        PauliContext context{5, true, true};
-        ASSERT_TRUE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{5, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -415,9 +415,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_SymmetricLattice) {
-        PauliContext context{4, 4, true, true};
-        ASSERT_TRUE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -442,9 +442,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_UnwrappedChain) {
-        PauliContext context{5, false, true};
-        ASSERT_FALSE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{5, WrapType::None, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -467,9 +467,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, SimplifyAsMoment_UnwrappedLattice) {
-        PauliContext context{4, 4, false, true};
-        ASSERT_FALSE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         EXPECT_EQ(context.simplify_as_moment(context.zero()), context.zero());
         EXPECT_EQ(context.simplify_as_moment(context.identity()), context.identity());
         EXPECT_EQ(context.simplify_as_moment(context.identity(SequenceSignType::Negative)),
@@ -768,9 +768,9 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, Symmetrized_FiveQubit) {
-        PauliContext context{5, true, true};
-        ASSERT_TRUE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{5, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         ASSERT_EQ(context.qubit_size, 5);
         ASSERT_EQ(context.size(), 15);
 
@@ -801,9 +801,9 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_SingleQubit) {
-        PauliContext context{4, 4, true, true};
-        ASSERT_TRUE(context.wrap);
-        ASSERT_TRUE(context.translational_symmetry);
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
         ASSERT_EQ(context.qubit_size, 16);
         ASSERT_EQ(context.row_width, 4);
         ASSERT_EQ(context.col_height, 4);
@@ -825,8 +825,8 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_Triplet) {
         // XXX: Disabled for now
 //        PauliContext context{16, true, true, 4};
-//        ASSERT_TRUE(context.wrap);
-//        ASSERT_TRUE(context.translational_symmetry);
+//        ASSERT_EQ(context.wrap, WrapType::Wrap);
+//        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
 //        ASSERT_EQ(context.qubit_size, 16);
 //        ASSERT_EQ(context.row_width, 4);
 //        ASSERT_EQ(context.col_height, 4);

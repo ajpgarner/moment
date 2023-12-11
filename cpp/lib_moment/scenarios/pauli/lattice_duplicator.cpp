@@ -187,7 +187,7 @@ namespace Moment::Pauli {
         }
 
         // If context has no wrapping, filling is (much!) easier
-        if (!this->context.wrap) {
+        if (this->context.wrap == WrapType::None) {
             return this->wrapless_symmetrical_fill(lattice_sites);
         }
 

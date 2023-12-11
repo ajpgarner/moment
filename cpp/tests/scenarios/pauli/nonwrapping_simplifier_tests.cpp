@@ -29,7 +29,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_NonwrappingSimplifier, ChainMinimum) {
-        PauliContext context{10, false, true};
+        PauliContext context{10, WrapType::None, SymmetryType::Translational};
         NonwrappingChainSimplifier simplifier{context};
         EXPECT_EQ(simplifier.impl_label, NonwrappingChainSimplifier::expected_label);
         EXPECT_NE(simplifier.impl_label, NonwrappingLatticeSimplifier::expected_label);
@@ -46,7 +46,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_NonwrappingSimplifier, LatticeMinimum) {
-        PauliContext context{4, 4, false, true};
+        PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
         NonwrappingLatticeSimplifier simplifier{context};
         EXPECT_EQ(simplifier.qubits, 16);
         EXPECT_EQ(simplifier.row_width, 4);

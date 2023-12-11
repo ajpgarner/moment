@@ -16,7 +16,7 @@ namespace Moment::Tests {
     using namespace Moment::Pauli;
 
     TEST(Scenarios_Pauli_LatticeDuplicator, OneQubitFill) {
-        PauliContext lattice{4, 4, true, true};
+        PauliContext lattice{4, 4, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -29,7 +29,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_LatticeDuplicator, TwoQubitFill_Ordered) {
-        PauliContext lattice{4, 4, true, true};
+        PauliContext lattice{4, 4, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -48,7 +48,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_LatticeDuplicator, TwoQubitFill_OutOfOrder) {
-        PauliContext lattice{4, 4, true, true};
+        PauliContext lattice{4, 4, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -67,7 +67,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_LatticeDuplicator, ThreeQubitFill) {
-        PauliContext lattice{4, 4, true, true};
+        PauliContext lattice{4, 4, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -110,7 +110,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_LatticeDuplicator, DuplicateChainOne) {
-        PauliContext lattice{5, true, true};
+        PauliContext lattice{5, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -137,7 +137,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_LatticeDuplicator, DuplicateChainTwo) {
-        PauliContext lattice{5, true, true};
+        PauliContext lattice{5, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());
@@ -162,7 +162,7 @@ namespace Moment::Tests {
 
 
     TEST(Scenarios_Pauli_LatticeDuplicator, DuplicateLatticeOne) {
-        PauliContext lattice{2, 2, true, true};
+        PauliContext lattice{2, 2, WrapType::Wrap, SymmetryType::Translational};
         std::vector<OperatorSequence> output_list;
         LatticeDuplicator duplicator{lattice, output_list};
         ASSERT_TRUE(output_list.empty());

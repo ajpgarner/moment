@@ -60,7 +60,7 @@ namespace Moment::Pauli {
         }
     }
 
-    PauliContext::PauliContext(const size_t chain_length, const bool is_wrapped, const bool tx_sym)
+    PauliContext::PauliContext(const size_t chain_length, const WrapType is_wrapped, const SymmetryType tx_sym)
     :Context{chain_length*3}, qubit_size{chain_length}, col_height{0}, row_width{0},
         wrap{is_wrapped}, translational_symmetry{tx_sym} {
         // Check we can support qubit size
@@ -69,7 +69,7 @@ namespace Moment::Pauli {
         }
 
         // In symmetric mode, make hasher object
-        if (translational_symmetry) {
+        if (translational_symmetry != SymmetryType::None) {
             this->tx_hasher = MomentSimplifier::make(*this);
         }
 
@@ -80,7 +80,7 @@ namespace Moment::Pauli {
     }
 
     PauliContext::PauliContext(const size_t col_height_in, const size_t row_width_in,
-                               const bool is_wrapped, const bool tx_sym)
+                               const WrapType is_wrapped, const SymmetryType tx_sym)
         : Context{static_cast<size_t>(col_height_in * row_width_in*3)}, qubit_size{col_height_in * row_width_in},
             wrap{is_wrapped}, translational_symmetry{tx_sym},
             col_height{col_height_in}, row_width{col_height_in != 0 ? row_width_in : 0} {
@@ -98,7 +98,7 @@ namespace Moment::Pauli {
         }
 
         // In symmetric mode, make hasher object
-        if (translational_symmetry) {
+        if (translational_symmetry != SymmetryType::None) {
             this->tx_hasher = MomentSimplifier::make(*this);
         }
 
@@ -420,18 +420,22 @@ namespace Moment::Pauli {
 
     std::string PauliContext::to_string() const {
         std::stringstream ss;
-        ss << "Pauli context over "
-           << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"))
-           << " (" << this->operator_count << " operators)";
+        ss << "Pauli context of "
+           << this->qubit_size << " " << ((this->qubit_size !=1 ? "qubits" : "qubit"));
         if (this->is_lattice()) {
             ss << " in " << this->row_width << " x " << this->col_height << " lattice";
+        } else {
+            ss << " in chain";
         }
+        ss << " (" << this->operator_count << " operators)";
 
-        if (this->wrap) {
+        if (this->wrap == WrapType::Wrap) {
             ss << " with wrapping";
-            if (this->translational_symmetry) {
+            if (this->translational_symmetry == SymmetryType::Translational) {
                 ss << " and translational symmetry";
             }
+        } else if (this->translational_symmetry == SymmetryType::Translational) {
+            ss << " with thermodynamic symmetry";
         }
 
         ss << ".\n";
@@ -452,17 +456,15 @@ namespace Moment::Pauli {
     }
 
     OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
-        // If no symmetry, just return
-        if (!this->translational_symmetry) [[unlikely]] {
-            return seq;
-        }
 
+        assert(this->translational_symmetry == SymmetryType::Translational);
         assert(this->tx_hasher); // assert hasher was instantiated
+
         return this->tx_hasher->canonical_sequence(seq);
     }
 
     bool PauliContext::can_be_simplified_as_moment(const OperatorSequence& seq) const {
-        assert(this->translational_symmetry);
+        assert(this->translational_symmetry == SymmetryType::Translational);
 
         // If sequence isn't canonical, it can be simplified as a moment:
         assert(this->tx_hasher);

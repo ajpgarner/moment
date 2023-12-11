@@ -145,7 +145,7 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_MatrixSystem, FiveQubitSymbolTable) {
         // Test replicating weird bug found by Mateus whereby anti-Hermitian symbols are erroneously generated.
 
-        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(5, false)};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(5, WrapType::None)};
         const auto& context = system.pauliContext;
         const auto& symbols = system.Symbols();
 
@@ -162,7 +162,7 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourMM) {
-        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, false)};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
         const auto& context = system.pauliContext;
 
         const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
@@ -182,9 +182,9 @@ namespace Moment::Tests {
 
     }
     TEST(Scenarios_Pauli_MatrixSystem, ThreeQubits_NearestNeighbourLM) {
-        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, false)};
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
         const auto& context = system.pauliContext;
-        EXPECT_FALSE(context.wrap);
+        ASSERT_EQ(context.wrap, WrapType::None);
 
         const auto x1 = context.sigmaX(0);
         const PauliLocalizingMatrixIndex plmi{2, 1, x1};

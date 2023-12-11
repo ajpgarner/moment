@@ -22,11 +22,15 @@ namespace Moment::mex::functions {
     namespace {
         std::unique_ptr<Pauli::PauliContext> make_context(matlab::engine::MATLABEngine &matlabEngine,
                                                                 const PauliMatrixSystemParams &input) {
+            using namespace Moment::Pauli;
             if (input.lattice_mode) {
-                return std::make_unique<Pauli::PauliContext>(input.col_height, input.row_width,
-                                                             input.wrap, input.symmetrized);
+                return std::make_unique<PauliContext>(input.col_height, input.row_width,
+                                                  input.wrap ? WrapType::Wrap : WrapType::None,
+                                                  input.symmetrized ? SymmetryType::Translational : SymmetryType::None);
             } else {
-                return std::make_unique<Pauli::PauliContext>(input.qubit_count, input.wrap, input.symmetrized);
+                return std::make_unique<PauliContext>(input.qubit_count,
+                                              input.wrap ? WrapType::Wrap : WrapType::None,
+                                              input.symmetrized ? SymmetryType::Translational : SymmetryType::None);
             }
         }
     }

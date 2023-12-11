@@ -33,6 +33,29 @@ namespace Moment {
         class PauliSequenceGenerator;
 
         /**
+          * Does the system wrap or tile?
+          * In 1D, this means qubit N-1 neighbours qubit 0.
+          * In 2D, this means the right  column neighbours the left column, and the top row neighbours the bottom.
+          */
+         enum class WrapType : bool {
+            /** Qubits 0 and N-1 are not neighbours. */
+            None = false,
+            /** Qubits in rows (resp. cols) 0 and N-1 are neighbours. */
+            Wrap = true
+        };
+
+        /**
+         * Does the system have translational symmetry?
+         */
+        enum class SymmetryType : bool {
+            /** No translational symmetry. */
+            None = false,
+            /** Lattice invariance symmetry if wrap enabled; 'thermodynamic limit' if wrap disabled. */
+            Translational = true
+        };
+
+
+        /**
          * Context for spin system.
          */
         class PauliContext : public Context {
@@ -57,17 +80,14 @@ namespace Moment {
             const size_t row_width;
 
             /**
-             * Does the system wrap or tile?
-             * In 1D, this means qubit N-1 neighbours qubit 0.
-             * In 2D, this means the right  column neighbours the left column, and the top row neighbours the bottom.
+             * Does the system wrap/tile?
              */
-             const bool wrap;
+             const WrapType wrap;
 
             /**
              * Does the system have translational symmetry?
-             * Undefined (probably mathematically meaningless!) results if set to true when wrap is set to false.
              */
-             const bool translational_symmetry;
+            const enum class SymmetryType translational_symmetry;
 
         private:
              PauliDictionary* dictionary_ptr = nullptr;
@@ -83,7 +103,8 @@ namespace Moment {
              * @param lattice_col_height The number of qubits in one column, of 2D lattice, or set to 0 for a 1D chain.
              * @throws bad_pauli_context If the lattice row size is not valid (0, or divisor of qubits).
              */
-            explicit PauliContext(size_t qubits, bool wrap = false, bool translational_symmetry = false);
+            explicit PauliContext(size_t qubits, WrapType wrap = WrapType::None,
+                                  SymmetryType translational_symmetry = SymmetryType::None);
 
             /**
              * Construct a context for a lattice of qubits.
@@ -93,8 +114,8 @@ namespace Moment {
              * @param row_width The number of qubits in one row (i.e. number of columns in lattice).
              * @throws bad_pauli_context If the lattice row size is not valid (e.g. because col_height is 0)
              */
-            explicit PauliContext(size_t col_height, size_t row_width,
-                                  bool wrap = false, bool translational_symmetry = false);
+            explicit PauliContext(size_t col_height, size_t row_width, WrapType wrap = WrapType::None,
+                                  SymmetryType translational_symmetry = SymmetryType::None);
 
             ~PauliContext() noexcept;
 
@@ -113,7 +134,7 @@ namespace Moment {
 
             [[nodiscard]] bool can_have_aliases() const noexcept final {
                 // If we have symmetry, then things like <X3> -> <X1>, <X2Y5> -> <X1Y4>, etc.
-                return this->translational_symmetry;
+                return this->translational_symmetry == SymmetryType::Translational;
             }
 
             [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence&& seq) const final;
