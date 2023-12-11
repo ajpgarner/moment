@@ -87,7 +87,7 @@ namespace Moment {
             /**
              * Does the system have translational symmetry?
              */
-            const enum class SymmetryType translational_symmetry;
+            const SymmetryType translational_symmetry;
 
         private:
              PauliDictionary* dictionary_ptr = nullptr;
