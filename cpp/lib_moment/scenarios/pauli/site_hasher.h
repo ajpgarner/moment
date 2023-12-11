@@ -8,7 +8,8 @@
  */
 
 #pragma once
-#include "moment_simplifier.h"
+
+#include "integer_types.h"
 
 #include <cassert>
 
@@ -21,12 +22,21 @@ namespace Moment::Pauli {
     /**
      * Common information for implementation of site hasher.
      */
-    class SiteHasherImplBase : public MomentSimplifier {
+    class SiteHasherImplBase {
     public:
         using storage_t = uint64_t;
 
         /** The number of qubits we can fit on each slide */
         constexpr static storage_t qubits_per_slide = sizeof(storage_t) * 4ULL; // should be 32
+
+        /** Number of qubits in this particular hasher instance. */
+        const size_t qubits;
+
+        /** The size the major index (i.e. column size), in lattice mode. */
+        const size_t column_height;
+
+        /** The total number of columns (i.e. row size), in lattice mode. */
+        const size_t row_width;
 
         /** Number of qubits on the final slide of this hasher. */
         const storage_t qubits_on_final_slide;
@@ -39,12 +49,14 @@ namespace Moment::Pauli {
 
     protected:
         /**
-         * Construct a site-hasher
-         * @param qubit_count The maximum number of qubits in the hasher.
-         * @param col_size The number of qubits in a column.
+         * Construct a site-hasher.
+         * @param col_height_in The column height (i.e. number of rows).
+         * @param row_width_in The row width (i.e. number of columns).
          */
-        explicit SiteHasherImplBase(const PauliContext& context, const uint64_t label)
-            : MomentSimplifier{context, label}, qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
+        explicit SiteHasherImplBase(const size_t col_height_in, const size_t row_width_in)
+            : qubits{col_height_in * row_width_in},
+              column_height{col_height_in}, row_width{row_width_in},
+              qubits_on_final_slide{calculate_last_slide_qubit_count(qubits)},
               final_slide_mask{calculate_mask_from_qubits(qubits_on_final_slide)},
               column_mask(calculate_mask_from_qubits(column_height)) { }
 
@@ -98,8 +110,8 @@ namespace Moment::Pauli {
         constexpr static const size_t slides = num_slides;
 
     protected:
-        explicit SiteHasherSized(const PauliContext& context)
-                : SiteHasherImplBase{context, num_slides} {
+        explicit SiteHasherSized(const size_t col_height_in, const size_t row_width_in)
+                : SiteHasherImplBase{col_height_in, row_width_in} {
             assert(qubits <= slides * qubits_per_slide);
         }
 
@@ -325,7 +337,8 @@ namespace Moment::Pauli {
          * @param qubit_count
          * @param col_size The number of qubits per column for a lattice, or set to 0 for a chain.
          */
-        explicit SiteHasherSized(const PauliContext& context) : SiteHasherImplBase{context, 1} {
+        explicit SiteHasherSized(const size_t col_height_in, const size_t row_width_in)
+            : SiteHasherImplBase{col_height_in, row_width_in} {
             assert(qubits <= qubits_per_slide);
         }
 
@@ -497,8 +510,8 @@ namespace Moment::Pauli {
         } boundary_info;
 
     protected:
-        explicit SiteHasherSized(const PauliContext& context)
-            : SiteHasherImplBase{context, 2},
+        explicit SiteHasherSized(const size_t col_height_in, const size_t row_width_in)
+            : SiteHasherImplBase{col_height_in, row_width_in},
                 boundary_info{column_height} {
             assert(qubits > qubits_per_slide);
             assert(qubits <= 2 * qubits_per_slide);
@@ -693,8 +706,8 @@ namespace Moment::Pauli {
         using Datum = typename SiteHasherSized<num_slides>::Datum;
 
     public:
-        explicit SiteHasher(const PauliContext& context)
-                : SiteHasherSized<num_slides>{context} { }
+        explicit SiteHasher(const size_t col_height_in, const size_t row_width_in)
+                : SiteHasherSized<num_slides>{col_height_in, row_width_in} { }
 
         /**
          * Rotate around columns (i.e. major-axis shift).
@@ -733,37 +746,6 @@ namespace Moment::Pauli {
         canonical_hash(const std::span<const oper_name_t> sequence) const noexcept {
             return (this->row_width == 1) ? do_canonical_hash<false>(sequence)
                                           : do_canonical_hash<true>(sequence);
-        }
-
-        using MomentSimplifier::canonical_sequence;
-
-        [[nodiscard]] sequence_storage_t canonical_sequence(const std::span<const oper_name_t> input) const final {
-            // Find equivalence class
-            const auto [smallest_hash, actual_hash] = canonical_hash(input);
-
-            // Operator sequence is already minimal
-            if (smallest_hash == actual_hash) {
-                // Copy input to output:
-                sequence_storage_t output;
-                output.reserve(input.size());
-                std::copy(input.begin(), input.end(), std::back_inserter(output));
-                return output;
-            } else {
-                // Otherwise, reconstruct operator sequence data from minimal hash value:
-                return this->unhash(smallest_hash);
-            }
-        }
-
-
-        /**
-         * Tests canonical version of operator sequence
-         */
-        [[nodiscard]] bool is_canonical(const std::span<const oper_name_t> input) const noexcept final {
-            // Find equivalence class
-            const auto [smallest_hash, actual_hash] = canonical_hash(input);
-
-            // Is input operator sequence already minimal?
-            return (smallest_hash == actual_hash);
         }
 
 

@@ -10,7 +10,8 @@
 #include "pauli_context.h"
 
 #include "moment_simplifier.h"
-#include "site_hasher.h"
+#include "moment_simplifier_wrapping.h"
+#include "moment_simplifier_no_wrapping.h"
 
 #include "dictionary/multi_operator_iterator.h"
 
@@ -49,7 +50,7 @@ namespace Moment::Pauli {
                 for (const auto& base_hash : base_hashes) {
                     output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
                                         hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
-                                        hasher.context);
+                                        duplicator.context);
                 }
             }
         }
@@ -64,7 +65,7 @@ namespace Moment::Pauli {
                     for (const auto& base_hash : base_hashes) {
                         output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
                                             hasher.unhash(hasher.lattice_shift(base_hash, row, col)),
-                                            hasher.context);
+                                            duplicator.context);
                     }
                 }
             }
@@ -83,7 +84,9 @@ namespace Moment::Pauli {
                                                     const std::span<const size_t> lattice_indices,
                                                     const bool check_for_aliases) {
             // Convert hasher to implementation:~
-            const auto& hasher = dynamic_cast<const SiteHasher<num_slides>&>(duplicator.context.moment_simplifier());
+            const auto& moment_simplifier =
+                    dynamic_cast<const MomentSimplifierWrapping<num_slides>&>(duplicator.context.moment_simplifier());
+            const auto& hasher = moment_simplifier.site_hasher;
             using Datum = typename SiteHasher<num_slides>::Datum;
 
             // First, make base elements
@@ -97,7 +100,7 @@ namespace Moment::Pauli {
             }
 
             // Invoke appropriate duplicator
-            if (hasher.context.is_lattice()) {
+            if (duplicator.context.is_lattice()) {
                 do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
             } else {
                 do_unaliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);

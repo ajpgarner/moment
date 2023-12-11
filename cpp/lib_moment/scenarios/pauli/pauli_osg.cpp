@@ -178,28 +178,30 @@ namespace Moment::Pauli {
             }
             size_t initial_count = sequences.size();
 
-            // TODO: Fix 'aliasing' issue for some words that might occur for 2x2, 2x3, 3x2 and 3x3 grids.
 
             LatticeDuplicator ld{context, sequences};
             // Horizontal NN
             if (context.row_width >= 3) {
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, 2*context.col_height}); // Add every permutation
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, 2*context.col_height},
+                                    context.row_width == 3);
             }
 
             // Vertical NN
             if (context.col_height >= 3) {
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2}); // Add every permutation
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2},
+                                    context.col_height == 3);
             }
 
             if ((context.row_width >=2) && (context.col_height >=2)) {
+                const bool could_alias = (context.row_width == 2) || (context.col_height == 2);
                 // Top left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height});
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height}, could_alias);
                 // Top right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1});
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, could_alias);
                 // Bottom left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1});
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1}, could_alias);
                 // Bottom right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1});
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, could_alias);
             }
 
             return sequences.size() - initial_count;

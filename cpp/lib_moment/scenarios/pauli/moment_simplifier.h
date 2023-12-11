@@ -33,15 +33,6 @@ namespace Moment::Pauli {
         /** Attached context */
         const PauliContext& context;
 
-         /** Number of qubits in this particular hasher instance. */
-        const size_t qubits;
-
-        /** The size the major index (i.e. column size), in lattice mode. */
-        const size_t column_height;
-
-        /** The total number of columns (i.e. row size), in lattice mode. */
-        const size_t row_width;
-
     protected:
         /**
          * Construct a site-hasher with information known already

@@ -5,14 +5,18 @@
  * @author Andrew J. P. Garner
  */
 
-#include "nonwrapping_simplifier.h"
+#include "moment_simplifier_no_wrapping.h"
 #include "pauli_context.h"
 
 #include <algorithm>
 
 namespace Moment::Pauli {
 
-    sequence_storage_t NonwrappingChainSimplifier::canonical_sequence(const std::span<const oper_name_t> input) const {
+    MomentSimplifierNoWrappingChain::MomentSimplifierNoWrappingChain(const PauliContext& context)
+            : MomentSimplifier{context, MomentSimplifierNoWrappingChain::expected_label},
+              qubits{context.qubit_size} { }
+
+    sequence_storage_t MomentSimplifierNoWrappingChain::canonical_sequence(const std::span<const oper_name_t> input) const {
         sequence_storage_t output;
         output.reserve(input.size());
 
@@ -33,7 +37,17 @@ namespace Moment::Pauli {
         return output;
     }
 
-    sequence_storage_t NonwrappingLatticeSimplifier::canonical_sequence(const std::span<const oper_name_t> input) const {
+
+
+    MomentSimplifierNoWrappingLattice::MomentSimplifierNoWrappingLattice(const PauliContext& context)
+            : MomentSimplifier{context, MomentSimplifierNoWrappingLattice::expected_label},
+              qubits{context.qubit_size}, column_height{context.col_height}, row_width{context.row_width},
+              column_op_height{context.col_height*3} {
+
+    }
+
+    sequence_storage_t
+    MomentSimplifierNoWrappingLattice::canonical_sequence(const std::span<const oper_name_t> input) const {
         // Can we move into a corner?
         const auto [row_offset, col_offset] = this->lattice_minimum(input);
 
@@ -56,7 +70,7 @@ namespace Moment::Pauli {
         return output;
     }
 
-    bool NonwrappingLatticeSimplifier::is_canonical(const std::span<const oper_name_t> input) const noexcept {
+    bool MomentSimplifierNoWrappingLattice::is_canonical(const std::span<const oper_name_t> input) const noexcept {
         // Empty input is always canonical
         if (input.empty()) {
             return true;
@@ -73,7 +87,8 @@ namespace Moment::Pauli {
         });
     }
 
-    std::pair<size_t, size_t> NonwrappingLatticeSimplifier::lattice_minimum(const std::span<const oper_name_t> input) const {
+    std::pair<size_t, size_t>
+    MomentSimplifierNoWrappingLattice::lattice_minimum(const std::span<const oper_name_t> input) const {
         // Special case for empty:
         if (input.empty()) [[unlikely]] {
             return {0, 0};
@@ -90,4 +105,5 @@ namespace Moment::Pauli {
 
         return {min_row, min_column};
     }
+
 }

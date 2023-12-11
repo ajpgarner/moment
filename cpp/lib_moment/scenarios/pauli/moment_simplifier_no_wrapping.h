@@ -11,13 +11,14 @@
 namespace Moment::Pauli {
     class PauliContext;
 
-    class NonwrappingChainSimplifier : public MomentSimplifier {
+    class MomentSimplifierNoWrappingChain : public MomentSimplifier {
     public:
         constexpr const static uint64_t expected_label = 0x8000000000000000;
 
+        const size_t qubits;
+
     public:
-        explicit NonwrappingChainSimplifier(const PauliContext& context)
-                : MomentSimplifier{context, NonwrappingChainSimplifier::expected_label} { }
+        explicit MomentSimplifierNoWrappingChain(const PauliContext& context);
 
         [[nodiscard]] sequence_storage_t canonical_sequence(const std::span<const oper_name_t> input) const final;
 
@@ -31,18 +32,25 @@ namespace Moment::Pauli {
         }
     };
 
-    class NonwrappingLatticeSimplifier : public MomentSimplifier {
+    class MomentSimplifierNoWrappingLattice : public MomentSimplifier {
 
     public:
         constexpr const static uint64_t expected_label = 0xc000000000000000;
 
+        const size_t qubits;
+
+        const size_t column_height;
+
+        const size_t row_width;
+
+
         /** Number of operators defining one column (3 * column height) */
         const size_t column_op_height;
 
+
+
     public:
-        explicit NonwrappingLatticeSimplifier(const PauliContext& context)
-            : MomentSimplifier{context, NonwrappingLatticeSimplifier::expected_label},
-              column_op_height{this->column_height*3} { }
+        explicit MomentSimplifierNoWrappingLattice(const PauliContext& context);
 
         [[nodiscard]] sequence_storage_t canonical_sequence(const std::span<const oper_name_t> input) const final;
 
