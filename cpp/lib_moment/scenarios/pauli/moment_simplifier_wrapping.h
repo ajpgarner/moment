@@ -19,7 +19,7 @@ namespace Moment::Pauli {
     template<size_t slides>
     class MomentSimplifierWrapping : public MomentSimplifier {
     public:
-        using Datum = typename SiteHasher<slides>::Datum;
+        using HashResult = typename SiteHasher<slides>::Datum;
 
         SiteHasher<slides> site_hasher;
 

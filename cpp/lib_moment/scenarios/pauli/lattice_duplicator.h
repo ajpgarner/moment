@@ -15,6 +15,11 @@
 namespace Moment::Pauli {
     class PauliContext;
 
+    /**
+     * Utility class for copy-pasting Pauli operator sequences in all positions on a lattice.
+     *
+     * @see PauliSequenceGenerator
+     */
     class LatticeDuplicator {
     public:
         const PauliContext& context;
@@ -55,7 +60,7 @@ namespace Moment::Pauli {
 
         /**
          * Adds all unique offsets of supplied input sequence to the output, but do not wrap around.
-         * Undefined behaviour if any site indices overlap, or are out of bounds.
+         * Undefined behaviour if any site indices overlap, are out of order, or are out of bounds.
          * @return Pair with index to first and one-past last element added to output list.
          */
         std::pair<size_t, size_t> wrapless_symmetrical_fill(std::span<const size_t> lattice_sites);

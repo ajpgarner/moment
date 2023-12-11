@@ -17,6 +17,8 @@
 
 #include <cassert>
 
+#include <algorithm>
+
 namespace Moment::Pauli {
     namespace {
         void do_permutation_fill(const PauliContext& context, std::vector<OperatorSequence>& output,
@@ -56,7 +58,37 @@ namespace Moment::Pauli {
         }
 
         template<size_t num_slides>
+        void do_aliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                               const SiteHasher<num_slides>& hasher,
+                                               const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
+            // Chain
+            for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
+                for (const auto& base_hash : base_hashes) {
+                    output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
+                                        hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
+                                        duplicator.context);
+                }
+            }
+        }
+
+        template<size_t num_slides>
         void do_unaliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                    const SiteHasher<num_slides>& hasher,
+                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
+            // Lattice
+            for (size_t col = 0; col < hasher.row_width; ++col) {
+                for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
+                    for (const auto& base_hash : base_hashes) {
+                        output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
+                                            hasher.unhash(hasher.lattice_shift(base_hash, row, col)),
+                                            duplicator.context);
+                    }
+                }
+            }
+        }
+
+        template<size_t num_slides>
+        void do_aliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
                                     const SiteHasher<num_slides>& hasher,
                                     const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
             // Lattice
@@ -101,9 +133,17 @@ namespace Moment::Pauli {
 
             // Invoke appropriate duplicator
             if (duplicator.context.is_lattice()) {
-                do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
+                if (check_for_aliases) {
+                    do_aliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
+                } else {
+                    do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
+                }
             } else {
-                do_unaliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
+                if (check_for_aliases) {
+                    do_aliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
+                } else {
+                    do_unaliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
+                }
             }
 
             // Report number of created elements in total
@@ -218,11 +258,40 @@ namespace Moment::Pauli {
     }
 
     std::pair<size_t, size_t>
-    LatticeDuplicator::wrapless_symmetrical_fill(std::span<const size_t> lattice_sites) {
+    LatticeDuplicator::wrapless_symmetrical_fill(const std::span<const size_t> lattice_indices) {
+        // Do nothing, if filling empty lattice
+        if (lattice_indices.empty()) [[unlikely]] {
+            return {this->output.size(), this->output.size()};
+        }
 
-        // TODO
+        // (Doesn't matter if actual context has wrapping: we use this as a utility class):
+        MomentSimplifierNoWrappingLattice simplifier{this->context};
 
-        return std::pair<size_t, size_t>(this->output.size(), this->output.size());
+        // Determine minimum and maximum offsets
+        const auto [number_rows, number_cols] = simplifier.lattice_maximum(lattice_indices);
+
+        const size_t initial_index = this->output.size();
+
+        // Prepare to iterate over lattice
+        std::vector<size_t> actual_indices(lattice_indices.size(), 0);
+        for (size_t col = 0, max_col = (simplifier.row_width - number_cols); col < max_col; ++col) {
+            for (size_t row = 0, max_row = (simplifier.column_height - number_rows); row < max_row; ++row) {
+
+                // Get transformed site indices
+                const size_t the_offset = (col * simplifier.column_height) + row;
+                std::transform(lattice_indices.begin(), lattice_indices.end(),
+                               actual_indices.begin(),
+                               [the_offset](const size_t index) {
+                    return index + the_offset;
+                });
+
+                // Fill sites
+                this->permutation_fill(actual_indices);
+            }
+        }
+
+        // Report range inserted
+        return std::pair<size_t, size_t>{initial_index, this->output.size()};
     }
 
 }

@@ -184,4 +184,61 @@ namespace Moment::Tests {
         EXPECT_EQ(output_list[10], lattice.sigmaY(3));
         EXPECT_EQ(output_list[11], lattice.sigmaZ(3));
     }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, WraplessFillLattice_OneQubit) {
+        PauliContext lattice{2, 2, WrapType::None, SymmetryType::Translational};
+        std::vector<OperatorSequence> output_list;
+        LatticeDuplicator duplicator{lattice, output_list};
+        ASSERT_TRUE(output_list.empty());
+
+        auto [first_idx, last_idx] = duplicator.wrapless_symmetrical_fill(std::vector<size_t>{0});
+        EXPECT_EQ(first_idx, 0);
+        ASSERT_EQ(last_idx, 12);
+        ASSERT_EQ(output_list.size(), 12);
+        EXPECT_EQ(output_list[0], lattice.sigmaX(0));
+        EXPECT_EQ(output_list[1], lattice.sigmaY(0));
+        EXPECT_EQ(output_list[2], lattice.sigmaZ(0));
+        EXPECT_EQ(output_list[3], lattice.sigmaX(1));
+        EXPECT_EQ(output_list[4], lattice.sigmaY(1));
+        EXPECT_EQ(output_list[5], lattice.sigmaZ(1));
+        EXPECT_EQ(output_list[6], lattice.sigmaX(2));
+        EXPECT_EQ(output_list[7], lattice.sigmaY(2));
+        EXPECT_EQ(output_list[8], lattice.sigmaZ(2));
+        EXPECT_EQ(output_list[9], lattice.sigmaX(3));
+        EXPECT_EQ(output_list[10], lattice.sigmaY(3));
+        EXPECT_EQ(output_list[11], lattice.sigmaZ(3));
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, WraplessFillLattice_Pair) {
+        PauliContext lattice{2, 2, WrapType::None, SymmetryType::Translational};
+        std::vector<OperatorSequence> output_list;
+        LatticeDuplicator duplicator{lattice, output_list};
+        ASSERT_TRUE(output_list.empty());
+
+        auto [first_idx, last_idx] = duplicator.wrapless_symmetrical_fill(std::array<size_t, 2>{0, 2});
+        EXPECT_EQ(first_idx, 0);
+        ASSERT_EQ(last_idx, 18);
+        ASSERT_EQ(output_list.size(), 18);
+        
+        EXPECT_EQ(output_list[0], lattice.sigmaX(0) * lattice.sigmaX(2));
+        EXPECT_EQ(output_list[1], lattice.sigmaX(0) * lattice.sigmaY(2));
+        EXPECT_EQ(output_list[2], lattice.sigmaX(0) * lattice.sigmaZ(2));
+        EXPECT_EQ(output_list[3], lattice.sigmaY(0) * lattice.sigmaX(2));
+        EXPECT_EQ(output_list[4], lattice.sigmaY(0) * lattice.sigmaY(2));
+        EXPECT_EQ(output_list[5], lattice.sigmaY(0) * lattice.sigmaZ(2));
+        EXPECT_EQ(output_list[6], lattice.sigmaZ(0) * lattice.sigmaX(2));
+        EXPECT_EQ(output_list[7], lattice.sigmaZ(0) * lattice.sigmaY(2));
+        EXPECT_EQ(output_list[8], lattice.sigmaZ(0) * lattice.sigmaZ(2));
+        
+        EXPECT_EQ(output_list[9], lattice.sigmaX(1) * lattice.sigmaX(3));
+        EXPECT_EQ(output_list[10], lattice.sigmaX(1) * lattice.sigmaY(3));
+        EXPECT_EQ(output_list[11], lattice.sigmaX(1) * lattice.sigmaZ(3));
+        EXPECT_EQ(output_list[12], lattice.sigmaY(1) * lattice.sigmaX(3));
+        EXPECT_EQ(output_list[13], lattice.sigmaY(1) * lattice.sigmaY(3));
+        EXPECT_EQ(output_list[14], lattice.sigmaY(1) * lattice.sigmaZ(3));
+        EXPECT_EQ(output_list[15], lattice.sigmaZ(1) * lattice.sigmaX(3));
+        EXPECT_EQ(output_list[16], lattice.sigmaZ(1) * lattice.sigmaY(3));
+        EXPECT_EQ(output_list[17], lattice.sigmaZ(1) * lattice.sigmaZ(3));
+
+    }
 }

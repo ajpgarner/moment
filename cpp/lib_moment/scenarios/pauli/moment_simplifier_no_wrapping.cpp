@@ -41,7 +41,9 @@ namespace Moment::Pauli {
 
     MomentSimplifierNoWrappingLattice::MomentSimplifierNoWrappingLattice(const PauliContext& context)
             : MomentSimplifier{context, MomentSimplifierNoWrappingLattice::expected_label},
-              qubits{context.qubit_size}, column_height{context.col_height}, row_width{context.row_width},
+              qubits{context.qubit_size},
+              column_height{context.is_lattice() ? context.col_height : context.qubit_size},
+              row_width{context.is_lattice() ? context.row_width : 1},
               column_op_height{context.col_height*3} {
 
     }
@@ -104,6 +106,44 @@ namespace Moment::Pauli {
         }
 
         return {min_row, min_column};
+    }
+
+    std::pair<size_t, size_t>
+    MomentSimplifierNoWrappingLattice::lattice_maximum(const std::span<const oper_name_t> input) const {
+        // Special case for empty:
+        if (input.empty()) [[unlikely]] {
+            return {this->column_height, this->row_width};
+        }
+
+        // Max column will be column of last qubit:
+        const size_t max_column = input.back() / this->column_op_height;
+
+        // Scan for maximum row
+        size_t max_row = (input[0] / 3) % this->column_height;
+        for (size_t idx = 1; idx < input.size(); ++idx) {
+            max_row = std::max(max_row, (input[idx] /3) % this->column_height);
+        }
+
+        return {max_row, max_column};
+    }
+
+    std::pair<size_t, size_t>
+    MomentSimplifierNoWrappingLattice::lattice_maximum(const std::span<const size_t> input) const {
+        // Special case for empty:
+        if (input.empty()) [[unlikely]] {
+            return {this->column_height, this->row_width};
+        }
+
+        // Max column will be column of last qubit:
+        const size_t max_column = input.back() / this->column_height;
+
+        // Scan for maximum row
+        size_t max_row = input[0] % this->column_height;
+        for (size_t idx = 1; idx < input.size(); ++idx) {
+            max_row = std::max(max_row, input[idx]  % this->column_height);
+        }
+
+        return {max_row, max_column};
     }
 
 }

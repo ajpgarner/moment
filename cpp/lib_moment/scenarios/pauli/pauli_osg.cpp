@@ -173,35 +173,49 @@ namespace Moment::Pauli {
 
         template<bool wrapped>
         size_t lattice_neighbour_triplets(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
-            if constexpr(!wrapped) {
-                throw std::runtime_error{"Currently, nearest-neighbour triplets are only supported with wrapping."};
-            }
             size_t initial_count = sequences.size();
 
+            const bool can_alias_horz = wrapped ? (context.row_width == 3) : false;
+            const bool can_alias_vert = wrapped ? (context.col_height == 3) : false;
+            const bool can_alias_block = wrapped ? ((context.row_width == 2) || (context.col_height == 2)) : false;
 
             LatticeDuplicator ld{context, sequences};
             // Horizontal NN
             if (context.row_width >= 3) {
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, 2*context.col_height},
-                                    context.row_width == 3);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, 2*context.col_height}, can_alias_horz);
             }
 
             // Vertical NN
             if (context.col_height >= 3) {
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2},
-                                    context.col_height == 3);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2}, can_alias_vert);
             }
 
             if ((context.row_width >=2) && (context.col_height >=2)) {
-                const bool could_alias = (context.row_width == 2) || (context.col_height == 2);
                 // Top left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height}, could_alias);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height}, can_alias_block);
                 // Top right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, could_alias);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, can_alias_block);
                 // Bottom left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1}, could_alias);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1}, can_alias_block);
                 // Bottom right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, could_alias);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, can_alias_block);
+            }
+
+            return sequences.size() - initial_count;
+        }
+
+        template<bool wrapped>
+        size_t lattice_neighbour_squares(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
+            size_t initial_count = sequences.size();
+
+            const bool can_alias_block = wrapped ? ((context.row_width == 2) || (context.col_height == 2)) : false;
+
+            LatticeDuplicator ld{context, sequences};
+
+            if ((context.row_width >=2) && (context.col_height >=2)) {
+                // Square block
+                ld.symmetrical_fill(std::array<size_t, 4>{0, 1, context.col_height, context.col_height+1},
+                                                          can_alias_block);
             }
 
             return sequences.size() - initial_count;
@@ -211,8 +225,12 @@ namespace Moment::Pauli {
         template<bool wrapped>
         size_t add_lattice_neighbours(std::vector<OperatorSequence>& sequences, const PauliContext& context,
                                       const size_t word_length) {
-            const auto init_size = sequences.size();
+            // Word length should be 1, 2, 3 or 4
+            if (word_length >= 5) {
+                throw std::runtime_error{"Currently only nearest-neighbour pairs, triplets and squares are supported in 2D."};
+            }
 
+            const auto init_size = sequences.size();
             assert(word_length >= 2);
             lattice_neighbour_pairs<wrapped>(sequences, context);
 
@@ -221,8 +239,9 @@ namespace Moment::Pauli {
             }
 
             if (word_length >= 4) {
-                throw std::runtime_error{"Currently only nearest-neighbour pairs and triplets are supported in 2D."};
+                lattice_neighbour_squares<wrapped>(sequences, context);
             }
+
 
             return sequences.size() - init_size;
         }

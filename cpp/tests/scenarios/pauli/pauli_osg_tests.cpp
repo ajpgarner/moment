@@ -372,7 +372,7 @@ namespace Moment::Tests {
     }
 
 
-    TEST(Scenarios_Pauli_OSG, SixteenQubitLattice_Wrapped) {
+    TEST(Scenarios_Pauli_OSG, SixteenQubitLattice_WrappedSymmetric) {
         PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
         ASSERT_EQ(context.wrap, WrapType::Wrap);
         ASSERT_EQ(context.size(), 48);
@@ -387,6 +387,25 @@ namespace Moment::Tests {
         ASSERT_EQ(psg.nearest_neighbour_index.moment_matrix_level, 3);
 
         EXPECT_EQ(psg.size(), 2929); // L0: 1, L1: 48; L2: 288, L3: 2592
+    }
+
+
+    TEST(Scenarios_Pauli_OSG, SixteenQubitLattice_Thermodynamic) {
+        PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.size(), 48);
+        ASSERT_EQ(context.qubit_size, 16);
+        ASSERT_EQ(context.row_width, 4);
+        ASSERT_EQ(context.col_height, 4);
+        ASSERT_TRUE(context.is_lattice());
+
+        // Word-3 NN generator
+        PauliSequenceGenerator psg{context, 3, 1};
+        ASSERT_EQ(psg.nearest_neighbour_index.neighbours, 1);
+        ASSERT_EQ(psg.nearest_neighbour_index.moment_matrix_level, 3);
+
+        EXPECT_EQ(psg.size(), 1669); // L0: 1, L1: 48; L2: 216, L3: 1404
     }
 
 }
