@@ -6,11 +6,11 @@
  */
 #include "gtest/gtest.h"
 
-#include "matrix_system/polynomial_localizing_matrix_index.h"
+#include "matrix_system/indices/polynomial_localizing_matrix_index.h"
 
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_factory.h"
-#include "matrix_system/polynomial_index_storage.h"
+#include "matrix_system/index_storage/polynomial_index_storage.h"
 #include "symbolic/symbol_table.h"
 
 #include "scenarios/algebraic/algebraic_context.h"

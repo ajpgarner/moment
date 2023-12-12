@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "matrix_indices.h"
+#include "matrix_system/matrix_indices.h"
 
 #include <map>
 

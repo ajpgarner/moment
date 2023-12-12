@@ -8,7 +8,7 @@
 #pragma once
 
 #include "matrix_system/matrix_indices.h"
-#include "matrix_system/map_index_storage.h"
+#include "matrix_system/index_storage/map_index_storage.h"
 
 #include "multithreading/maintains_mutex.h"
 

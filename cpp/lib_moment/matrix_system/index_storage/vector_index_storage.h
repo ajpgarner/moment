@@ -8,7 +8,7 @@
 #pragma once
 
 #include "integer_types.h"
-#include "matrix_indices.h"
+#include "matrix_system/matrix_indices.h"
 
 #include <algorithm>
 #include <concepts>

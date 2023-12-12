@@ -8,9 +8,9 @@
 
 #include "dictionary/operator_sequence.h"
 
-#include "matrix_system/localizing_matrix_index.h"
+#include "matrix_system/indices/localizing_matrix_index.h"
 #include "matrix_system/matrix_indices.h"
-#include "matrix_system/map_index_storage.h"
+#include "matrix_system/index_storage/map_index_storage.h"
 
 #include "multithreading/maintains_mutex.h"
 

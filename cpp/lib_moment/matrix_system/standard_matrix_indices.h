@@ -11,14 +11,14 @@
 
 #include "matrix_indices.h"
 
-#include "localizing_matrix_index.h"
-#include "moment_matrix_index.h"
-#include "substituted_matrix_index.h"
-#include "polynomial_localizing_matrix_index.h"
+#include "indices/localizing_matrix_index.h"
+#include "indices/moment_matrix_index.h"
+#include "indices/substituted_matrix_index.h"
+#include "indices/polynomial_localizing_matrix_index.h"
 
-#include "map_index_storage.h"
-#include "polynomial_index_storage.h"
-#include "vector_index_storage.h"
+#include "index_storage/map_index_storage.h"
+#include "index_storage/polynomial_index_storage.h"
+#include "index_storage/vector_index_storage.h"
 
 #include "multithreading/multithreading.h"
 #include "multithreading/maintains_mutex.h"

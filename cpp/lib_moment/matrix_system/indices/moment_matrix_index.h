@@ -9,24 +9,35 @@
 #include "integer_types.h"
 
 #include <concepts>
+
 #include <iosfwd>
+#include <string>
 
 namespace Moment {
-    /** Index to a moment matrix */
+    class Context;
+    class SymbolTable;
+    class MatrixSystem;
+
+    /** Index of a moment matrix (i.e. its NPA hierarchy level). */
     struct MomentMatrixIndex {
     public:
         /** The NPA hierarchy level */
         size_t Level;
 
         /** Allow implicit casting from size_t. */
-        MomentMatrixIndex(size_t index) : Level{index} { } // NOLINT(*-explicit-constructor)
+        constexpr MomentMatrixIndex(size_t index) : Level{index} { } // NOLINT(*-explicit-constructor)
 
         /** Allow implicit casting to size_t. */
-        [[nodiscard]] operator ::std::size_t() const noexcept { // NOLINT(*-explicit-constructor)
+        [[nodiscard]] constexpr operator ::std::size_t() const noexcept { // NOLINT(*-explicit-constructor)
             return this->Level;
         }
 
-        friend std::ostream& operator<<(std::ostream& os, MomentMatrixIndex index);
+        friend std::ostream& operator<<(std::ostream& os, MomentMatrixIndex mmi);
+
+        [[nodiscard]] std::string to_string() const;
+
+        [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const;
+
     };
 
     static_assert(std::convertible_to<MomentMatrixIndex, size_t>);

@@ -11,6 +11,7 @@
 
 #include "scenarios/context.h"
 #include "dictionary/dictionary.h"
+#include "matrix_system/indices/moment_matrix_index.h"
 
 namespace Moment {
 
@@ -21,9 +22,9 @@ namespace Moment {
     public:
         using OSGIndex = size_t;
 
-        const size_t index;
+        const MomentMatrixIndex index;
 
-        constexpr MomentMatrixGenerator(const Context& /**/, const size_t index)
+        constexpr MomentMatrixGenerator(const Context& /**/, const MomentMatrixIndex index)
                 : index{index} { }
 
         /**
@@ -55,20 +56,23 @@ namespace Moment {
      * Full moment matrix of operators.
      */
     class MomentMatrix;
-    class MomentMatrix : public OperatorMatrixImpl<size_t, Context, MomentMatrixGenerator, MomentMatrix> {
+    class MomentMatrix : public OperatorMatrixImpl<MomentMatrixIndex, Context, MomentMatrixGenerator, MomentMatrix> {
     public:
         /**
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
          * @param context The setting/scenario.
-         * @param level The hierarchy depth.
+         * @param index The hierarchy depth.
          * @param mt_policy Whether or not to use multi-threaded creation.
          */
-        MomentMatrix(const Context& context, size_t level, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-            : OperatorMatrixImpl{context, level, std::move(op_seq_mat)} { }
+        MomentMatrix(const Context& context, MomentMatrixIndex index,
+                     std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+            : OperatorMatrixImpl{context, index, std::move(op_seq_mat)} { }
 
         /**
          * String label for this moment matrix.
          */
-        [[nodiscard]] std::string description() const override;
+        [[nodiscard]] std::string description() const override {
+            return this->Index.to_string();
+        }
     };
 }

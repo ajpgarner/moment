@@ -15,7 +15,7 @@
 #include "matrix/operator_matrix/operator_matrix_impl.h"
 
 #include "matrix_system/matrix_indices.h"
-#include "matrix_system/map_index_storage.h"
+#include "matrix_system/index_storage/map_index_storage.h"
 
 #include "pauli_context.h"
 #include "pauli_dictionary.h"

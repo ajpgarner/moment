@@ -20,29 +20,13 @@
 
 namespace Moment {
 
-    namespace {
-
-        std::string make_description(const Context& context, const SymbolTable& symbols,
-                                     const PolynomialLMIndex& index) {
-            std::stringstream ss;
-            ContextualOS cSS{ss, context, symbols};
-            cSS.format_info.show_braces = false;
-            cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-
-            cSS << "Localizing Matrix, Level " << index.Level
-                << ", Phrase " << index.Polynomial;
-
-            return ss.str();
-        }
-    }
-
 
     PolynomialLocalizingMatrix::PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols,
                                                            const PolynomialFactory& factory,
                                                            PolynomialLMIndex index_in,
                                                            CompositeMatrix::ConstituentInfo&& constituents_in)
            : CompositeMatrix{context, symbols, factory, std::move(constituents_in)}, index{std::move(index_in)} {
-        this->description = make_description(context, symbols, this->index);
+        this->description = index.to_string(context, symbols);
     }
 
     std::unique_ptr<PolynomialLocalizingMatrix>

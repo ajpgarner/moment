@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#include "polynomial_localizing_matrix_index.h"
-#include "matrix_indices.h"
+#include "matrix_system/indices/polynomial_localizing_matrix_index.h"
+#include "matrix_system/matrix_indices.h"
 
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/polynomial_ordering.h"

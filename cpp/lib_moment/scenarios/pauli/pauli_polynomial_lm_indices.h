@@ -11,8 +11,8 @@
 #include "pauli_localizing_matrix_indices.h"
 
 #include "matrix_system/matrix_indices.h"
-#include "matrix_system/polynomial_localizing_matrix_index.h"
-#include "matrix_system/polynomial_index_storage.h"
+#include "matrix_system/indices/polynomial_localizing_matrix_index.h"
+#include "matrix_system/index_storage/polynomial_index_storage.h"
 
 #include "multithreading/maintains_mutex.h"
 

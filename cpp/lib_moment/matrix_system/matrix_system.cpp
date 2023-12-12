@@ -6,7 +6,7 @@
  */
 #include "matrix_system.h"
 
-#include "polynomial_index_storage.h"
+#include "matrix_system/index_storage/polynomial_index_storage.h"
 
 #include "dictionary/raw_polynomial.h"
 #include "dictionary/dictionary.h"

@@ -595,4 +595,14 @@ namespace Moment::Tests {
                                              "4", "4", "4", "4"});// ab, ab, ab, ab
     }
 
+    TEST(Matrix_MomentMatrix, IndexNotFound) {
+        const MatrixSystem system{std::make_unique<Context>(0)}; // No parties, no symbols
+        auto& context = system.Context();
+        ASSERT_EQ(context.size(), 0);
+
+        EXPECT_THROW([[maybe_unused]] const auto& mm = system.MomentMatrix(2),
+                     Moment::errors::missing_component);
+
+    }
+
 }

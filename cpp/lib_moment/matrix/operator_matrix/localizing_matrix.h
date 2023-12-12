@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "matrix_system/localizing_matrix_index.h"
+#include "matrix_system/indices/localizing_matrix_index.h"
 #include "operator_matrix.h"
 #include "operator_matrix_impl.h"
 
@@ -70,6 +70,8 @@ namespace Moment {
              : OperatorMatrixImpl<LocalizingMatrixIndex, Context, LocalizingMatrixGenerator, LocalizingMatrix>{
                         context, std::move(lmi), std::move(op_seq_mat)} { }
 
-        [[nodiscard]] std::string description() const override;
+        [[nodiscard]] std::string description() const override {
+            return this->Index.to_string(this->context);
+        }
     };
 }

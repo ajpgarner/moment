@@ -10,8 +10,8 @@
 
 #include "import/read_polynomial.h"
 
-#include "matrix_system/localizing_matrix_index.h"
-#include "matrix_system/polynomial_localizing_matrix_index.h"
+#include "matrix_system/indices/localizing_matrix_index.h"
+#include "matrix_system/indices/polynomial_localizing_matrix_index.h"
 
 #include <variant>
 

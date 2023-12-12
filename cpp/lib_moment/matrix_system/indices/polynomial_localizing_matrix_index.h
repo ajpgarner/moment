@@ -13,6 +13,9 @@
 
 #include <cassert>
 #include <complex>
+#include <iosfwd>
+#include <string>
+
 
 namespace Moment {
     class SymbolTable;
@@ -96,6 +99,15 @@ namespace Moment {
 
     };
 
-    using PolynomialLMIndex = PolynomialLMIndexBase<size_t, LocalizingMatrixIndex>;
-    std::ostream& operator<<(std::ostream& os, const PolynomialLMIndex& plmi);
+    struct PolynomialLMIndex : public PolynomialLMIndexBase<size_t, LocalizingMatrixIndex> {
+
+    public:
+        friend std::ostream& operator<<(std::ostream& os, const PolynomialLMIndex& plmi);
+
+        [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
+
+        [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const;
+    };
+
+
 }

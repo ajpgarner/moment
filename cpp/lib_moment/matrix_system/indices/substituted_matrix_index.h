@@ -12,8 +12,11 @@
 #include <compare>
 #include <concepts>
 #include <iosfwd>
+#include <string>
 
 namespace Moment {
+
+    class MatrixSystem;
 
     struct SubstitutedMatrixIndex {
     public:
@@ -31,5 +34,7 @@ namespace Moment {
                                 const SubstitutedMatrixIndex& rhs) noexcept = default;
 
         friend std::ostream& operator<<(std::ostream& os, SubstitutedMatrixIndex index);
+
+        [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const;
     };
 }

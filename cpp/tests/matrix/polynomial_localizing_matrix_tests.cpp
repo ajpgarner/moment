@@ -135,4 +135,13 @@ namespace Moment::Tests {
             }
         }
     }
+
+    TEST_F(Matrix_PolyLMTests, IndexNotFound) {
+        const auto& system = this->get_system();
+        const auto& factory = this->get_factory();
+
+        const PolynomialLMIndex plmIndex{1, factory({Monomial{s_a, -2.0}, Monomial{s_b, 1.0}})};
+        EXPECT_THROW([[maybe_unused]] const auto& mm = system.PolynomialLocalizingMatrix(plmIndex),
+                     Moment::errors::missing_component);
+    }
 }

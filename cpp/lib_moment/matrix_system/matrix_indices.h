@@ -174,15 +174,15 @@ namespace Moment {
         [[nodiscard]] const MatrixType& find(const MaintainsMutex::ReadLock& lock, const index_t& index) const {
             assert(this->system.is_locked_read_lock(lock));
 
-            auto where = this->indices.find(index);
-            if (where < 0) {
-                throw Moment::errors::report_missing_matrix(system, index);
+            auto existing_index = this->indices.find(index);
+            if (existing_index < 0) {
+                throw Moment::errors::missing_component(index.to_string(this->system).append(" was not found."));
             }
 
             if constexpr(std::is_same_v<MatrixType, Moment::SymbolicMatrix>) {
-                return this->system[where]; // throws if bad offset.
+                return this->system[existing_index]; // throws if bad offset.
             } else {
-                return dynamic_cast<MatrixType&>(this->system.matrices[where]); // throws if bad offset.
+                return dynamic_cast<const MatrixType&>(this->system.get(existing_index));// throws if bad offset / cast
             }
         }
 
@@ -196,7 +196,7 @@ namespace Moment {
 
         [[nodiscard]] inline const MatrixType& operator()(const index_t& index) const {
             auto read_lock = this->system.get_read_lock();
-            return this->find(index);
+            return this->find(read_lock, index);
             // ~read_lock
         }
 

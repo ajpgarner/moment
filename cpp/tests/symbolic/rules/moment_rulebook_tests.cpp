@@ -1085,4 +1085,16 @@ namespace Moment::Tests {
         EXPECT_EQ(inAnotInB, BsupersetA);
         EXPECT_EQ(inBnotInA, AsupersetB);
     }
+
+    TEST_F(Symbolic_MomentRulebook, SubstitutedMatrix_NotFound) {
+        const auto& system = this->get_system();
+        EXPECT_THROW([[maybe_unused]] const auto& sm = system.SubstitutedMatrix({5, 5}),
+                     Moment::errors::missing_component);
+
+        auto [mm_id, moment_matrix] = this->get_system().MomentMatrix.create(1);
+
+        EXPECT_THROW([[maybe_unused]] const auto& sm2 = system.SubstitutedMatrix({static_cast<ptrdiff_t>(mm_id), 5}),
+                     Moment::errors::missing_component);
+
+    }
 }

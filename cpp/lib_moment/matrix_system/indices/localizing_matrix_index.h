@@ -9,8 +9,13 @@
 #include "dictionary/operator_sequence.h"
 
 #include <iosfwd>
+#include <string>
 
 namespace Moment {
+
+    class Context;
+    class SymbolTable;
+    class MatrixSystem;
 
     struct LocalizingMatrixIndex {
     public:
@@ -44,6 +49,10 @@ namespace Moment {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const LocalizingMatrixIndex& lmi);
+
+        [[nodiscard]] std::string to_string(const Context& context) const;
+
+        [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const ;
 
     };
 

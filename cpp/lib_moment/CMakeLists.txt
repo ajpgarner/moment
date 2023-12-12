@@ -16,18 +16,16 @@ add_library(lib_moment
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/operator_matrix/is_hermitian.cpp
-        matrix/operator_matrix/localizing_matrix.cpp
-        matrix/operator_matrix/moment_matrix.cpp
         matrix/operator_matrix/operator_matrix.cpp
         matrix/substituted_matrix.cpp
         matrix/symbolic_matrix.cpp
-        matrix_system/localizing_matrix_index.cpp
-        matrix_system/moment_matrix_index.cpp
+        matrix_system/indices/localizing_matrix_index.cpp
+        matrix_system/indices/moment_matrix_index.cpp
         matrix_system/matrix_system.cpp
-        matrix_system/polynomial_localizing_matrix_index.cpp
+        matrix_system/indices/polynomial_localizing_matrix_index.cpp
         matrix_system/rulebook_storage.cpp
         matrix_system/standard_matrix_indices.cpp
-        matrix_system/substituted_matrix_index.cpp
+        matrix_system/indices/substituted_matrix_index.cpp
         multithreading/multithreading.cpp
         probability/collins_gisin.cpp
         probability/full_correlator.cpp
