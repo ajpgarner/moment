@@ -69,10 +69,6 @@ namespace Moment::Pauli {
         return errSS.str();
     }
 
-    std::unique_lock<std::shared_mutex> MonomialCommutatorMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-
     MonomialAnticommutatorMatrixFactory::MonomialAnticommutatorMatrixFactory(MatrixSystem& system)
         : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
@@ -104,9 +100,4 @@ namespace Moment::Pauli {
         errSS << ".";
         return errSS.str();
     }
-
-    std::unique_lock<std::shared_mutex> MonomialAnticommutatorMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-
 }

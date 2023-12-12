@@ -93,8 +93,6 @@ namespace Moment::Pauli {
                     ptrdiff_t offset, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
 
@@ -127,8 +125,6 @@ namespace Moment::Pauli {
                     ptrdiff_t offset, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
 

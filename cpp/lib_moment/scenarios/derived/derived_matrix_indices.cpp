@@ -36,8 +36,4 @@ namespace Moment::Derived {
         ss << "No derived matrix for source index '" << src_offset << "' was found.";
         return ss.str();
     }
-
-    std::unique_lock<std::shared_mutex> DerivedMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
 }

@@ -154,8 +154,6 @@ namespace Moment::Pauli {
                     ptrdiff_t offset, MonomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
     static_assert(makes_matrices<MonomialCommutatorMatrixFactory, MonomialMatrix, CommutatorMatrixIndex>);
@@ -185,8 +183,6 @@ namespace Moment::Pauli {
                     ptrdiff_t offset, MonomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
 

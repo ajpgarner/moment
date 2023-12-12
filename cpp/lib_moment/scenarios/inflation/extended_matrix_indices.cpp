@@ -100,10 +100,4 @@ namespace Moment::Inflation {
         }
         return errSS.str();
     }
-
-    MaintainsMutex::WriteLock ExtendedMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-
-
 }

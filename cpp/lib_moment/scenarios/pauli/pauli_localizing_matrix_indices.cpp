@@ -42,10 +42,4 @@ namespace Moment::Pauli {
         errSS << ".";
         return errSS.str();
     }
-
-    MaintainsMutex::WriteLock PauliLocalizingMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-
-
 }

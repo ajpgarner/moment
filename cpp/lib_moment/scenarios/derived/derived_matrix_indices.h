@@ -38,8 +38,6 @@ namespace Moment::Derived {
                     ptrdiff_t target_offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(Index src_offset) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
     /**

@@ -43,8 +43,6 @@ namespace Moment {
         void notify(const MaintainsMutex::WriteLock& lock, size_t index, ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(Index level) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
     /**
@@ -66,8 +64,6 @@ namespace Moment {
         void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& lmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
     /**
@@ -90,8 +86,6 @@ namespace Moment {
                     ptrdiff_t offset, PolynomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const PolynomialLMIndex& pmi) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
     /**
@@ -114,8 +108,6 @@ namespace Moment {
                     ptrdiff_t offset, SymbolicMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
-
-        [[nodiscard]] std::unique_lock<std::shared_mutex> get_write_lock();
     };
 
 }

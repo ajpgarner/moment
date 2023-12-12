@@ -211,10 +211,6 @@ namespace Moment::Pauli {
         return errSS.str();
     }
 
-    std::unique_lock<std::shared_mutex> PolynomialCommutatorMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-    
     PolynomialAnticommutatorMatrixFactory::PolynomialAnticommutatorMatrixFactory(MatrixSystem& system)
         : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
@@ -253,9 +249,4 @@ namespace Moment::Pauli {
 
         return errSS.str();
     }
-
-    std::unique_lock<std::shared_mutex> PolynomialAnticommutatorMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
-    }
-
 }

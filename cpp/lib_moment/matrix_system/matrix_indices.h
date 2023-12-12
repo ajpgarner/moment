@@ -47,7 +47,6 @@ namespace Moment {
                   const index_t& index, ptrdiff_t offset, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
                   const std::unique_lock<std::shared_mutex>& const_lock,
                   const Multithreading::MultiThreadPolicy& mt_policy) {
-            {factory.get_write_lock()};
             {factory(lock, index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
             {factory.notify(const_lock, index, offset, matrix_ref)};
             {const_factory.not_found_msg(index)} -> std::convertible_to<std::string>;
@@ -104,7 +103,7 @@ namespace Moment {
         [[nodiscard]] std::pair<size_t, matrix_t&>
         create(const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
             // Get write lock from factory.
-            auto lock = matrixFactory.get_write_lock();
+            auto lock = this->system.get_write_lock();
             return this->create(lock, index, mt_policy); //~ releases lock
         }
 
@@ -189,15 +188,13 @@ namespace Moment {
             return this->indices.contains(index);
         }
 
-
-
         [[nodiscard]] inline const MatrixType& operator()(const index_t& index) const {
             return this->find(index);
         }
 
         [[nodiscard]] inline MatrixType& operator()(const index_t& index,
                                                     const MTPolicy mt_policy = MTPolicy::Optional) {
-            auto lock = matrixFactory.get_write_lock();
+            auto lock = this->system.get_write_lock();
             auto [offset, matrix] = this->create(lock, index, mt_policy);
             return matrix; // ~releases lock
         }

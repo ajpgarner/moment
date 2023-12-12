@@ -45,8 +45,6 @@ namespace Moment::Pauli {
                     ptrdiff_t offset, MonomialMatrix& matrix);
 
         [[nodiscard]] std::string not_found_msg(const Index& index) const;
-
-        MaintainsMutex::WriteLock get_write_lock();
     };
 
     static_assert(makes_matrices<PauliMomentMatrixFactory, MonomialMatrix, PauliMomentMatrixIndex>);

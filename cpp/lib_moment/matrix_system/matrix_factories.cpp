@@ -39,11 +39,6 @@ namespace Moment {
         return errSS.str();
     }
 
-    std::unique_lock<std::shared_mutex> MomentMatrixFactory::get_write_lock() {
-        return system.get_write_lock();
-    }
-
-
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
     LocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, const LocalizingMatrixIndex& lmi,
@@ -68,9 +63,6 @@ namespace Moment {
         return errSS.str();
     }
 
-    std::unique_lock<std::shared_mutex> LocalizingMatrixFactory::get_write_lock() {
-        return system.get_write_lock();
-    }
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
     PolynomialLocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
@@ -100,10 +92,6 @@ namespace Moment {
                << "\" has not yet been generated.";
 
         return errSS.str();
-    }
-
-    std::unique_lock<std::shared_mutex> PolynomialLocalizingMatrixFactory::get_write_lock() {
-        return this->system.get_write_lock();
     }
 
 
@@ -147,10 +135,6 @@ namespace Moment {
                   << " to matrix index " << source_index << " has not yet been generated.";
         }
         return errSS.str();
-    }
-
-    std::unique_lock<std::shared_mutex> SubstitutedMatrixFactory::get_write_lock() {
-        return system.get_write_lock();
     }
 
     /** Ensure MomentMatrixFactory meets concept. */
