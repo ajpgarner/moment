@@ -3,6 +3,10 @@
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
+ *
+ * Generic types, allows for access of a subset of MatrixSystem matrices via a subset-specific index, or invoke creation
+ * of said matrices, parameterized by this index.
+ *
  */
 
 #pragma once
@@ -10,15 +14,14 @@
 #include "integer_types.h"
 #include "matrix_system_errors.h"
 
+#include "multithreading/maintains_mutex.h"
 #include "multithreading/multithreading.h"
 
 #include <cassert>
 #include <concepts>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <shared_mutex>
 #include <string>
+#include <utility>
 
 namespace Moment {
     class SymbolicMatrix;
@@ -44,27 +47,27 @@ namespace Moment {
     concept makes_matrices =
         std::is_same_v<typename factory_t::Index, index_t> &&
         requires (factory_t& factory, const factory_t& const_factory,
-                  const index_t& index, ptrdiff_t offset, matrix_t& matrix_ref, std::unique_lock<std::shared_mutex>& lock,
-                  const std::unique_lock<std::shared_mutex>& const_lock,
+                  const index_t& index, ptrdiff_t offset, matrix_t& matrix_ref, MaintainsMutex::WriteLock& lock,
+                  const MaintainsMutex::WriteLock& write_lock,
                   const Multithreading::MultiThreadPolicy& mt_policy) {
             {factory(lock, index, mt_policy)} -> std::convertible_to<std::pair<ptrdiff_t, matrix_t&>>;
-            {factory.notify(const_lock, index, offset, matrix_ref)};
-            {const_factory.not_found_msg(index)} -> std::convertible_to<std::string>;
+            {factory.notify(write_lock, index, offset, matrix_ref)};
         };
 
     /**
-     * Maps a sub-set of matrices from MatrixSystem, with a custom index, to the storage location of said matrices.
+     * Generic type, allows for access of a subset of MatrixSystem matrices via a subset-specific index.
      * @tparam matrix_t The matrix type.
      * @tparam index_t The index type.
      * @tparam index_storage_t Container for storing indices.
-     * @tparam index_info_t Description for indices.
+     * @tparam factory_t An object that can construct new versions of matrices from their index.
+     * @tparam matrix_system_t The explicit matrix system type.
      */
     template<typename matrix_t,
             typename index_t,
             stores_indices<index_t> index_storage_t,
             makes_matrices<matrix_t, index_t> factory_t,
             typename matrix_system_t>
-    class MatrixIndices {
+    class MatrixIndices final {
     public:
 
         using MatrixSystemType = matrix_system_t;
@@ -76,8 +79,8 @@ namespace Moment {
         friend MatrixSystemType;
 
     private:
-        IndexStorage indices;
         matrix_system_t& system;
+        IndexStorage indices;
         FactoryType matrixFactory;
 
     public:
@@ -104,7 +107,8 @@ namespace Moment {
         create(const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
             // Get write lock from factory.
             auto lock = this->system.get_write_lock();
-            return this->create(lock, index, mt_policy); //~ releases lock
+            return this->create(lock, index, mt_policy);
+            //~ releases lock
         }
 
         /**
@@ -114,12 +118,12 @@ namespace Moment {
          * @return Offset of the matrix within the matrix system, and reference to the matrix.
          */
         [[nodiscard]] std::pair<size_t, matrix_t&>
-        create(std::unique_lock<std::shared_mutex>& lock,
-               const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
+        create(MaintainsMutex::WriteLock& lock, const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
             // Must hold write lock
             assert(this->system.is_locked_write_lock(lock));
 
-            // Does matrix supposedly already exist?
+            // Does matrix supposedly already exist? [NB: Even if we just checked, we must include this, as part of the
+            //  double-checked locking paradigm, as the matrix might have been created in a race].
             auto existing = this->indices.find(index);
             if (existing >= 0) {
                 try {
@@ -149,7 +153,7 @@ namespace Moment {
         /**
          * Register existing matrix at specified index
          */
-        [[nodiscard]] ptrdiff_t insert_alias(const std::unique_lock<std::shared_mutex>& lock,
+        [[nodiscard]] ptrdiff_t insert_alias(const MaintainsMutex::WriteLock& lock,
                                              const index_t& index, const ptrdiff_t matrix_offset) {
             // Must hold write lock
             assert(this->system.is_locked_write_lock(lock));
@@ -164,13 +168,15 @@ namespace Moment {
         /**
          * Retrieve matrix with requested index.
          * @param index The description of the matrix.
-         * @return Offset of the matrix within the matrix system, and reference to the matrix.
+         * @return Reference to the found matrix.
          * @throws Moment::errors::missing_component if no matrix exists at index.
          */
-        [[nodiscard]] const MatrixType& find(const index_t& index) const {
+        [[nodiscard]] const MatrixType& find(const MaintainsMutex::ReadLock& lock, const index_t& index) const {
+            assert(this->system.is_locked_read_lock(lock));
+
             auto where = this->indices.find(index);
             if (where < 0) {
-                throw Moment::errors::missing_component(matrixFactory.not_found_msg(index));
+                throw Moment::errors::report_missing_matrix(system, index);
             }
 
             if constexpr(std::is_same_v<MatrixType, Moment::SymbolicMatrix>) {
@@ -189,54 +195,36 @@ namespace Moment {
         }
 
         [[nodiscard]] inline const MatrixType& operator()(const index_t& index) const {
+            auto read_lock = this->system.get_read_lock();
             return this->find(index);
+            // ~read_lock
         }
 
-        [[nodiscard]] inline MatrixType& operator()(const index_t& index,
+        [[nodiscard]] inline const MatrixType& operator()(const index_t& index,
                                                     const MTPolicy mt_policy = MTPolicy::Optional) {
-            auto lock = this->system.get_write_lock();
-            auto [offset, matrix] = this->create(lock, index, mt_policy);
-            return matrix; // ~releases lock
+            // Attempt to access with read lock
+            auto read_lock = this->system.get_read_lock();
+            auto existing_index = this->indices.find(index);
+            if (existing_index >= 0) {
+                try {
+                    if constexpr (std::is_same_v<MatrixType, Moment::SymbolicMatrix>) {
+                        return this->system.get(existing_index);
+                    } else {
+                        return dynamic_cast<MatrixType&>(this->system.get(existing_index));
+                    }
+                } catch (const errors::missing_component& mce) {
+                    throw std::runtime_error{"Index for matrix was found, but matrix was invalid."};
+                } catch (const std::bad_cast& bad_cast) {
+                    throw std::runtime_error{"Index for matrix was found, but matrix was of invalid type."};
+                }
+            }
+
+            // Did not find with read lock, so move on to creation:
+            read_lock.unlock();
+            auto write_lock = this->system.get_write_lock();
+            auto [offset, matrix] = this->create(write_lock, index, mt_policy);
+            return matrix; // ~write_lock
         }
 
     };
-
-    /**
-     * Matrix index storage using std::map directly.
-     */
-    template<typename index_t>
-    class MatrixIndexViaStdMap {
-    public:
-        using Index = index_t;
-
-    private:
-        std::map<Index, ptrdiff_t> the_map;
-
-    public:
-        [[nodiscard]] inline ptrdiff_t find(const Index& index) const noexcept {
-            auto where = the_map.find(index);
-            return (where == the_map.cend()) ? -1 : where->second;
-        }
-
-        [[nodiscard]] inline bool contains(const Index& index) const noexcept {
-            return the_map.contains(index);
-        }
-
-        [[nodiscard]] inline auto insert(const Index& index, ptrdiff_t offset)  {
-            auto [where, did_insert] = the_map.emplace(index, offset);
-            return std::make_pair(where->second, did_insert);
-        }
-    };
-    static_assert(stores_indices<MatrixIndexViaStdMap<int>, int>);
-
-    /**
-     * Alias for matrix indices backed by std::map.
-     */
-    template<typename matrix_t,
-            typename index_t,
-            makes_matrices<matrix_t, index_t> factory_t,
-            typename matrix_system_t>
-    using MappedMatrixIndices = MatrixIndices<matrix_t, index_t, MatrixIndexViaStdMap<index_t>,
-                                              factory_t, matrix_system_t>;
-
 }

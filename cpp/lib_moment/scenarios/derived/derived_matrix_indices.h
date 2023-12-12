@@ -12,16 +12,32 @@
 
 #include "multithreading/maintains_mutex.h"
 
+#include <iosfwd>
+
 namespace Moment::Derived {
 
     class DerivedMatrixSystem;
+
+    struct DerivedMatrixIndex {
+        size_t SourceIndex;
+
+        /** Allow implicit casting from size_t. */
+        DerivedMatrixIndex(size_t index) : SourceIndex{index} { } // NOLINT(*-explicit-constructor)
+
+        /** Allow implicit casting to size_t. */
+        [[nodiscard]] operator ::std::size_t() const noexcept { // NOLINT(*-explicit-constructor)
+            return this->SourceIndex;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, DerivedMatrixIndex dmi);
+    };
 
     /**
      * Factory: makes derived matrices
      */
     class DerivedMatrixFactory {
     public:
-        using Index = size_t;
+        using Index = DerivedMatrixIndex;
 
     private:
         DerivedMatrixSystem& system;
@@ -34,16 +50,14 @@ namespace Moment::Derived {
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, Index src_offset, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, size_t src_offset,
+        void notify(const MaintainsMutex::WriteLock& lock, Index src_offset,
                     ptrdiff_t target_offset, SymbolicMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(Index src_offset) const;
     };
 
     /**
      * Stores derived matrices by their source index.
      */
-    using DerivedMatrixIndices = MatrixIndices<SymbolicMatrix, size_t, VectorIndexStorage,
-                                               DerivedMatrixFactory, DerivedMatrixSystem>;
+    using DerivedMatrixIndices = VectorMatrixIndices<SymbolicMatrix, DerivedMatrixIndex,
+                                                     DerivedMatrixFactory, DerivedMatrixSystem>;
 
 }

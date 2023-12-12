@@ -193,23 +193,7 @@ namespace Moment::Pauli {
         this->system.on_new_commutator_matrix(lock, index, offset, matrix);
     }
 
-    std::string PolynomialCommutatorMatrixFactory::not_found_msg(
-            const PolynomialCommutatorMatrixFactory::Index& pmi) const {
-        std::stringstream errSS;
-        ContextualOS cErrSS{errSS, system.Context(), system.Symbols()};
-        cErrSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-        cErrSS.format_info.show_braces = false;
 
-        cErrSS << "Commutator matrix of Level " << pmi.Level.moment_matrix_level;
-        if (pmi.Level.neighbours > 0 ) {
-            errSS << " restricted to " << pmi.Level.neighbours
-                  << " nearest neighbour" << ((pmi.Level.neighbours != 1) ? "s" : "");
-        }
-        cErrSS << " for polynomial \"" << pmi.Polynomial
-               << "\" has not yet been generated.";
-
-        return errSS.str();
-    }
 
     PolynomialAnticommutatorMatrixFactory::PolynomialAnticommutatorMatrixFactory(MatrixSystem& system)
         : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
@@ -232,21 +216,40 @@ namespace Moment::Pauli {
         this->system.on_new_anticommutator_matrix(lock, index, offset, matrix);
     }
 
-    std::string PolynomialAnticommutatorMatrixFactory::not_found_msg(
-            const PolynomialAnticommutatorMatrixFactory::Index& pmi) const {
-        std::stringstream errSS;
-        ContextualOS cErrSS{errSS, system.Context(), system.Symbols()};
-        cErrSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-        cErrSS.format_info.show_braces = false;
-
-        cErrSS << "Anticommutator matrix of Level " << pmi.Level.moment_matrix_level;
-        if (pmi.Level.neighbours > 0 ) {
-            errSS << " restricted to " << pmi.Level.neighbours
-                  << " nearest neighbour" << ((pmi.Level.neighbours != 1) ? "s" : "");
-        }
-        cErrSS << " for polynomial \"" << pmi.Polynomial
-               << "\" has not yet been generated.";
-
-        return errSS.str();
-    }
+//    std::string PolynomialCommutatorMatrixFactory::not_found_msg(
+//            const PolynomialCommutatorMatrixFactory::Index& pmi) const {
+//        std::stringstream errSS;
+//        ContextualOS cErrSS{errSS, system.Context(), system.Symbols()};
+//        cErrSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+//        cErrSS.format_info.show_braces = false;
+//
+//        cErrSS << "Commutator matrix of Level " << pmi.Level.moment_matrix_level;
+//        if (pmi.Level.neighbours > 0 ) {
+//            errSS << " restricted to " << pmi.Level.neighbours
+//                  << " nearest neighbour" << ((pmi.Level.neighbours != 1) ? "s" : "");
+//        }
+//        cErrSS << " for polynomial \"" << pmi.Polynomial
+//               << "\" has not yet been generated.";
+//
+//        return errSS.str();
+//    }
+//
+//    std::string PolynomialAnticommutatorMatrixFactory::not_found_msg(
+//            const PolynomialAnticommutatorMatrixFactory::Index& pmi) const {
+//        std::stringstream errSS;
+//        ContextualOS cErrSS{errSS, system.Context(), system.Symbols()};
+//        cErrSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
+//        cErrSS.format_info.show_braces = false;
+//
+//        cErrSS << "Anticommutator matrix of Level " << pmi.Level.moment_matrix_level;
+//        if (pmi.Level.neighbours > 0 ) {
+//            errSS << " restricted to " << pmi.Level.neighbours
+//                  << " nearest neighbour" << ((pmi.Level.neighbours != 1) ? "s" : "");
+//        }
+//        cErrSS << " for polynomial \"" << pmi.Polynomial
+//               << "\" has not yet been generated.";
+//
+//        return errSS.str();
+//    }
+//
 }

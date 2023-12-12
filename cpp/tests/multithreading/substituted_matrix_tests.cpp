@@ -79,7 +79,8 @@ namespace Moment::Tests {
         ASSERT_TRUE(rulebook.is_monomial());
 
         // Do MT substitution
-        auto [sub_id, sub_mm] = system.SubstitutedMatrix.create({mm_id, rb_id}, MultiThreadPolicy::Always);
+        auto [sub_id, sub_mm] = system.SubstitutedMatrix.create(SubstitutedMatrixIndex{mm_id, rb_id},
+                                                                MultiThreadPolicy::Always);
         EXPECT_EQ(sub_id, 1);
         EXPECT_EQ(sub_mm.Dimension(), 3);
         EXPECT_TRUE(sub_mm.is_monomial());

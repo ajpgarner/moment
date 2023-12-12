@@ -13,11 +13,17 @@
 #include <sstream>
 
 namespace Moment::Derived {
+
+    std::ostream& operator<<(std::ostream& os, DerivedMatrixIndex dmi) {
+        os << "Derived matrix for source index " << dmi.SourceIndex;
+        return os;
+    }
+
     DerivedMatrixFactory::DerivedMatrixFactory(MatrixSystem& system)
         : system{dynamic_cast<DerivedMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, SymbolicMatrix&>
-    DerivedMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, DerivedMatrixFactory::Index src_offset,
+    DerivedMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, Index src_offset,
                                      Multithreading::MultiThreadPolicy mt_policy) {
 
         auto derived_matrix = this->system.create_derived_matrix(lock, src_offset, mt_policy);
@@ -26,14 +32,9 @@ namespace Moment::Derived {
         return {matrix_offset, matrix_ref};
     }
 
-    void DerivedMatrixFactory::notify(const MaintainsMutex::WriteLock& lock, size_t src_offset, ptrdiff_t target_offset,
-                                      SymbolicMatrix& target_matrix) {
+    void DerivedMatrixFactory::notify(const MaintainsMutex::WriteLock& lock, Index src_offset,
+                                      ptrdiff_t target_offset, SymbolicMatrix& target_matrix) {
         this->system.on_new_derived_matrix(lock, src_offset, target_offset, target_matrix);
     }
 
-    std::string DerivedMatrixFactory::not_found_msg(DerivedMatrixFactory::Index src_offset) const {
-        std::stringstream ss;
-        ss << "No derived matrix for source index '" << src_offset << "' was found.";
-        return ss.str();
-    }
 }

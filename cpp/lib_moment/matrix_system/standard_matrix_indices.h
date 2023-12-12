@@ -1,5 +1,7 @@
 /**
- * matrix_factories.h
+ * standard_matrix_factories.h
+ *
+ * Specific MatrixFactories that appear in all MatrixSystems.
  *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -7,8 +9,16 @@
 
 #pragma once
 
+#include "matrix_indices.h"
+
 #include "localizing_matrix_index.h"
+#include "moment_matrix_index.h"
+#include "substituted_matrix_index.h"
 #include "polynomial_localizing_matrix_index.h"
+
+#include "map_index_storage.h"
+#include "polynomial_index_storage.h"
+#include "vector_index_storage.h"
 
 #include "multithreading/multithreading.h"
 #include "multithreading/maintains_mutex.h"
@@ -16,7 +26,6 @@
 #include <shared_mutex>
 #include <string>
 #include <utility>
-
 
 namespace Moment {
 
@@ -29,7 +38,7 @@ namespace Moment {
      */
     class MomentMatrixFactory {
     public:
-        using Index = size_t;
+        using Index = MomentMatrixIndex;
 
     private:
         MatrixSystem& system;
@@ -40,10 +49,15 @@ namespace Moment {
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
         operator()(MaintainsMutex::WriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
-        void notify(const MaintainsMutex::WriteLock& lock, size_t index, ptrdiff_t offset, SymbolicMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(Index level) const;
+        void notify(const MaintainsMutex::WriteLock& lock, Index index, ptrdiff_t offset, SymbolicMatrix& matrix);
     };
+
+
+    /**
+     * Stores moment matrices by integer hierarchy depth.
+     */
+    using MomentMatrixIndices = VectorMatrixIndices<SymbolicMatrix, MomentMatrixIndex,
+                                                    MomentMatrixFactory, MatrixSystem>;
 
     /**
      * Factory: makes monomial localizing matrices.
@@ -62,9 +76,13 @@ namespace Moment {
         operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, ptrdiff_t offset, SymbolicMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(const Index& lmi) const;
     };
+
+    /**
+     * Stores monomial localizing matrices by localizing words and integer hierarchy depth.
+     */
+    using LocalizingMatrixIndices = MappedMatrixIndices<SymbolicMatrix, LocalizingMatrixIndex,
+            LocalizingMatrixFactory, MatrixSystem>;
 
     /**
       * Factory: makes polynomial localizing matrices.
@@ -84,16 +102,20 @@ namespace Moment {
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, PolynomialMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(const PolynomialLMIndex& pmi) const;
     };
+
+    /**
+     * Stores polynomial localizing matrices by polynomial and integer hierarchy depth.
+     */
+    using PolynomialLMIndices = MatrixIndices<PolynomialMatrix, PolynomialLMIndex, PolynomialIndexStorage,
+            PolynomialLocalizingMatrixFactory, MatrixSystem>;
 
     /**
      * Factory: makes substituted matrices.
      */
     class SubstitutedMatrixFactory {
     public:
-        using Index = std::pair<ptrdiff_t, ptrdiff_t>;
+        using Index = SubstitutedMatrixIndex;
 
     private:
         MatrixSystem& system;
@@ -106,8 +128,11 @@ namespace Moment {
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, SymbolicMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(const Index& index) const;
     };
 
+    /**
+     * Stores substituted matrices by source index and rulebook index.
+     */
+    using SubstitutedMatrixIndices = MappedMatrixIndices<SymbolicMatrix, SubstitutedMatrixIndex,
+            SubstitutedMatrixFactory, MatrixSystem>;
 }

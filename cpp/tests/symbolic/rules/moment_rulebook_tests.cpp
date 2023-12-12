@@ -906,7 +906,7 @@ namespace Moment::Tests {
         book.inject(id_b, Polynomial::Scalar(3.0)); // B -> 3
 
         // Rewrite moment matrix with known values
-        auto [sub_id, sub_matrix] = ams.SubstitutedMatrix.create(std::make_pair(mm_id, rb_id));
+        auto [sub_id, sub_matrix] = ams.SubstitutedMatrix.create(SubstitutedMatrixIndex(mm_id, rb_id));
 
         // Test matrix object is unique
         ASSERT_NE(mm_id, sub_id);
@@ -927,7 +927,7 @@ namespace Moment::Tests {
         EXPECT_EQ(sub_symbols(2, 2), Monomial(id_bb));
 
         // Check aliasing/caching
-        const auto& sub_matrix_alias = ams.SubstitutedMatrix(std::make_pair(mm_id, rb_id));
+        const auto& sub_matrix_alias = ams.SubstitutedMatrix(SubstitutedMatrixIndex(mm_id, rb_id));
         EXPECT_EQ(&sub_matrix_alias.context, &context);
         ASSERT_EQ(&sub_matrix_alias, &sub_matrix);
     }

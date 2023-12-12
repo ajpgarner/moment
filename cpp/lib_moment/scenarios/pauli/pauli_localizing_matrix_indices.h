@@ -7,13 +7,15 @@
 #pragma once
 
 #include "dictionary/operator_sequence.h"
+
+#include "matrix_system/localizing_matrix_index.h"
 #include "matrix_system/matrix_indices.h"
+#include "matrix_system/map_index_storage.h"
 
 #include "multithreading/maintains_mutex.h"
 
 #include "integer_types.h"
 #include "nearest_neighbour_index.h"
-#include "matrix_system/localizing_matrix_index.h"
 
 #include <set>
 #include <vector>

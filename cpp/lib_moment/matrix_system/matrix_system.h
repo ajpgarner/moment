@@ -8,13 +8,13 @@
 #pragma once
 
 #include "matrix_system_errors.h"
-#include "matrix_system_indices.h"
+#include "standard_matrix_indices.h"
 #include "rulebook_storage.h"
 
-#include "multithreading/multithreading.h"
+#include "dictionary/raw_polynomial.h"
 
 #include "multithreading/maintains_mutex.h"
-#include "dictionary/raw_polynomial.h"
+#include "multithreading/multithreading.h"
 
 #include <map>
 #include <memory>
@@ -39,32 +39,32 @@ namespace Moment {
      */
     class MatrixSystem : public MaintainsMutex {
     private:
-        /** The operator context */
+        /** The operator context. */
         std::unique_ptr<class Context> context;
 
-        /** Map from symbols to operator sequences, and real/imaginary indices */
+        /** Map from symbols to operator sequences, and real/imaginary indices. */
         std::unique_ptr<SymbolTable> symbol_table;
 
-        /** Factory object for constructing polynomials */
+        /** Factory object for constructing polynomials. */
         std::unique_ptr<PolynomialFactory> poly_factory;
 
         /** List of matrices in the system. */
         std::vector<std::unique_ptr<SymbolicMatrix>> matrices;
 
     public:
-        /** Indexed moment matrices */
+        /** Indexed moment matrices. */
         MomentMatrixIndices MomentMatrix;
 
-        /** Indexed localizing matrices  */
+        /** Indexed localizing matrices.  */
         LocalizingMatrixIndices LocalizingMatrix;
 
-        /** Indexed polynomial localizing matrices */
+        /** Indexed polynomial localizing matrices. */
         PolynomialLMIndices PolynomialLocalizingMatrix;
 
-        /** Indexed substituted matrices */
+        /** Indexed substituted matrices. */
         SubstitutedMatrixIndices SubstitutedMatrix;
 
-        /** Moment substitution rulebooks */
+        /** Moment substitution rulebooks. */
         RulebookStorage Rulebook;
 
     public:

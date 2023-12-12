@@ -91,8 +91,6 @@ namespace Moment::Pauli {
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, PolynomialMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
     };
 
 
@@ -123,8 +121,6 @@ namespace Moment::Pauli {
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, PolynomialMatrix& matrix);
-
-        [[nodiscard]] std::string not_found_msg(const Index& pmi) const;
     };
 
 

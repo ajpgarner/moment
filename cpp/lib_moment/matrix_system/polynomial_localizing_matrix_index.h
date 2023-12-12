@@ -93,7 +93,9 @@ namespace Moment {
         [[nodiscard]] MLMRange MonomialIndices(const SymbolTable& symbols) const noexcept {
             return MLMRange{symbols, this->Level, this->Polynomial};
         }
+
     };
 
     using PolynomialLMIndex = PolynomialLMIndexBase<size_t, LocalizingMatrixIndex>;
+    std::ostream& operator<<(std::ostream& os, const PolynomialLMIndex& plmi);
 }

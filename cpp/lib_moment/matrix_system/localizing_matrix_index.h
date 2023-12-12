@@ -8,6 +8,8 @@
 
 #include "dictionary/operator_sequence.h"
 
+#include <iosfwd>
+
 namespace Moment {
 
     struct LocalizingMatrixIndex {
@@ -37,9 +39,12 @@ namespace Moment {
         /**
          * Gets part of index that can be used to call for an OSG associated with localizing matrix.
          */
-        [[nodiscard]] constexpr friend size_t get_osg_index(const LocalizingMatrixIndex& lmi) {
+        [[nodiscard]] constexpr inline friend size_t get_osg_index(const LocalizingMatrixIndex& lmi) {
             return lmi.Level;
         }
+
+        friend std::ostream& operator<<(std::ostream& os, const LocalizingMatrixIndex& lmi);
+
     };
 
 }
