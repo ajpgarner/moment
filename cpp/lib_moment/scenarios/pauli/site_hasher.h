@@ -748,6 +748,19 @@ namespace Moment::Pauli {
                                           : do_canonical_hash<true>(sequence);
         }
 
+        /**
+         * Returns the minimum offset that results in an aliased hash, or chain length if no aliases.
+         * If sequence is empty, result will be (trivially) 1.
+         */
+        [[nodiscard]] size_t first_chain_alias(const Datum& input) const noexcept {
+            for (size_t offset = 1; offset < this->qubits; ++offset) {
+                if (input == SiteHasherSized<num_slides>::cyclic_shift(input, offset)) {
+                    return offset;
+                }
+            }
+            return this->qubits;
+        }
+
 
     private:
         template<bool is_lattice_mode>

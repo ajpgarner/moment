@@ -32,7 +32,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher.column_height, 5);
         EXPECT_EQ(hasher.row_width, 1);
 
-        EXPECT_EQ(hasher(context.identity()),0x0000000000000000);
+        EXPECT_EQ(hasher(context.identity()), 0x0000000000000000);
         EXPECT_EQ(hasher(context.sigmaX(0)), 0x0000000000000001);
         EXPECT_EQ(hasher(context.sigmaY(0)), 0x0000000000000002);
         EXPECT_EQ(hasher(context.sigmaZ(0)), 0x0000000000000003);
@@ -48,7 +48,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_SiteHasher, Hash_Medium) {
         PauliContext context{40};
-        SiteHasher<2> hasher{40 ,1};
+        SiteHasher<2> hasher{40, 1};
         ASSERT_EQ(hasher.qubits_per_slide, 32);
 
         EXPECT_EQ(hasher(context.identity()),
@@ -67,7 +67,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher(context.sigmaY(16)),
                   (std::array<uint64_t, 2>{0x0000000200000000, 0}));
         EXPECT_EQ(hasher(context.sigmaZ(16)),
-                  (std::array<uint64_t, 2>{ 0x0000000300000000, 0}));
+                  (std::array<uint64_t, 2>{0x0000000300000000, 0}));
 
 
         EXPECT_EQ(hasher(context.sigmaX(32)),
@@ -122,7 +122,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher(context.sigmaY(16)),
                   (std::array<uint64_t, 3>{0x0000000200000000, 0, 0}));
         EXPECT_EQ(hasher(context.sigmaZ(16)),
-                  (std::array<uint64_t, 3>{ 0x0000000300000000, 0, 0}));
+                  (std::array<uint64_t, 3>{0x0000000300000000, 0, 0}));
 
 
         EXPECT_EQ(hasher(context.sigmaX(32)),
@@ -256,7 +256,7 @@ namespace Moment::Tests {
 
             // Two qubit
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(3))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+3)%32))))
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 3) % 32))))
                                 << " shift_index = " << shift_index;
         }
     }
@@ -274,7 +274,7 @@ namespace Moment::Tests {
 
             // Two qubit
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(3))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+3)%25))))
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 3) % 25))))
                                 << " shift_index = " << shift_index;
         }
     }
@@ -300,14 +300,14 @@ namespace Moment::Tests {
         // Two qubit shifts
         for (size_t shift_index = 0; shift_index < 64; ++shift_index) {
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(3))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+3)%64))))
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 3) % 64))))
                                 << " shift_index = " << shift_index;
         }
 
         // Trickier two qubit shifts
         for (size_t shift_index = 0; shift_index < 64; ++shift_index) {
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(31))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+31)%64))))
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 31) % 64))))
                                 << " shift_index = " << shift_index;
         }
 
@@ -328,15 +328,15 @@ namespace Moment::Tests {
         // Two qubit shifts
         for (size_t shift_index = 0; shift_index < 40; ++shift_index) {
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(3))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+3)%40))))
-                      << " shift_index = " << shift_index;
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 3) % 40))))
+                                << " shift_index = " << shift_index;
         }
 
         // Trickier two qubit shifts
         for (size_t shift_index = 0; shift_index < 40; ++shift_index) {
             EXPECT_EQ(hasher.cyclic_shift(hasher((context.sigmaX(0) * context.sigmaY(31))), shift_index),
-                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index+31)%40))))
-                      << " shift_index = " << shift_index;
+                      hasher((context.sigmaX(shift_index) * context.sigmaY((shift_index + 31) % 40))))
+                                << " shift_index = " << shift_index;
         }
     }
 
@@ -453,14 +453,14 @@ namespace Moment::Tests {
 
         EXPECT_EQ(hasher.boundary_info.wrap_column, 6); // col 6 begins at 60 (inc.) of LHS
         EXPECT_EQ(hasher.boundary_info.lhs_anti_offset, 60); // begins at 60 (inc.) of LHS
-        EXPECT_EQ(hasher.boundary_info.lhs_mask,   0xf000000000000000); // last first 4 bits set
+        EXPECT_EQ(hasher.boundary_info.lhs_mask, 0xf000000000000000); // last first 4 bits set
         EXPECT_EQ(hasher.boundary_info.rhs_offset, 4); // Make space for those 2 qubits on LHS.
         EXPECT_EQ(hasher.boundary_info.rhs_mask, 0x0000000000000003f); // first 6 bits set
 
         for (size_t col_id = 0; col_id < 10; ++col_id) {
             EXPECT_EQ(hasher.extract_column(hasher(context.sigmaX(0, col_id) * context.sigmaZ(4, col_id)), col_id),
                       hasher(context.sigmaX(0, 0) * context.sigmaZ(4, 0))[0])
-                << "col = " << col_id;
+                                << "col = " << col_id;
         }
     }
 
@@ -473,7 +473,7 @@ namespace Moment::Tests {
         for (size_t col_id = 0; col_id < 12; ++col_id) {
             EXPECT_EQ(hasher.extract_column(hasher(context.sigmaX(0, col_id) * context.sigmaZ(4, col_id)), col_id),
                       hasher(context.sigmaX(0, 0) * context.sigmaZ(4, 0))[0])
-                << "col = " << col_id;
+                                << "col = " << col_id;
         }
 
     }
@@ -487,7 +487,7 @@ namespace Moment::Tests {
         for (size_t col_id = 0; col_id < 14; ++col_id) {
             EXPECT_EQ(hasher.extract_column(hasher(context.sigmaX(0, col_id) * context.sigmaZ(4, col_id)), col_id),
                       hasher(context.sigmaX(0, 0) * context.sigmaZ(4, 0))[0])
-                << "col = " << col_id;
+                                << "col = " << col_id;
         }
 
     }
@@ -500,9 +500,9 @@ namespace Moment::Tests {
             EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 0)), 0),
                       hasher(context.sigmaX(row_id, 0))) << "row = " << row_id;
             EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 0)), 1),
-                      hasher(context.sigmaX((row_id+1)%4, 0))) << "row = " << row_id;
+                      hasher(context.sigmaX((row_id + 1) % 4, 0))) << "row = " << row_id;
             EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, 1)), 1),
-                      hasher(context.sigmaX((row_id+1)%4, 1))) << "row = " << row_id;
+                      hasher(context.sigmaX((row_id + 1) % 4, 1))) << "row = " << row_id;
         }
     }
 
@@ -510,23 +510,24 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_MediumUnaligned) {
         const size_t column_height = 12;
         const size_t column_count = 4;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 12x4 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational}; // 12x4 wrapping grid
         SiteHasher<2> hasher{12, 4};
         EXPECT_EQ(hasher.column_height, 12);
         EXPECT_EQ(hasher.row_width, 4);
 
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
                 EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
                           hasher(context.sigmaX(row_id, col_id)))
-                          << "row = " << row_id << ", col = " << col_id;
+                                    << "row = " << row_id << ", col = " << col_id;
 
                 // Shift by 1
                 EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 1),
                           hasher(context.sigmaX((row_id + 1) % column_height, col_id)))
-                          << "row = " << row_id << ", col = " << col_id;
+                                    << "row = " << row_id << ", col = " << col_id;
             }
         }
     }
@@ -539,7 +540,7 @@ namespace Moment::Tests {
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 8);
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
                 EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
@@ -558,13 +559,14 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerAligned) {
         const size_t column_height = 8;
         const size_t column_count = 10;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 7x10 wrapping grid
-        SiteHasher<3>  hasher{8, 10};
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational}; // 7x10 wrapping grid
+        SiteHasher<3> hasher{8, 10};
         EXPECT_EQ(hasher.column_height, 8);
         EXPECT_EQ(hasher.row_width, 10);
 
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
                 EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
@@ -582,10 +584,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, RowCyclicShift_LargerUnaligned) {
         const size_t column_height = 7;
         const size_t column_count = 10;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 7x10 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational}; // 7x10 wrapping grid
         SiteHasher<3> hasher{7, 10};
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
                 // Idempotent
                 EXPECT_EQ(hasher.row_cyclic_shift(hasher(context.sigmaX(row_id, col_id)), 0),
@@ -603,10 +606,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Small) {
         const size_t column_height = 4;
         const size_t column_count = 4;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 4x4 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational}; // 4x4 wrapping grid
         SiteHasher<1> hasher{4, 4};
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
 
                 // Single Pauli
@@ -616,18 +620,18 @@ namespace Moment::Tests {
 
                 // X1 <-> Z2 Horizontal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id + 1) % column_count)))
                                     << "Horizontal, row = " << row_id << ", col = " << col_id;
 
                 // X1 <-> Y5 Vertical
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id + 1) % column_height, col_id)))
                                     << "Vertical, row = " << row_id << ", col = " << col_id;
 
                 // Y1 <-> X6 Diagonal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
                           hasher(context.sigmaY(row_id, col_id)
-                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                 * context.sigmaX((row_id + 1) % column_height, (col_id + 1) % column_count)))
                                     << "Diagonal, row = " << row_id << ", col = " << col_id;
             }
         }
@@ -636,10 +640,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Medium) {
         const size_t column_height = 6;
         const size_t column_count = 6;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational};  // 6x6 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational};  // 6x6 wrapping grid
         SiteHasher<2> hasher{6, 6};
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
 
                 // Single Pauli
@@ -649,18 +654,18 @@ namespace Moment::Tests {
 
                 // X1 <-> Z2 Horizontal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id + 1) % column_count)))
                                     << "Horizontal, row = " << row_id << ", col = " << col_id;
 
                 // X1 <-> Y5 Vertical
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id + 1) % column_height, col_id)))
                                     << "Vertical, row = " << row_id << ", col = " << col_id;
 
                 // Y1 <-> X6 Diagonal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
                           hasher(context.sigmaY(row_id, col_id)
-                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                 * context.sigmaX((row_id + 1) % column_height, (col_id + 1) % column_count)))
                                     << "Diagonal, row = " << row_id << ", col = " << col_id;
             }
         }
@@ -669,10 +674,11 @@ namespace Moment::Tests {
     TEST(Scenarios_Pauli_SiteHasher, LatticeShift_Larger) {
         const size_t column_height = 9;
         const size_t column_count = 9;
-        PauliContext context{column_height, column_count, WrapType::Wrap, SymmetryType::Translational}; // 9x9 wrapping grid
+        PauliContext context{column_height, column_count, WrapType::Wrap,
+                             SymmetryType::Translational}; // 9x9 wrapping grid
         SiteHasher<3> hasher{9, 9};
 
-        for (size_t row_id = 0; row_id < column_height ; ++row_id) {
+        for (size_t row_id = 0; row_id < column_height; ++row_id) {
             for (size_t col_id = 0; col_id < column_count; ++col_id) {
 
                 // Single Pauli
@@ -682,18 +688,18 @@ namespace Moment::Tests {
 
                 // X1 <-> Z5 Horizontal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaZ(0, 1)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id+1)% column_count)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaZ(row_id, (col_id + 1) % column_count)))
                                     << "Horizontal, row = " << row_id << ", col = " << col_id;
 
                 // X1 <-> Y2 Vertical
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaX(0, 0) * context.sigmaY(1, 0)), row_id, col_id),
-                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id +1)% column_height, col_id)))
+                          hasher(context.sigmaX(row_id, col_id) * context.sigmaY((row_id + 1) % column_height, col_id)))
                                     << "Vertical, row = " << row_id << ", col = " << col_id;
 
                 // Y1 <-> X6 Diagonal
                 EXPECT_EQ(hasher.lattice_shift(hasher(context.sigmaY(0, 0) * context.sigmaX(1, 1)), row_id, col_id),
                           hasher(context.sigmaY(row_id, col_id)
-                                 * context.sigmaX((row_id +1)% column_height, (col_id+1)% column_count)))
+                                 * context.sigmaX((row_id + 1) % column_height, (col_id + 1) % column_count)))
                                     << "Diagonal, row = " << row_id << ", col = " << col_id;
             }
         }
@@ -746,14 +752,15 @@ namespace Moment::Tests {
             const auto shifted_single_hash = hasher(shifted_single_sequence);
             EXPECT_EQ(hasher.canonical_hash(shifted_single_sequence),
                       std::make_pair(expected_single_hash, shifted_single_hash))
-                      << "site = " << base_index;
+                                << "site = " << base_index;
 
             // Nearest neighbour
-            const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
+            const auto shifted_nn_sequence =
+                    context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
             const auto shifted_nn_hash = hasher(shifted_nn_sequence);
             EXPECT_EQ(hasher.canonical_hash(shifted_nn_sequence),
                       std::make_pair(expected_nn_hash, shifted_nn_hash))
-                      << "site = " << base_index;
+                                << "site = " << base_index;
         }
     }
 
@@ -774,14 +781,15 @@ namespace Moment::Tests {
             const auto shifted_single_hash = hasher(shifted_single_sequence);
             EXPECT_EQ(hasher.canonical_hash(shifted_single_sequence),
                       std::make_pair(expected_single_hash, shifted_single_hash))
-                      << "site = " << base_index;
+                                << "site = " << base_index;
 
             // Nearest neighbour
-            const auto shifted_nn_sequence = context.sigmaX(base_index) * context.sigmaY((base_index+1) % chain_length);
+            const auto shifted_nn_sequence =
+                    context.sigmaX(base_index) * context.sigmaY((base_index + 1) % chain_length);
             const auto shifted_nn_hash = hasher(shifted_nn_sequence);
             EXPECT_EQ(hasher.canonical_hash(shifted_nn_sequence),
                       std::make_pair(expected_nn_hash, shifted_nn_hash))
-                      << "site = " << base_index;
+                                << "site = " << base_index;
         }
     }
 
@@ -818,5 +826,16 @@ namespace Moment::Tests {
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x0000000000000013}));
         EXPECT_EQ(hasher.canonical_hash(context.sigmaX(1, 1) * context.sigmaZ(1, 0)),
                   (std::pair<uint64_t, uint64_t>{0x0000000000000013, 0x000000000000004c}));
+    }
+
+
+    TEST(Scenarios_Pauli_SiteHasher, FirstChainAlias_Small) {
+        SiteHasher<1> hasher{6, 1}; // 6-qubit chain
+        ASSERT_EQ(hasher.qubits, 6);
+
+        EXPECT_EQ(hasher.first_chain_alias(0x0000000000000001), 6);
+        EXPECT_EQ(hasher.first_chain_alias(0x0000000000000041), 3);
+        EXPECT_EQ(hasher.first_chain_alias(0x0000000000000111), 2);
+
     }
 }

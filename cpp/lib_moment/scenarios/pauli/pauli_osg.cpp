@@ -75,9 +75,8 @@ namespace Moment::Pauli {
             for (size_t parties = 2; parties <= word_length; ++parties) {
                 const size_t final_first_party = wrapped ? (context.qubit_size - 1) : (context.qubit_size - parties);
 
-                // Prepare  memory to store offsets and resolution into parties
+                // XXX: Could have aliases in wrapped scenario, as currently written
                 SmallVector<size_t, 4> selected_parties(parties, static_cast<oper_name_t>(0));
-
                 for (size_t first_party = 0; first_party <= final_first_party; ++ first_party) {
                     MultiOperatorIterator offsetIter{context, parties-1, static_cast<oper_name_t>(max_distance), 1};
 
@@ -138,8 +137,10 @@ namespace Moment::Pauli {
                 }
 
                 if constexpr (wrapped) {
-                    // Add extra vertical link from bottom of column to top of same column:
-                    ld.two_qubit_fill(qubit_index, qubit_index + 1 - context.col_height);
+                    if (context.col_height > 2) { // avoid aliases
+                        // Add extra vertical link from bottom of column to top of same column:
+                        ld.two_qubit_fill(qubit_index, qubit_index + 1 - context.col_height);
+                    }
                 };
                 // Add horizontal link from bottom of column to bottom of next column:
                 ld.two_qubit_fill(qubit_index, qubit_index + context.col_height);
@@ -151,18 +152,24 @@ namespace Moment::Pauli {
                 // Add vertical link within final column:
                 ld.two_qubit_fill(qubit_index, qubit_index + 1);
                 if constexpr (wrapped) {
-                    // Add horizontal link from right-most column to corresponding element in left-most column:
-                    ld.two_qubit_fill(qubit_index, row_id);
+                    if (context.row_width > 2) { // avoid aliases
+                        // Add horizontal link from right-most column to corresponding element in left-most column:
+                        ld.two_qubit_fill(qubit_index, row_id);
+                    }
                 }
                 ++qubit_index;
             }
 
             // In wrap mode, bottom right element needs links too
             if constexpr (wrapped) {
-                // Vertical link from bottom of last column to top of last column:
-                ld.two_qubit_fill(qubit_index, qubit_index + 1 - context.col_height);
-                // Horizontal link from bottom of last column to bottom of first column:
-                ld.two_qubit_fill(qubit_index, context.col_height-1);
+                if (context.col_height > 2) {
+                    // Vertical link from bottom of last column to top of last column:
+                    ld.two_qubit_fill(qubit_index, qubit_index + 1 - context.col_height);
+                }
+                if (context.row_width > 2) {
+                    // Horizontal link from bottom of last column to bottom of first column:
+                    ld.two_qubit_fill(qubit_index, context.col_height - 1);
+                }
             }
             ++qubit_index;
 
@@ -177,7 +184,6 @@ namespace Moment::Pauli {
 
             const bool can_alias_horz = wrapped ? (context.row_width == 3) : false;
             const bool can_alias_vert = wrapped ? (context.col_height == 3) : false;
-            const bool can_alias_block = wrapped ? ((context.row_width == 2) || (context.col_height == 2)) : false;
 
             LatticeDuplicator ld{context, sequences};
             // Horizontal NN
@@ -190,15 +196,16 @@ namespace Moment::Pauli {
                 ld.symmetrical_fill(std::array<size_t, 3>{0, 1, 2}, can_alias_vert);
             }
 
+            // NB: Intrinsic asymmetry of shapes means never will alias on 2D lattice:
             if ((context.row_width >=2) && (context.col_height >=2)) {
                 // Top left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height}, can_alias_block);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height}, false);
                 // Top right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, can_alias_block);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, false);
                 // Bottom left corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1}, can_alias_block);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, 1, context.col_height+1}, false);
                 // Bottom right corner
-                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, can_alias_block);
+                ld.symmetrical_fill(std::array<size_t, 3>{0, context.col_height, context.col_height+1}, false);
             }
 
             return sequences.size() - initial_count;
@@ -208,12 +215,12 @@ namespace Moment::Pauli {
         size_t lattice_neighbour_squares(std::vector<OperatorSequence>& sequences, const PauliContext& context) {
             size_t initial_count = sequences.size();
 
-            const bool can_alias_block = wrapped ? ((context.row_width == 2) || (context.col_height == 2)) : false;
 
             LatticeDuplicator ld{context, sequences};
 
             if ((context.row_width >=2) && (context.col_height >=2)) {
-                // Square block
+                // Square block; might alias for smaller lattices
+                const bool can_alias_block = wrapped ? ((context.row_width == 2) || (context.col_height == 2)) : false;
                 ld.symmetrical_fill(std::array<size_t, 4>{0, 1, context.col_height, context.col_height+1},
                                                           can_alias_block);
             }

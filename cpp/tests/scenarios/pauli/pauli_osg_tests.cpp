@@ -301,7 +301,7 @@ namespace Moment::Tests {
         PauliSequenceGenerator psg{context, 2, 1};
         EXPECT_TRUE(psg.limited());
         EXPECT_EQ(psg.nearest_neighbour_index.neighbours, 1);
-        EXPECT_EQ(psg.size(), 127); // L0: 1, L1: 18; L2: 108
+        EXPECT_EQ(psg.size(), 100); // L0: 1, L1: 18; L2: 81
 
         OSGTester tester{psg};
 
@@ -319,11 +319,8 @@ namespace Moment::Tests {
         tester.test_pauli_pairs(2, 5);
 
         tester.test_pauli_pairs(3, 4);
-        tester.test_pauli_pairs(3, 0);
         tester.test_pauli_pairs(4, 5);
-        tester.test_pauli_pairs(4, 1);
         tester.test_pauli_pairs(5, 3);
-        tester.test_pauli_pairs(5, 2);
 
     }
 

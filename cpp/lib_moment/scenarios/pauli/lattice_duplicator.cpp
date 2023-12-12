@@ -9,15 +9,17 @@
 
 #include "pauli_context.h"
 
-#include "moment_simplifier.h"
 #include "moment_simplifier_wrapping.h"
 #include "moment_simplifier_no_wrapping.h"
 
 #include "dictionary/multi_operator_iterator.h"
 
+#include "utilities/small_vector.h"
+
 #include <cassert>
 
 #include <algorithm>
+#include <map>
 
 namespace Moment::Pauli {
     namespace {
@@ -44,37 +46,53 @@ namespace Moment::Pauli {
         }
 
         template<size_t num_slides>
-        void do_unaliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                    const SiteHasher<num_slides>& hasher,
-                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
+        std::pair<size_t, size_t>
+        do_unaliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                          const SiteHasher<num_slides>& hasher,
+                                          const std::span<const size_t> lattice_indices,
+                                          size_t max_index) {
+
+            using HashValue = typename SiteHasher<num_slides>::Datum;
+
+            // First, make base elements
+            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
+
+            // Calculate hashes of base elements
+            SmallVector<HashValue, 9> base_hashes;
+            base_hashes.reserve(first_variant_end - first_variant);
+            for (size_t v = first_variant; v < first_variant_end; ++v) {
+                base_hashes.emplace_back(hasher.hash(output[v]));
+            }
+
             // Chain
-            for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
+            for (size_t qubit = 1; qubit < max_index; ++qubit) {
                 for (const auto& base_hash : base_hashes) {
                     output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
                                         hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
                                         duplicator.context);
                 }
             }
+            return {first_variant, output.size()};
         }
 
         template<size_t num_slides>
-        void do_aliased_chain_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                               const SiteHasher<num_slides>& hasher,
-                                               const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
-            // Chain
-            for (size_t qubit = 1; qubit < hasher.qubits; ++qubit) {
-                for (const auto& base_hash : base_hashes) {
-                    output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
-                                        hasher.unhash(hasher.cyclic_shift(base_hash, qubit)),
-                                        duplicator.context);
-                }
+        std::pair<size_t, size_t>
+        do_unaliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
+                                            const SiteHasher<num_slides>& hasher,
+                                            const std::span<const size_t> lattice_indices) {
+
+            using HashValue = typename SiteHasher<num_slides>::Datum;
+
+            // First, make base elements
+            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
+
+            // Calculate hashes of base elements
+            SmallVector<HashValue, 9> base_hashes;
+            base_hashes.reserve(first_variant_end - first_variant);
+            for (size_t v = first_variant; v < first_variant_end; ++v) {
+                base_hashes.emplace_back(hasher.hash(output[v]));
             }
-        }
 
-        template<size_t num_slides>
-        void do_unaliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                    const SiteHasher<num_slides>& hasher,
-                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
             // Lattice
             for (size_t col = 0; col < hasher.row_width; ++col) {
                 for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
@@ -85,22 +103,101 @@ namespace Moment::Pauli {
                     }
                 }
             }
+
+            return {first_variant, output.size()};
         }
 
         template<size_t num_slides>
-        void do_aliased_lattice_symmetric_fill(LatticeDuplicator& duplicator, std::vector<OperatorSequence>& output,
-                                    const SiteHasher<num_slides>& hasher,
-                                    const std::span<const typename SiteHasher<num_slides>::Datum> base_hashes) {
-            // Lattice
-            for (size_t col = 0; col < hasher.row_width; ++col) {
-                for (size_t row = (col != 0) ? 0 : 1; row < hasher.row_width; ++row) {
-                    for (const auto& base_hash : base_hashes) {
-                        output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
-                                            hasher.unhash(hasher.lattice_shift(base_hash, row, col)),
-                                            duplicator.context);
-                    }
+        std::pair<size_t, size_t> do_aliased_chain_symmetric_fill(LatticeDuplicator& duplicator,
+                                                                  std::vector<OperatorSequence>& output,
+                                                                  const SiteHasher<num_slides>& hasher,
+                                                                  const std::span<const size_t> lattice_indices) {
+            const size_t chain_length = duplicator.context.qubit_size;
+            assert(!lattice_indices.empty());
+            const auto [min_elem_iter, max_elem_iter] = std::minmax_element(lattice_indices.begin(),
+                                                                            lattice_indices.end());
+            const size_t chain_range = (*max_elem_iter - *min_elem_iter);
+            if (chain_range < (chain_length/2)) { // strict inequality with rounding of odd qubit
+                // Small difference between min and max cannot result in aliases
+                return do_unaliased_chain_symmetric_fill(duplicator, output, hasher, lattice_indices, chain_length);
+            }
+
+            // If an alias can appear, it will appear for XX...X, and will be associated with a frequency
+            sequence_storage_t base_sequence_X;
+            base_sequence_X.reserve(lattice_indices.size());
+            std::transform(lattice_indices.begin(), lattice_indices.end(), std::back_inserter(base_sequence_X),
+                           [](const size_t qubit_index) -> oper_name_t { return 3 * qubit_index; } );
+
+            // If we can prove there are no chain aliases, then do unaliased fill
+            const size_t first_alias = hasher.first_chain_alias(hasher(base_sequence_X));
+            return do_unaliased_chain_symmetric_fill(duplicator, output, hasher, lattice_indices, first_alias);
+        }
+
+
+        template<size_t num_slides>
+        std::pair<size_t, size_t> do_aliased_lattice_symmetric_fill(LatticeDuplicator& duplicator,
+                                                                    std::vector<OperatorSequence>& output,
+                                                                    const SiteHasher<num_slides>& hasher,
+                                                                    const std::span<const size_t> lattice_indices) {
+
+            // Reason from indices if aliasing is completely impossible
+            MomentSimplifierNoWrappingLattice nowrap{duplicator.context};
+            auto [max_row, max_col] = nowrap.lattice_maximum(lattice_indices);
+            const bool no_horz_alias = (max_row < hasher.row_width/2);
+            const bool no_vert_alias = (max_col < hasher.column_height/2);
+            if (no_horz_alias && no_vert_alias) {
+                return do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, lattice_indices);
+            }
+
+            // First, make base elements
+            assert(!lattice_indices.empty());
+            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
+            assert(first_variant_end > first_variant);
+
+            // Calculate hashes of base elements
+            using HashValue = typename SiteHasher<num_slides>::Datum;
+            SmallVector<HashValue, 9> base_hashes;
+            base_hashes.reserve(first_variant_end - first_variant);
+            for (size_t v = first_variant; v < first_variant_end; ++v) {
+                base_hashes.emplace_back(hasher.hash(output[v]));
+            }
+            assert(!base_hashes.empty());
+
+            const HashValue& base_hash = base_hashes[0]; // Element of all Xs
+
+            // Begin hash table
+            std::map<HashValue, std::pair<size_t, size_t>> unique_positions;
+            unique_positions.insert(std::make_pair(base_hash,
+                                                   std::pair{static_cast<size_t>(0), static_cast<size_t>(0)}));
+
+            // Cycle through offsets checking for aliases
+            // NB: This is a brute force method that scales with the number of lattice sites.  There may be some
+            //     mathematical properties (to do with 2D translational symmetry) that eliminate the need to check every
+            //     single site.  If so, there could be a better implementation...!
+            const size_t row_width = duplicator.context.row_width; // aka number of columns in one row
+            const size_t col_height = duplicator.context.col_height; // aka number of rows in one column
+            for (size_t col = 0; col < row_width; ++col) {
+                for (size_t row = 0; row < col_height; ++row) {
+                    unique_positions.insert(std::make_pair(hasher.lattice_shift(base_hash, row, col),
+                                                           std::make_pair(row, col)));
                 }
             }
+
+            // Now, add permutations at every unique offset
+            for (const auto& [x_hash, offsets] : unique_positions) {
+                if ((offsets.first == 0) && (offsets.second == 0)) {
+                    continue; // Skip (0,0) that has already been added.
+                }
+
+                for (const auto& zero_offset_hash : base_hashes) {
+                    output.emplace_back(OperatorSequence::ConstructPresortedFlag{},
+                                        hasher.unhash(hasher.lattice_shift(zero_offset_hash, offsets.first, offsets.second)),
+                                        duplicator.context);
+                }
+
+            }
+
+            return {first_variant, output.size()};
         }
 
         /**
@@ -119,35 +216,22 @@ namespace Moment::Pauli {
             const auto& moment_simplifier =
                     dynamic_cast<const MomentSimplifierWrapping<num_slides>&>(duplicator.context.moment_simplifier());
             const auto& hasher = moment_simplifier.site_hasher;
-            using Datum = typename SiteHasher<num_slides>::Datum;
-
-            // First, make base elements
-            const auto [first_variant, first_variant_end] = duplicator.permutation_fill(lattice_indices);
-
-            // Calculate hashes of base elements
-            std::vector<Datum> base_hashes;
-            base_hashes.reserve(first_variant_end - first_variant);
-            for (size_t v = first_variant; v < first_variant_end; ++v) {
-                base_hashes.emplace_back(hasher.hash(output[v]));
-            }
 
             // Invoke appropriate duplicator
             if (duplicator.context.is_lattice()) {
                 if (check_for_aliases) {
-                    do_aliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
+                    return do_aliased_lattice_symmetric_fill(duplicator, output, hasher, lattice_indices);
                 } else {
-                    do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, base_hashes);
+                    return do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, lattice_indices);
                 }
             } else {
                 if (check_for_aliases) {
-                    do_aliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
+                    return do_aliased_chain_symmetric_fill(duplicator, output, hasher, lattice_indices);
                 } else {
-                    do_unaliased_chain_symmetric_fill(duplicator, output, hasher, base_hashes);
+                    return do_unaliased_chain_symmetric_fill(duplicator, output, hasher, lattice_indices,
+                                                             duplicator.context.qubit_size);
                 }
             }
-
-            // Report number of created elements in total
-            return std::make_pair(first_variant, output.size());
         }
     }
 
