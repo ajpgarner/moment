@@ -112,13 +112,20 @@ namespace Moment {
         }
 
         /**
-         * Returns underlying operator matrix pointer, or a nullptr if matrix is not of a matching type
+         * Returns underlying operator matrix pointer, or a nullptr if matrix is not of a matching type.
          */
         [[nodiscard]] static matrix_t const * to_operator_matrix_ptr(const SymbolicMatrix& matrix) noexcept {
             if (!matrix.has_operator_matrix()) {
                 return nullptr;
             }
             return dynamic_cast<matrix_t const *>(&(matrix.operator_matrix()));
+        }
+
+        /**
+         * Names matrix by its index name.
+         */
+        [[nodiscard]] std::string description() const override {
+            return this->Index.to_string();
         }
 
         /**

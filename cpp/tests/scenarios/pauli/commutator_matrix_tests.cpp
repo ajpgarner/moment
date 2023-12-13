@@ -11,7 +11,7 @@
 
 #include "dictionary/raw_polynomial.h"
 
-#include "scenarios/pauli/commutator_matrix.h"
+#include "scenarios/pauli/matrices/monomial_commutator_matrix.h"
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
@@ -90,7 +90,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
         const auto& context = this->get_context();
         auto& symbols = this->get_symbols();
-        const PauliLocalizingMatrixIndex plmi_Z1{1, 0, context.sigmaZ(0)}; // [MM, Z1]
+        const CommutatorMatrixIndex plmi_Z1{NearestNeighbourIndex{1, 0}, context.sigmaZ(0)}; // [MM, Z1]
 
         auto& matrix = system.CommutatorMatrices(plmi_Z1);
 
@@ -117,7 +117,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
         const auto& context = this->get_context();
         auto& symbols = this->get_symbols();
-        const PauliLocalizingMatrixIndex plmi_Z1{1, 0, context.sigmaZ(0)}; // [MM, Z1]
+        const Pauli::AnticommutatorMatrixIndex plmi_Z1{NearestNeighbourIndex{1, 0}, context.sigmaZ(0)}; // [MM, Z1]
 
         auto& matrix = system.AnticommutatorMatrices(plmi_Z1);
         ASSERT_TRUE(matrix.is_monomial());
@@ -178,7 +178,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
         const Polynomial X1_plus_Z1{factory({Monomial{sX, 1.0}, Monomial{sZ, 1.0}})};
 
-        const PolynomialCommutatorMatrixIndex cmi_x1_plus_z1{1, 0, X1_plus_Z1}; // [MM, X1 + Z1]
+        const PolynomialAnticommutatorMatrixIndex cmi_x1_plus_z1{1, 0, X1_plus_Z1}; // [MM, X1 + Z1]
 
         auto& matrix = system.PolynomialAnticommutatorMatrices(cmi_x1_plus_z1);
         ASSERT_FALSE(matrix.is_monomial());

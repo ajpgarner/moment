@@ -14,8 +14,19 @@
 
 namespace Moment::Derived {
 
+
+    std::string DerivedMatrixIndex::to_string(DerivedMatrixSystem&) const {
+        return this->to_string();
+    }
+
+    std::string DerivedMatrixIndex::to_string() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
+
     std::ostream& operator<<(std::ostream& os, DerivedMatrixIndex dmi) {
-        os << "Derived matrix for source index " << dmi.SourceIndex;
+        os << "Derived Matrix: Source Index " << dmi.SourceIndex;
         return os;
     }
 

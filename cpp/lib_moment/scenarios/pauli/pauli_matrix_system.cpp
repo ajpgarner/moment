@@ -6,9 +6,9 @@
  */
 #include "pauli_matrix_system.h"
 #include "pauli_context.h"
-#include "pauli_localizing_matrix.h"
-#include "pauli_polynomial_localizing_matrix.h"
-#include "pauli_moment_matrix.h"
+#include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/pauli_moment_matrix.h"
 
 #include "matrix/polynomial_matrix.h"
 
@@ -65,17 +65,17 @@ namespace Moment::Pauli {
     PauliMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock, size_t level,
                                             Multithreading::MultiThreadPolicy mt_policy) {
         // Upcast index and call
-        return this->create_nearest_neighbour_moment_matrix(lock, NearestNeighbourIndex{level, 0}, mt_policy);
+        return this->create_nearest_neighbour_moment_matrix(lock, Pauli::MomentMatrixIndex{level, 0}, mt_policy);
     }
 
     std::unique_ptr<MonomialMatrix>
     PauliMatrixSystem::create_nearest_neighbour_moment_matrix(MaintainsMutex::WriteLock& write_lock,
-                                                              const PauliMomentMatrixIndex& index,
+                                                              const Pauli::MomentMatrixIndex& index,
                                                               Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(write_lock));
         auto& symbol_table = this->Symbols();
         const size_t prev_symbol_count = symbol_table.size();
-        auto ptr = PauliMomentMatrix::create_matrix(this->pauliContext, symbol_table, index, mt_policy);
+        auto ptr = Pauli::MomentMatrix::create_matrix(this->pauliContext, symbol_table, index, mt_policy);
         const size_t new_symbol_count = symbol_table.size();
         if (new_symbol_count > prev_symbol_count) {
             this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
@@ -84,22 +84,23 @@ namespace Moment::Pauli {
     }
 
     std::unique_ptr<SymbolicMatrix>
-    PauliMatrixSystem::create_localizing_matrix(MaintainsMutex::WriteLock& write_lock, const LocalizingMatrixIndex& lmi,
+    PauliMatrixSystem::create_localizing_matrix(MaintainsMutex::WriteLock& write_lock,
+                                                const ::Moment::LocalizingMatrixIndex& lmi,
                                                 Multithreading::MultiThreadPolicy mt_policy) {
         // Upcast index, and call
         return this->create_nearest_neighbour_localizing_matrix(write_lock,
-                                                                static_cast<PauliLocalizingMatrixIndex>(lmi),
+                                                                static_cast<Pauli::LocalizingMatrixIndex>(lmi),
                                                                 mt_policy);
     }
 
     std::unique_ptr<MonomialMatrix>
     PauliMatrixSystem::create_nearest_neighbour_localizing_matrix(MaintainsMutex::WriteLock& write_lock,
-                                                                  const PauliLocalizingMatrixIndex& lmi,
+                                                                  const Pauli::LocalizingMatrixIndex& lmi,
                                                                   Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(write_lock));
         auto& symbol_table = this->Symbols();
         const size_t prev_symbol_count = symbol_table.size();
-        auto ptr = PauliLocalizingMatrix::create_matrix(this->pauliContext, symbol_table, lmi, mt_policy);
+        auto ptr = Pauli::MonomialLocalizingMatrix::create_matrix(this->pauliContext, symbol_table, lmi, mt_policy);
         const size_t new_symbol_count = symbol_table.size();
         if (new_symbol_count > prev_symbol_count) {
             this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
@@ -112,14 +113,15 @@ namespace Moment::Pauli {
                                                            const PolynomialLMIndex& plmi,
                                                            Multithreading::MultiThreadPolicy mt_policy) {
         // Upcast index, and call
-        return this->create_nearest_neighbour_localizing_matrix(write_lock,
-                                                                static_cast<PauliPolynomialLMIndex>(plmi),
-                                                                mt_policy);
+        return this->create_nearest_neighbour_localizing_matrix(
+                write_lock,
+                static_cast<Pauli::PolynomialLocalizingMatrixIndex>(plmi),
+                mt_policy);
     }
 
     std::unique_ptr<PolynomialMatrix>
     PauliMatrixSystem::create_nearest_neighbour_localizing_matrix(MaintainsMutex::WriteLock& lock,
-                                                                  const PauliPolynomialLMIndex& index,
+                                                                  const Pauli::PolynomialLocalizingMatrixIndex& index,
                                                                   Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
 
@@ -203,9 +205,25 @@ namespace Moment::Pauli {
         return ptr;
     }
 
+
+    std::unique_ptr<MonomialMatrix>
+    PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& write_lock,
+                                                    const AnticommutatorMatrixIndex& cmi,
+                                                    Multithreading::MultiThreadPolicy mt_policy) {
+        assert(this->is_locked_write_lock(write_lock));
+        auto& symbol_table = this->Symbols();
+        const size_t prev_symbol_count = symbol_table.size();
+        auto ptr = MonomialAnticommutatorMatrix::create_matrix(this->pauliContext, symbol_table, cmi, mt_policy);
+        const size_t new_symbol_count = symbol_table.size();
+        if (new_symbol_count > prev_symbol_count) {
+            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
+        }
+        return ptr;
+    }
+
     std::unique_ptr<PolynomialMatrix>
     PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& lock,
-                                                    const PolynomialCommutatorMatrixIndex& index,
+                                                    const PolynomialAnticommutatorMatrixIndex& index,
                                                     Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
 
@@ -239,21 +257,6 @@ namespace Moment::Pauli {
     }
 
 
-    std::unique_ptr<MonomialMatrix>
-    PauliMatrixSystem::create_anticommutator_matrix(MaintainsMutex::WriteLock& write_lock,
-                                                    const CommutatorMatrixIndex& cmi,
-                                                    Multithreading::MultiThreadPolicy mt_policy) {
-        assert(this->is_locked_write_lock(write_lock));
-        auto& symbol_table = this->Symbols();
-        const size_t prev_symbol_count = symbol_table.size();
-        auto ptr = MonomialAnticommutatorMatrix::create_matrix(this->pauliContext, symbol_table, cmi, mt_policy);
-        const size_t new_symbol_count = symbol_table.size();
-        if (new_symbol_count > prev_symbol_count) {
-            this->on_new_symbols_registered(write_lock, prev_symbol_count, new_symbol_count);
-        }
-        return ptr;
-    }
-
 
     void PauliMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                  size_t moment_matrix_level,
@@ -262,7 +265,7 @@ namespace Moment::Pauli {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add index with NN info
-        PauliMomentMatrixIndex pmmi{moment_matrix_level, 0};
+        Pauli::MomentMatrixIndex pmmi{moment_matrix_level, 0};
         assert(!this->PauliMomentMatrices.contains(pmmi));
         [[maybe_unused]] auto actual_offset =
                 this->PauliMomentMatrices.insert_alias(write_lock, pmmi, matrix_offset);
@@ -271,7 +274,7 @@ namespace Moment::Pauli {
     }
 
     void PauliMatrixSystem::on_new_nearest_neighbour_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                                   const PauliMomentMatrixIndex& index,
+                                                                   const Pauli::MomentMatrixIndex& index,
                                                                    ptrdiff_t matrix_offset,
                                                                    const MonomialMatrix& mm) {
         assert(this->is_locked_write_lock(write_lock));
@@ -286,12 +289,13 @@ namespace Moment::Pauli {
     }
 
     void PauliMatrixSystem::on_new_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                     const LocalizingMatrixIndex& lmi, ptrdiff_t matrix_offset,
+                                                     const ::Moment::LocalizingMatrixIndex& lmi,
+                                                     ptrdiff_t matrix_offset,
                                                      const SymbolicMatrix& lm) {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add index with NN info
-        PauliLocalizingMatrixIndex plmi{lmi};
+        Pauli::LocalizingMatrixIndex plmi{lmi};
         assert(!this->PauliLocalizingMatrices.contains(plmi));
         [[maybe_unused]] auto actual_offset =
                 this->PauliLocalizingMatrices.insert_alias(write_lock, std::move(plmi), matrix_offset);
@@ -299,17 +303,17 @@ namespace Moment::Pauli {
     }
 
     void PauliMatrixSystem::on_new_nearest_neighbour_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                                       const PauliLocalizingMatrixIndex& plmi,
+                                                                       const Pauli::LocalizingMatrixIndex& plmi,
                                                                        ptrdiff_t matrix_offset,
                                                                        const MonomialMatrix& mm) {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add plain LM index if unrestricted
         if (0 == plmi.Index.neighbours) {
-            assert(!this->LocalizingMatrix.contains(static_cast<LocalizingMatrixIndex>(plmi)));
+            assert(!this->LocalizingMatrix.contains(static_cast<::Moment::LocalizingMatrixIndex>(plmi)));
             [[maybe_unused]] auto actual_offset =
                     this->LocalizingMatrix.insert_alias(write_lock,
-                                                        static_cast<LocalizingMatrixIndex>(plmi),
+                                                        static_cast<::Moment::LocalizingMatrixIndex>(plmi),
                                                         matrix_offset);
             assert(actual_offset == matrix_offset);
         }
@@ -321,7 +325,7 @@ namespace Moment::Pauli {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add index with NN info
-        PauliPolynomialLMIndex plmi{lmi};
+        Pauli::PolynomialLocalizingMatrixIndex plmi{lmi};
         assert(!this->PauliPolynomialLocalizingMatrices.contains(plmi));
         [[maybe_unused]] auto actual_offset =
                 this->PauliPolynomialLocalizingMatrices.insert_alias(write_lock, std::move(plmi), matrix_offset);
@@ -329,9 +333,9 @@ namespace Moment::Pauli {
     }
 
     void PauliMatrixSystem::on_new_nearest_neighbour_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                                       const PauliPolynomialLMIndex& index,
-                                                                       ptrdiff_t matrix_offset,
-                                                                       const PolynomialMatrix& lm) {
+                                                                   const Pauli::PolynomialLocalizingMatrixIndex& index,
+                                                                   ptrdiff_t matrix_offset,
+                                                                   const PolynomialMatrix& lm) {
         assert(this->is_locked_write_lock(write_lock));
 
         // Add plain polynomial LM index if unrestricted
@@ -356,13 +360,14 @@ namespace Moment::Pauli {
     }
 
     void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                         const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
+                                                         const AnticommutatorMatrixIndex& index,
+                                                         ptrdiff_t matrix_offset,
                                                          const MonomialMatrix& cm) {
 
     }
 
     void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                         const PolynomialCommutatorMatrixIndex& index,
+                                                         const PolynomialAnticommutatorMatrixIndex& index,
                                                          ptrdiff_t matrix_offset,
                                                          const PolynomialMatrix& cm) {
 

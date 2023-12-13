@@ -7,7 +7,7 @@
 
 #pragma once
 #include "dictionary/operator_sequence_generator.h"
-#include "nearest_neighbour_index.h"
+#include "scenarios/pauli/indices/nearest_neighbour_index.h"
 
 namespace Moment::Pauli {
 

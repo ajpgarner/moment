@@ -50,6 +50,8 @@ namespace Moment {
 
         friend std::ostream& operator<<(std::ostream& os, const LocalizingMatrixIndex& lmi);
 
+        [[nodiscard]] std::string to_string() const;
+
         [[nodiscard]] std::string to_string(const Context& context) const;
 
         [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const ;

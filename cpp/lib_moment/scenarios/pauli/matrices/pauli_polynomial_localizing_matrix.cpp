@@ -7,70 +7,33 @@
 
 #include "pauli_polynomial_localizing_matrix.h"
 
-#include "pauli_context.h"
-#include "pauli_matrix_system.h"
+#include "scenarios/pauli/pauli_context.h"
+#include "scenarios/pauli/pauli_matrix_system.h"
 
 #include "dictionary/raw_polynomial.h"
 
 namespace Moment::Pauli {
 
     namespace {
-        std::string make_description(const PauliContext& context, const SymbolTable& symbols,
-                                     const PauliPolynomialLMIndex& index) {
-            std::stringstream ss;
-            ContextualOS cSS{ss, context, symbols};
-            cSS.format_info.show_braces = false;
-            cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-
-            cSS << "Pauli Localizing Matrix, Level " << index.Level.moment_matrix_level << ",";
-            if (index.Level.neighbours != 0) {
-                cSS << " " << index.Level.neighbours << " Neighbour";
-                if (index.Level.neighbours != 1) {
-                    cSS << "s";
-                }
-                cSS << ",";
-            }
-            cSS << " Phrase " << index.Polynomial;
-            return ss.str();
-        }
-
-        std::string make_from_raw_description(const PauliContext& context, const SymbolTable& symbols,
-                                              const NearestNeighbourIndex& index, const std::string& base_name) {
-            std::stringstream ss;
-            ContextualOS cSS{ss, context, symbols};
-            cSS.format_info.show_braces = false;
-            cSS.format_info.display_symbolic_as = ContextualOS::DisplayAs::Operators;
-            cSS << " Pauli Localizing Matrix, Level " << index.moment_matrix_level << ",";
-            if (index.neighbours != 0) {
-                cSS << " " <<  index.neighbours << " Neighbour";
-                if (index.neighbours != 1) {
-                    cSS << "s";
-                }
-                cSS << ",";
-            }
-            cSS << " Phrase " << base_name;
-            return ss.str();
-        }
-
         [[nodiscard]] inline PolynomialLMIndex pad_base_index(const NearestNeighbourIndex& index) {
             return PolynomialLMIndex{index.moment_matrix_level, Polynomial::Zero()};
         }
 
-        [[nodiscard]] inline PauliPolynomialLMIndex pad_nn_index(const NearestNeighbourIndex& index) {
-            return PauliPolynomialLMIndex{index.moment_matrix_level, index.moment_matrix_level, Polynomial::Zero()};
+        [[nodiscard]] inline Pauli::PolynomialLocalizingMatrixIndex
+        pad_nn_index(const NearestNeighbourIndex& index) {
+            return Pauli::PolynomialLocalizingMatrixIndex{index, Polynomial::Zero()};
         }
     }
 
 
     PauliPolynomialLocalizingMatrix::PauliPolynomialLocalizingMatrix(
             const PauliContext& context, SymbolTable& symbols, const PolynomialFactory& factory,
-            PauliPolynomialLMIndex index, PolynomialLocalizingMatrix::ConstituentInfo&& constituents)
+            Index index, PolynomialLocalizingMatrix::ConstituentInfo&& constituents)
     : PolynomialLocalizingMatrix{context, symbols, factory,
                                  static_cast<PolynomialLMIndex>(index), std::move(constituents)},
          pauli_context{context}, nn_index{std::move(index)} {
-
-        if (nn_index.Level.neighbours != 0) {
-            this->description = make_description(context, symbols, index);
+       if (nn_index.Level.neighbours != 0) {
+            this->description = this->nn_index.to_string(context, symbols);
         }
     }
 
@@ -81,7 +44,7 @@ namespace Moment::Pauli {
                                      pad_base_index(index), std::move(constituents)},
              pauli_context{system.pauliContext}, nn_index{pad_nn_index(index)}
             {
-        this->description = make_from_raw_description(system.pauliContext, system.Symbols(), index, raw_word_name);
+        this->description = this->nn_index.to_string(context, symbols);
     }
 
     std::unique_ptr<PauliPolynomialLocalizingMatrix>
@@ -97,7 +60,7 @@ namespace Moment::Pauli {
         for (auto& [op_seq, factor] : raw_polynomials) {
             auto [mono_offset, mono_matrix] =
                     system.PauliLocalizingMatrices.create(write_lock,
-                                                          PauliLocalizingMatrixIndex{index, op_seq},
+                                                          Pauli::LocalizingMatrixIndex{index, op_seq},
                                                           mt_policy);
             constituents.elements.emplace_back(&mono_matrix, factor);
         }

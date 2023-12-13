@@ -10,7 +10,7 @@
 
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
-#include "scenarios/pauli/pauli_polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -74,7 +74,7 @@ namespace Moment::Tests {
 
         auto& plm = system.PolynomialLocalizingMatrix(PolynomialLMIndex{1, Polynomial(Monomial{sid_X, -2.0})});
 
-        const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
+        const ::Moment::LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
 
         ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_a_1));
         const auto& lmA = dynamic_cast<const MonomialMatrix&>(system.LocalizingMatrix(lmi_a_1));
@@ -102,8 +102,8 @@ namespace Moment::Tests {
         const PolynomialLMIndex plmIndex{1, factory({Monomial{sid_X, -2.0}, Monomial{sid_Y, 1.0}})};
         auto& plm = system.PolynomialLocalizingMatrix(plmIndex);
 
-        const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
-        const LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};
+        const ::Moment::LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
+        const ::Moment::LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};
 
         ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_a_1));
         ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_b_1));
@@ -146,8 +146,8 @@ namespace Moment::Tests {
         auto [offset, plm] = system.create_and_register_localizing_matrix(NearestNeighbourIndex{1, 0}, raw_poly);
         ASSERT_FALSE(plm.is_monomial());
 
-        const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
-        const LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};
+        const ::Moment::LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
+        const ::Moment::LocalizingMatrixIndex lmi_b_1{1, OperatorSequence{{1}, context}};
 
         ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_a_1));
         ASSERT_TRUE(system.LocalizingMatrix.contains(lmi_b_1));

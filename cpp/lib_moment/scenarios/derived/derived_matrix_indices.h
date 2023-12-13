@@ -30,6 +30,10 @@ namespace Moment::Derived {
         }
 
         friend std::ostream& operator<<(std::ostream& os, DerivedMatrixIndex dmi);
+
+        [[nodiscard]] std::string to_string() const;
+        [[nodiscard]] std::string to_string(DerivedMatrixSystem&) const;
+
     };
 
     /**

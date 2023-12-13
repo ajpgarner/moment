@@ -8,7 +8,7 @@
 #pragma once
 #include "dictionary/dictionary.h"
 
-#include "nearest_neighbour_index.h"
+#include "scenarios/pauli/indices/nearest_neighbour_index.h"
 #include <map>
 
 namespace Moment::Pauli {

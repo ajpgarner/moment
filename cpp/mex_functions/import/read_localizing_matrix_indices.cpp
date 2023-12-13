@@ -230,7 +230,7 @@ namespace Moment::mex {
     }
 
 
-    PolynomialLMIndex LocalizingMatrixIndexImporter::to_polynomial_index() const {
+    ::Moment::PolynomialLMIndex LocalizingMatrixIndexImporter::to_polynomial_index() const {
         // Check
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
@@ -279,26 +279,23 @@ namespace Moment::mex {
         return std::pair<size_t, RawPolynomial>{this->hierarchy_level, staging_poly.to_raw_polynomial()};
     }
 
-    Pauli::PauliLocalizingMatrixIndex
-    LocalizingMatrixIndexImporter::to_pauli_monomial_index() const {
+    Pauli::LocalizingMatrixIndex LocalizingMatrixIndexImporter::to_pauli_monomial_index() const {
         // Read and check normal LMI expression
         auto lmi = this->to_monomial_index();
 
         // Inject NN and wrap info
-        return Pauli::PauliLocalizingMatrixIndex{lmi.Level, this->nearest_neighbour,
-                                                 std::move(lmi.Word)};
+        return Pauli::LocalizingMatrixIndex{Pauli::NearestNeighbourIndex{lmi.Level, this->nearest_neighbour},
+                                            std::move(lmi.Word)};
 
     }
 
-    Pauli::PauliPolynomialLMIndex
-    LocalizingMatrixIndexImporter::to_pauli_polynomial_index() const {
+    Pauli::PolynomialLocalizingMatrixIndex LocalizingMatrixIndexImporter::to_pauli_polynomial_index() const {
         // Read and check normal LMI expression
         auto lmi = this->to_polynomial_index();
 
         // Inject NN and wrap info
-        return Pauli::PauliPolynomialLMIndex{lmi.Level, this->nearest_neighbour,
-                                             std::move(lmi.Polynomial)};
-
+        return Pauli::PolynomialLocalizingMatrixIndex{Pauli::NearestNeighbourIndex{lmi.Level, this->nearest_neighbour},
+                                                      std::move(lmi.Polynomial)};
     }
 
     std::pair<Pauli::NearestNeighbourIndex, RawPolynomial>

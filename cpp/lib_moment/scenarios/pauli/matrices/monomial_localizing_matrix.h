@@ -8,9 +8,9 @@
 #pragma once
 
 #include "matrix/operator_matrix/localizing_matrix.h"
-#include "pauli_localizing_matrix_indices.h"
-#include "pauli_context.h"
-#include "pauli_dictionary.h"
+#include "scenarios/pauli/indices/monomial_index.h"
+#include "scenarios/pauli/pauli_context.h"
+#include "scenarios/pauli/pauli_dictionary.h"
 
 #include "multithreading/multithreading.h"
 
@@ -28,11 +28,11 @@ namespace Moment {
          */
         struct PauliLocalizingMatrixGenerator {
         public:
-            using Index = PauliLocalizingMatrixIndex;
+            using Index = Pauli::LocalizingMatrixIndex;
             using OSGIndex = NearestNeighbourIndex;
-            const PauliLocalizingMatrixIndex index;
+            const Pauli::LocalizingMatrixIndex index;
 
-             PauliLocalizingMatrixGenerator(const PauliContext& /**/, PauliLocalizingMatrixIndex index_in)
+             PauliLocalizingMatrixGenerator(const PauliContext& /**/, Pauli::LocalizingMatrixIndex index_in)
                 : index{std::move(index_in)} { }
 
             [[nodiscard]] inline OperatorSequence
@@ -63,15 +63,16 @@ namespace Moment {
 
         };
         static_assert(generates_operator_matrices<PauliLocalizingMatrixGenerator,
-                                                  PauliLocalizingMatrixIndex, PauliContext>);
+                                                  Pauli::LocalizingMatrixIndex, PauliContext>);
 
 
         /**
          * Localizing matrix composed of Pauli operators.
          */
-        class PauliLocalizingMatrix;
-        class PauliLocalizingMatrix : public OperatorMatrixImpl<PauliLocalizingMatrixIndex, PauliContext,
-                                                                PauliLocalizingMatrixGenerator, PauliLocalizingMatrix> {
+        class MonomialLocalizingMatrix;
+        class MonomialLocalizingMatrix : public OperatorMatrixImpl<Pauli::LocalizingMatrixIndex, PauliContext,
+                                                                   PauliLocalizingMatrixGenerator,
+                                                                   MonomialLocalizingMatrix> {
         public:
             /**
              * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
@@ -79,16 +80,11 @@ namespace Moment {
              * @param level The hierarchy depth.
              * @param mt_policy Whether or not to use multi-threaded creation.
              */
-            PauliLocalizingMatrix(const PauliContext& context, const PauliLocalizingMatrixIndex& plmi,
+            MonomialLocalizingMatrix(const PauliContext& context, const Pauli::LocalizingMatrixIndex& plmi,
                               std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-                  : OperatorMatrixImpl<PauliLocalizingMatrixIndex, PauliContext,
-                                       PauliLocalizingMatrixGenerator, PauliLocalizingMatrix>{
-                context, plmi, std::move(op_seq_mat)} {}
-
-            /**
-             * Description of the localizing matrix.
-             */
-            [[nodiscard]] std::string description() const override;
+                 : OperatorMatrixImpl<Pauli::LocalizingMatrixIndex, PauliContext,
+                                      PauliLocalizingMatrixGenerator,
+                                      MonomialLocalizingMatrix>{context, plmi, std::move(op_seq_mat)}{ }
 
         };
     }

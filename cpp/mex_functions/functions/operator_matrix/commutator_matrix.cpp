@@ -8,6 +8,7 @@
 #include "storage_manager.h"
 
 #include "scenarios/pauli/pauli_matrix_system.h"
+#include "scenarios/pauli/pauli_matrix_system.h"
 
 #include "import/read_localizing_matrix_indices.h"
 #include "import/read_opseq_polynomial.h"
@@ -138,11 +139,14 @@ namespace Moment::mex::functions {
         std::pair<size_t, const Moment::SymbolicMatrix&>
         getMonoCM(matlab::engine::MATLABEngine& matlabEngine, Pauli::PauliMatrixSystem& pauli_system,
                   CommutatorMatrixParams& input, Multithreading::MultiThreadPolicy mt_policy) {
+            using Index = std::conditional_t<anticommutator, Pauli::AnticommutatorMatrixIndex, Pauli::CommutatorMatrixIndex>;
+
             auto read_lock = pauli_system.get_read_lock();
-            auto plmi = input.lmi_importer().to_pauli_monomial_index();
+            auto plmi = static_cast<Index>(input.lmi_importer().to_pauli_monomial_index());
+
             const auto offset = [&pauli_system, &plmi]() -> ptrdiff_t {
                 if constexpr (anticommutator) {
-                    return pauli_system.AnticommutatorMatrices.find_index(plmi);;
+                    return pauli_system.AnticommutatorMatrices.find_index(plmi);
                 } else {
                     return pauli_system.CommutatorMatrices.find_index(plmi);
                 }
@@ -168,10 +172,12 @@ namespace Moment::mex::functions {
                                  MaintainsMutex::ReadLock&& read_lock,
                                  Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
                                  Multithreading::MultiThreadPolicy mt_policy) {
+            using Index = std::conditional_t<anticommutator, Pauli::PolynomialAnticommutatorMatrixIndex,
+                                                             Pauli::PolynomialCommutatorMatrixIndex>;
 
             assert(system.is_locked_read_lock(read_lock));
 
-            auto plmi = input.lmi_importer().to_pauli_polynomial_index();
+            auto plmi = static_cast<Index>(input.lmi_importer().to_pauli_polynomial_index());
 
             // Try to get in read-only mode
             const auto offset = [&system, &plmi]() -> ptrdiff_t {
@@ -211,6 +217,9 @@ namespace Moment::mex::functions {
                     Pauli::PauliMatrixSystem &system, CommutatorMatrixParams& input,
                     Multithreading::MultiThreadPolicy mt_policy) {
 
+            using Index = std::conditional_t<anticommutator, Pauli::PolynomialAnticommutatorMatrixIndex,
+                                                             Pauli::PolynomialCommutatorMatrixIndex>;
+
             // Can expression be parsed without new symbols?
             auto symbol_read_lock = system.get_read_lock();
             const bool found_all = input.lmi_importer().attempt_to_find_symbols_from_op_cell(symbol_read_lock);
@@ -220,7 +229,8 @@ namespace Moment::mex::functions {
                 symbol_read_lock.unlock();
                 auto write_lock = system.get_write_lock();
                 input.lmi_importer().register_symbols_in_op_cell(write_lock);
-                auto index = input.lmi_importer().to_pauli_polynomial_index();
+                auto index = static_cast<Index>(input.lmi_importer().to_pauli_polynomial_index());
+
                 if constexpr (anticommutator) {
                     // Create or retrieve
                     return system.PolynomialAnticommutatorMatrices.create(write_lock, std::move(index), mt_policy);

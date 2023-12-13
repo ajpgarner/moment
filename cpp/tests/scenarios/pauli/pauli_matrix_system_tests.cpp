@@ -12,8 +12,8 @@
 
 #include "scenarios/pauli/pauli_matrix_system.h"
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/pauli_moment_matrix.h"
-#include "scenarios/pauli/pauli_localizing_matrix.h"
+#include "scenarios/pauli/matrices/pauli_moment_matrix.h"
+#include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
 
 #include "../../matrix/compare_os_matrix.h"
 #include "../../matrix/compare_symbol_matrix.h"
@@ -165,19 +165,19 @@ namespace Moment::Tests {
         PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
         const auto& context = system.pauliContext;
 
-        const auto& pMM = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
+        const auto& pMM = system.PauliMomentMatrices(Pauli::MomentMatrixIndex{2, 1});
         ASSERT_EQ(pMM.Dimension(), 28);
         ASSERT_TRUE(pMM.is_monomial());
         ASSERT_TRUE(pMM.has_operator_matrix());
 
-        const auto* asMM_ptr = dynamic_cast<const PauliMomentMatrix*>(&(pMM.operator_matrix()));
+        const auto* asMM_ptr = dynamic_cast<const Pauli::MomentMatrix*>(&(pMM.operator_matrix()));
         ASSERT_NE(asMM_ptr, nullptr);
         const auto& asMM = *asMM_ptr;
 
         EXPECT_EQ(asMM.Index.moment_matrix_level, 2);
         EXPECT_EQ(asMM.Index.neighbours, 1);
 
-        const auto& pMM_alias = system.PauliMomentMatrices(NearestNeighbourIndex{2, 1});
+        const auto& pMM_alias = system.PauliMomentMatrices(Pauli::MomentMatrixIndex{2, 1});
         EXPECT_EQ(&pMM, &pMM_alias);
 
     }
@@ -187,13 +187,13 @@ namespace Moment::Tests {
         ASSERT_EQ(context.wrap, WrapType::None);
 
         const auto x1 = context.sigmaX(0);
-        const PauliLocalizingMatrixIndex plmi{2, 1, x1};
+        const Pauli::LocalizingMatrixIndex plmi{NearestNeighbourIndex{2, 1}, x1};
 
         const auto& pLM_x = system.PauliLocalizingMatrices(plmi);
         ASSERT_EQ(pLM_x.Dimension(), 28);
         ASSERT_TRUE(pLM_x.is_monomial());
         ASSERT_TRUE(pLM_x.has_operator_matrix());
-        const auto* asLM_ptr = dynamic_cast<const PauliLocalizingMatrix*>(&pLM_x.operator_matrix());
+        const auto* asLM_ptr = dynamic_cast<const Pauli::MonomialLocalizingMatrix*>(&pLM_x.operator_matrix());
         ASSERT_NE(asLM_ptr, nullptr);
         const auto& asLM = *asLM_ptr;
 

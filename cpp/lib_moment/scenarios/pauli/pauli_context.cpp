@@ -7,7 +7,7 @@
 
 #include "pauli_context.h"
 
-#include "nearest_neighbour_index.h"
+#include "scenarios/pauli/indices/nearest_neighbour_index.h"
 #include "pauli_dictionary.h"
 #include "pauli_osg.h"
 #include "moment_simplifier.h"

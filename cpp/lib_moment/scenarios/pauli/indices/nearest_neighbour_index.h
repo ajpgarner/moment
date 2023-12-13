@@ -9,8 +9,15 @@
 
 #pragma once
 
+#include "integer_types.h"
+
 #include <compare>
-#include <cstddef>
+#include <iosfwd>
+#include <string>
+
+namespace Moment {
+    class MatrixSystem;
+}
 
 namespace Moment::Pauli {
 
@@ -30,5 +37,20 @@ namespace Moment::Pauli {
     public:
         constexpr explicit NearestNeighbourIndex(const size_t mm_level, const size_t neighbours = 0)
                 : moment_matrix_level{mm_level}, neighbours{neighbours} { }
+    };
+
+    /**
+     * Nearest neighbour index, employed to label Pauli scenario moment matrices.
+     */
+    struct MomentMatrixIndex : public NearestNeighbourIndex {
+    public:
+        constexpr explicit MomentMatrixIndex(const size_t mm_level, const size_t neighbours = 0)
+                : NearestNeighbourIndex{mm_level, neighbours} { }
+
+        [[nodiscard]] std::string to_string() const;
+
+        [[nodiscard]] inline std::string to_string(const MatrixSystem& /**/) const {
+            return this->to_string();
+        }
     };
 }

@@ -11,8 +11,8 @@
 
 #include "matrix_system/indices/localizing_matrix_index.h"
 #include "matrix_system/indices/polynomial_localizing_matrix_index.h"
-#include "scenarios/pauli/pauli_localizing_matrix_indices.h"
-#include "scenarios/pauli/pauli_polynomial_lm_indices.h"
+#include "scenarios/pauli/indices/monomial_index.h"
+#include "scenarios/pauli/indices/polynomial_index.h"
 
 #include "read_polynomial.h"
 
@@ -114,13 +114,13 @@ namespace Moment {
              */
             void register_symbols_in_op_cell(const MaintainsMutex::WriteLock& wlock);
 
-            [[nodiscard]] LocalizingMatrixIndex to_monomial_index() const;
+            [[nodiscard]] ::Moment::LocalizingMatrixIndex to_monomial_index() const;
 
-            [[nodiscard]] PolynomialLMIndex to_polynomial_index() const;
+            [[nodiscard]] ::Moment::PolynomialLMIndex to_polynomial_index() const;
 
-            [[nodiscard]] Pauli::PauliLocalizingMatrixIndex to_pauli_monomial_index() const;
+            [[nodiscard]] Pauli::LocalizingMatrixIndex to_pauli_monomial_index() const;
 
-            [[nodiscard]] Pauli::PauliPolynomialLMIndex to_pauli_polynomial_index() const;
+            [[nodiscard]] Pauli::PolynomialLocalizingMatrixIndex to_pauli_polynomial_index() const;
 
             [[nodiscard]] std::pair<size_t, RawPolynomial> to_raw_polynomial_index() const;
 

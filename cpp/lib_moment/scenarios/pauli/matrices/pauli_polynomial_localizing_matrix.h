@@ -8,7 +8,7 @@
 #pragma once
 
 #include "matrix/polynomial_localizing_matrix.h"
-#include "pauli_polynomial_lm_indices.h"
+#include "scenarios/pauli/indices/polynomial_index.h"
 
 #include "multithreading/multithreading.h"
 
@@ -21,13 +21,18 @@ namespace Moment::Pauli {
 
     class PauliPolynomialLocalizingMatrix : public PolynomialLocalizingMatrix {
     public:
+        using Index = Pauli::PolynomialLocalizingMatrixIndex;
+
+        /** Pauli-scenario specific context */
         const PauliContext& pauli_context;
-        PauliPolynomialLMIndex nn_index;
+
+        /** Index with NN info */
+        PolynomialLocalizingMatrixIndex nn_index;
 
     public:
         PauliPolynomialLocalizingMatrix(const PauliContext& context, SymbolTable& symbols,
                                         const PolynomialFactory& factory,
-                                        PauliPolynomialLMIndex index,
+                                        Index index,
                                         PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
 
         PauliPolynomialLocalizingMatrix(PauliMatrixSystem& system,

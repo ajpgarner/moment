@@ -72,7 +72,7 @@ namespace Moment::mex::functions {
                 throw_error(matlabEngine, errors::bad_param, "Nearest neighbours can only be set in Pauli scenario.");
             }
             return pms_ptr->PauliMomentMatrices.create(
-                    Pauli::NearestNeighbourIndex{input.hierarchy_level, input.extra_data.nearest_neighbours},
+                    Pauli::MomentMatrixIndex{input.hierarchy_level, input.extra_data.nearest_neighbours},
                     mt_policy);
         } else {
             return system.MomentMatrix.create(input.hierarchy_level, mt_policy);

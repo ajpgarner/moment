@@ -7,9 +7,10 @@
 #pragma once
 
 #include "matrix/operator_matrix/moment_matrix.h"
-#include "nearest_neighbour_index.h"
-#include "pauli_context.h"
-#include "pauli_dictionary.h"
+
+#include "scenarios/pauli/indices/nearest_neighbour_index.h"
+#include "scenarios/pauli/pauli_context.h"
+#include "scenarios/pauli/pauli_dictionary.h"
 
 #include "multithreading/multithreading.h"
 
@@ -25,11 +26,12 @@ namespace Moment {
          */
         struct PauliMomentMatrixGenerator {
         public:
+            using Index = Pauli::MomentMatrixIndex;
             using OSGIndex = NearestNeighbourIndex;
 
-            const NearestNeighbourIndex index;
+            const Pauli::MomentMatrixIndex index;
 
-            constexpr PauliMomentMatrixGenerator(const PauliContext& /**/, NearestNeighbourIndex index_in)
+            constexpr PauliMomentMatrixGenerator(const PauliContext& /**/,  Index index_in)
                     : index{std::move(index_in)} { }
 
             [[nodiscard]] inline OperatorSequence
@@ -39,15 +41,16 @@ namespace Moment {
 
             /** Moment matrices are always Hermitian. */
             [[nodiscard]] inline constexpr static bool
-            should_be_hermitian(const NearestNeighbourIndex& /**/) noexcept { return true; }
+            should_be_hermitian(const Index& /**/) noexcept { return true; }
 
             /** Moment matrices always have a prefactor of +1. */
             [[nodiscard]] inline constexpr static std::complex<double>
-            determine_prefactor(const NearestNeighbourIndex& /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
+            determine_prefactor(const Index& /**/) noexcept { return std::complex<double>{1.0, 0.0}; }
 
             /** Pass-through index to get OSG index. */
-            [[nodiscard]] inline constexpr static OSGIndex get_osg_index(const NearestNeighbourIndex& input) {
-                return input;
+            [[nodiscard]] inline constexpr static OSGIndex get_osg_index(const Index& input) {
+                static_assert(std::derived_from<Index, OSGIndex>);
+                return static_cast<OSGIndex>(input);
             }
 
             /** Get nearest-neighbour OSGs */
@@ -57,16 +60,16 @@ namespace Moment {
             }
 
         };
-        static_assert(generates_operator_matrices<PauliMomentMatrixGenerator, NearestNeighbourIndex, PauliContext>);
+        static_assert(generates_operator_matrices<PauliMomentMatrixGenerator, Pauli::MomentMatrixIndex, PauliContext>);
 
 
         /**
          * Moment matrix of Pauli operators.
          */
-        class PauliMomentMatrix;
-        class PauliMomentMatrix
-                : public OperatorMatrixImpl<NearestNeighbourIndex, PauliContext, PauliMomentMatrixGenerator,
-                                            PauliMomentMatrix> {
+        class MomentMatrix;
+        class MomentMatrix
+                : public OperatorMatrixImpl<Pauli::MomentMatrixIndex, PauliContext, PauliMomentMatrixGenerator,
+                                            Pauli::MomentMatrix> {
         public:
             /**
              * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
@@ -74,13 +77,10 @@ namespace Moment {
              * @param level The hierarchy depth.
              * @param mt_policy Whether or not to use multi-threaded creation.
              */
-            PauliMomentMatrix(const PauliContext& context, const NearestNeighbourIndex& level,
+            MomentMatrix(const PauliContext& context, const Pauli::MomentMatrixIndex& index,
                               std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-                      : OperatorMatrixImpl<NearestNeighbourIndex, PauliContext, PauliMomentMatrixGenerator,
-                    PauliMomentMatrix>{context, level, std::move(op_seq_mat)} { }
-
-
-            [[nodiscard]] std::string description() const override;
+                      : OperatorMatrixImpl<Pauli::MomentMatrixIndex, PauliContext, PauliMomentMatrixGenerator,
+                                           Pauli::MomentMatrix>{context, index, std::move(op_seq_mat)} { }
 
 
         };

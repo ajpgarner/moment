@@ -17,6 +17,12 @@ namespace Moment {
         return os;
     }
 
+    std::string LocalizingMatrixIndex::to_string() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
+
     std::string LocalizingMatrixIndex::to_string(const Context& context) const {
         std::stringstream ss;
         ss << "Localizing Matrix, Level " << this->Level << ", Word \""
