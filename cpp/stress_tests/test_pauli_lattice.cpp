@@ -31,7 +31,8 @@ namespace Moment::StressTests {
         using namespace Moment::Pauli;
 
         this->pms_ptr = std::make_unique<PauliMatrixSystem>(
-                std::make_unique<PauliContext>(this->column_height, this->row_width, true, true)
+                std::make_unique<PauliContext>(this->column_height, this->row_width,
+                                               WrapType::Wrap, SymmetryType::Translational)
         );
         if (!this->pms_ptr) {
             throw std::runtime_error{"PMS was not created...!"};
@@ -39,7 +40,7 @@ namespace Moment::StressTests {
         return *this->pms_ptr;
     }
 
-    bool PauliLattice::test_moment_matrix(Pauli::NearestNeighbourIndex nni) {
+    bool PauliLattice::test_moment_matrix(Pauli::MomentMatrixIndex nni) {
         std::cout << "Generating moment matrix for level " << nni.moment_matrix_level;
         if (nni.neighbours != 0) {
             std::cout << " restricted to " << nni.neighbours << " nearest neighbour";
@@ -95,18 +96,18 @@ int main() {
         auto& pms = pl.pms();
 
         // Make MM level 1
-        if (!pl.test_moment_matrix(NearestNeighbourIndex{1, 0})) {
+        if (!pl.test_moment_matrix(MomentMatrixIndex{1, 0})) {
             return -1;
         }
 
         // Make MM level 2, NN1
-        if (!pl.test_moment_matrix(NearestNeighbourIndex{2, 1})) {
+        if (!pl.test_moment_matrix(MomentMatrixIndex{2, 1})) {
             return -1;
         }
 
         if (lattice <= (Moment::debug_mode ? 5 : 6)) {
             // Make MM level 2
-            if (!pl.test_moment_matrix(NearestNeighbourIndex{2, 0})) {
+            if (!pl.test_moment_matrix(MomentMatrixIndex{2, 0})) {
                 return -1;
             }
         }

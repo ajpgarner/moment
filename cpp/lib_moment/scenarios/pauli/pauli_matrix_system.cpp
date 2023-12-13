@@ -7,8 +7,8 @@
 #include "pauli_matrix_system.h"
 #include "pauli_context.h"
 #include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
-#include "scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.h"
-#include "scenarios/pauli/matrices/pauli_moment_matrix.h"
+#include "scenarios/pauli/matrices/polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/moment_matrix.h"
 
 #include "matrix/polynomial_matrix.h"
 
@@ -33,7 +33,7 @@ namespace Moment::Pauli {
                                                              const RawPolynomial& raw_poly,
                                                              Multithreading::MultiThreadPolicy mt_policy) {
         auto write_lock = this->get_write_lock();
-        auto mat_ptr = PauliPolynomialLocalizingMatrix::create_from_raw(write_lock, *this, index, raw_poly, mt_policy);
+        auto mat_ptr = Pauli::PolynomialLocalizingMatrix::create_from_raw(write_lock, *this, index, raw_poly, mt_policy);
         const auto& matrix = *mat_ptr;
         const auto offset = this->push_back(write_lock, std::move(mat_ptr));
         return {offset, matrix};
@@ -128,7 +128,7 @@ namespace Moment::Pauli {
         auto& symbol_table = this->Symbols();
 
         // First ensure constituent parts exist
-        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        Pauli::PolynomialLocalizingMatrix::ConstituentInfo constituents;
         constituents.elements.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
             auto [mono_offset, mono_matrix] = this->PauliLocalizingMatrices.create(lock, mono_index, mt_policy);
@@ -142,7 +142,7 @@ namespace Moment::Pauli {
         const size_t prev_symbol_count = symbol_table.size();
 
         // Synthesize into polynomial matrix
-        auto ptr = std::make_unique<PauliPolynomialLocalizingMatrix>(this->pauliContext, symbol_table,
+        auto ptr = std::make_unique<Pauli::PolynomialLocalizingMatrix>(this->pauliContext, symbol_table,
                                                                       this->polynomial_factory(),
                                                                       index, std::move(constituents));
 
@@ -179,7 +179,7 @@ namespace Moment::Pauli {
         auto& symbol_table = this->Symbols();
 
         // First ensure constituent parts exist
-        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        Pauli::PolynomialLocalizingMatrix::ConstituentInfo constituents;
         constituents.elements.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
             auto [mono_offset, mono_matrix] = this->CommutatorMatrices.create(lock, mono_index, mt_policy);
@@ -230,7 +230,7 @@ namespace Moment::Pauli {
         auto& symbol_table = this->Symbols();
 
         // First ensure constituent parts exist
-        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        Pauli::PolynomialLocalizingMatrix::ConstituentInfo constituents;
         constituents.elements.reserve(index.Polynomial.size());
         for (auto [mono_index, factor] : index.MonomialIndices(symbol_table)) {
             auto [mono_offset, mono_matrix] = this->AnticommutatorMatrices.create(lock, mono_index, mt_policy);
@@ -363,14 +363,12 @@ namespace Moment::Pauli {
                                                          const AnticommutatorMatrixIndex& index,
                                                          ptrdiff_t matrix_offset,
                                                          const MonomialMatrix& cm) {
-
     }
 
     void PauliMatrixSystem::on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
                                                          const PolynomialAnticommutatorMatrixIndex& index,
                                                          ptrdiff_t matrix_offset,
                                                          const PolynomialMatrix& cm) {
-
     }
 
 

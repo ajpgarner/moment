@@ -10,7 +10,7 @@
 
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
-#include "scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/polynomial_localizing_matrix.h"
 
 #include "symbolic/symbol_table.h"
 

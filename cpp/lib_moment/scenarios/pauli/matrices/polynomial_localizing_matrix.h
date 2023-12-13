@@ -19,7 +19,7 @@ namespace Moment {
 namespace Moment::Pauli {
     class PauliContext;
 
-    class PauliPolynomialLocalizingMatrix : public PolynomialLocalizingMatrix {
+    class PolynomialLocalizingMatrix : public ::Moment::PolynomialLocalizingMatrix {
     public:
         using Index = Pauli::PolynomialLocalizingMatrixIndex;
 
@@ -30,20 +30,20 @@ namespace Moment::Pauli {
         PolynomialLocalizingMatrixIndex nn_index;
 
     public:
-        PauliPolynomialLocalizingMatrix(const PauliContext& context, SymbolTable& symbols,
+        PolynomialLocalizingMatrix(const PauliContext& context, SymbolTable& symbols,
                                         const PolynomialFactory& factory,
                                         Index index,
                                         PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
 
-        PauliPolynomialLocalizingMatrix(PauliMatrixSystem& system,
-                                        NearestNeighbourIndex index,
-                                        const std::string& raw_word_name,
-                                        PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
+        PolynomialLocalizingMatrix(PauliMatrixSystem& system,
+                                   NearestNeighbourIndex index,
+                                   const std::string& raw_word_name,
+                                   PolynomialLocalizingMatrix::ConstituentInfo&& constituents);
 
 
     public:
         /** Creates PolynomialLocalizingMatrix from raw polynomial */
-        static std::unique_ptr<PauliPolynomialLocalizingMatrix>
+        static std::unique_ptr<PolynomialLocalizingMatrix>
         create_from_raw(MaintainsMutex::WriteLock& write_lock, PauliMatrixSystem& system,
                         NearestNeighbourIndex index,  const RawPolynomial& raw_polynomials,
                         Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);

@@ -12,7 +12,7 @@
 
 #include "scenarios/pauli/pauli_matrix_system.h"
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/matrices/pauli_moment_matrix.h"
+#include "scenarios/pauli/matrices/moment_matrix.h"
 #include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
 
 #include "../../matrix/compare_os_matrix.h"

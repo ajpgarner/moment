@@ -79,9 +79,6 @@ add_library(lib_moment
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
-        scenarios/pauli/symmetry/lattice_duplicator.cpp
-        scenarios/pauli/symmetry/moment_simplifier.cpp
-        scenarios/pauli/symmetry/moment_simplifier_no_wrapping.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_index_collections.cpp
@@ -90,8 +87,11 @@ add_library(lib_moment
         scenarios/pauli/indices/monomial_index.cpp
         scenarios/pauli/indices/nearest_neighbour_index.cpp
         scenarios/pauli/indices/polynomial_index.cpp
-        scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.cpp
         scenarios/pauli/matrices/polynomial_commutator_matrix.cpp
+        scenarios/pauli/matrices/polynomial_localizing_matrix.cpp
+        scenarios/pauli/symmetry/lattice_duplicator.cpp
+        scenarios/pauli/symmetry/moment_simplifier.cpp
+        scenarios/pauli/symmetry/moment_simplifier_no_wrapping.cpp
         symbolic/monomial.cpp
         symbolic/monomial_comparator_by_hash.cpp
         symbolic/polynomial.cpp

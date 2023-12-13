@@ -15,8 +15,8 @@
 
 #include "scenarios/pauli/matrices/monomial_commutator_matrix.h"
 #include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
-#include "scenarios/pauli/matrices/pauli_moment_matrix.h"
-#include "scenarios/pauli/matrices/pauli_polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/moment_matrix.h"
+#include "scenarios/pauli/matrices/polynomial_localizing_matrix.h"
 #include "scenarios/pauli/matrices/polynomial_commutator_matrix.h"
 
 #include "symbolic/polynomial.h"

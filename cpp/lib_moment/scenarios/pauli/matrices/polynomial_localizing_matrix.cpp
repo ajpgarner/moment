@@ -5,7 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-#include "pauli_polynomial_localizing_matrix.h"
+#include "polynomial_localizing_matrix.h"
 
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
@@ -26,10 +26,10 @@ namespace Moment::Pauli {
     }
 
 
-    PauliPolynomialLocalizingMatrix::PauliPolynomialLocalizingMatrix(
+    PolynomialLocalizingMatrix::PolynomialLocalizingMatrix(
             const PauliContext& context, SymbolTable& symbols, const PolynomialFactory& factory,
             Index index, PolynomialLocalizingMatrix::ConstituentInfo&& constituents)
-    : PolynomialLocalizingMatrix{context, symbols, factory,
+    : ::Moment::PolynomialLocalizingMatrix{context, symbols, factory,
                                  static_cast<PolynomialLMIndex>(index), std::move(constituents)},
          pauli_context{context}, nn_index{std::move(index)} {
        if (nn_index.Level.neighbours != 0) {
@@ -37,25 +37,25 @@ namespace Moment::Pauli {
         }
     }
 
-    PauliPolynomialLocalizingMatrix::PauliPolynomialLocalizingMatrix(
+    PolynomialLocalizingMatrix::PolynomialLocalizingMatrix(
             PauliMatrixSystem& system, NearestNeighbourIndex index,
             const std::string& raw_word_name, PolynomialLocalizingMatrix::ConstituentInfo&& constituents)
-        : PolynomialLocalizingMatrix{system.pauliContext, system.Symbols(), system.polynomial_factory(),
+        : ::Moment::PolynomialLocalizingMatrix{system.pauliContext, system.Symbols(), system.polynomial_factory(),
                                      pad_base_index(index), std::move(constituents)},
              pauli_context{system.pauliContext}, nn_index{pad_nn_index(index)}
             {
         this->description = this->nn_index.to_string(context, symbols);
     }
 
-    std::unique_ptr<PauliPolynomialLocalizingMatrix>
-    PauliPolynomialLocalizingMatrix::create_from_raw(MaintainsMutex::WriteLock& write_lock,
+    std::unique_ptr<PolynomialLocalizingMatrix>
+    PolynomialLocalizingMatrix::create_from_raw(MaintainsMutex::WriteLock& write_lock,
                                                      PauliMatrixSystem& system, NearestNeighbourIndex index,
                                                      const RawPolynomial& raw_polynomials,
                                                      Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(write_lock));
 
         // First ensure constituent parts exist
-        PauliPolynomialLocalizingMatrix::ConstituentInfo constituents;
+        PolynomialLocalizingMatrix::ConstituentInfo constituents;
         constituents.elements.reserve(raw_polynomials.size());
         for (auto& [op_seq, factor] : raw_polynomials) {
             auto [mono_offset, mono_matrix] =
@@ -69,9 +69,9 @@ namespace Moment::Pauli {
         }
 
         // Now, make raw matrix from this
-        return std::make_unique<PauliPolynomialLocalizingMatrix>(system, index,
-                                                                 raw_polynomials.to_string(system.Context()),
-                                                                 std::move(constituents));
+        return std::make_unique<PolynomialLocalizingMatrix>(system, index,
+                                                            raw_polynomials.to_string(system.Context()),
+                                                            std::move(constituents));
 
     }
 }

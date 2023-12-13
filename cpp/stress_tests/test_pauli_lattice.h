@@ -7,13 +7,10 @@
 
 #pragma once
 
+#include "integer_types.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
-
-#include <Eigen/Sparse>
-
 #include <memory>
-#include <vector>
 
 namespace Moment::StressTests {
     class PauliLattice {
@@ -33,7 +30,7 @@ namespace Moment::StressTests {
             return *pms_ptr;
         }
 
-        bool test_moment_matrix(Pauli::NearestNeighbourIndex nni);
+        bool test_moment_matrix(Pauli::MomentMatrixIndex nni);
     };
 }
 
