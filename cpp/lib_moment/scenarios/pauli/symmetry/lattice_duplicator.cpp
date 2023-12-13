@@ -7,8 +7,7 @@
 
 #include "lattice_duplicator.h"
 
-#include "pauli_context.h"
-
+#include "../pauli_context.h"
 #include "moment_simplifier_wrapping.h"
 #include "moment_simplifier_no_wrapping.h"
 

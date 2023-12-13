@@ -7,7 +7,7 @@
 
 #include "pauli_osg.h"
 #include "pauli_context.h"
-#include "lattice_duplicator.h"
+#include "scenarios/pauli/symmetry/lattice_duplicator.h"
 
 #include "utilities/combinations.h"
 #include "dictionary/multi_operator_iterator.h"

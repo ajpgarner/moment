@@ -10,7 +10,7 @@
 #include "moment_simplifier_no_wrapping.h"
 #include "site_hasher.h"
 
-#include "pauli_context.h"
+#include "scenarios/pauli/pauli_context.h"
 #include "dictionary/operator_sequence.h"
 
 namespace Moment::Pauli {

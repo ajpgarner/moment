@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/lattice_duplicator.h"
+#include "scenarios/pauli/symmetry/lattice_duplicator.h"
 
 #include <array>
 #include <stdexcept>

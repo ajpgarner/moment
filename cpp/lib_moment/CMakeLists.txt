@@ -79,9 +79,9 @@ add_library(lib_moment
         scenarios/symmetrized/representation.cpp
         scenarios/symmetrized/representation_mapper.cpp
         scenarios/symmetrized/symmetrized_matrix_system.cpp
-        scenarios/pauli/lattice_duplicator.cpp
-        scenarios/pauli/moment_simplifier.cpp
-        scenarios/pauli/moment_simplifier_no_wrapping.cpp
+        scenarios/pauli/symmetry/lattice_duplicator.cpp
+        scenarios/pauli/symmetry/moment_simplifier.cpp
+        scenarios/pauli/symmetry/moment_simplifier_no_wrapping.cpp
         scenarios/pauli/pauli_context.cpp
         scenarios/pauli/pauli_dictionary.cpp
         scenarios/pauli/pauli_index_collections.cpp

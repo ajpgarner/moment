@@ -6,7 +6,7 @@
  */
 
 #include "moment_simplifier_no_wrapping.h"
-#include "pauli_context.h"
+#include "scenarios/pauli/pauli_context.h"
 
 #include <algorithm>
 

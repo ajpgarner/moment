@@ -10,7 +10,7 @@
 #include "scenarios/pauli/indices/nearest_neighbour_index.h"
 #include "pauli_dictionary.h"
 #include "pauli_osg.h"
-#include "moment_simplifier.h"
+#include "scenarios/pauli/symmetry/moment_simplifier.h"
 
 #include "utilities/shift_sorter.h"
 

@@ -8,7 +8,7 @@
 #pragma once
 #include "moment_simplifier.h"
 #include "site_hasher.h"
-#include "pauli_context.h"
+#include "scenarios/pauli/pauli_context.h"
 
 namespace Moment::Pauli {
 

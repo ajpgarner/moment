@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 
 #include "scenarios/pauli/pauli_context.h"
-#include "scenarios/pauli/site_hasher.h"
-#include "scenarios/pauli/moment_simplifier_wrapping.h"
+#include "scenarios/pauli/symmetry/site_hasher.h"
+#include "scenarios/pauli/symmetry/moment_simplifier_wrapping.h"
 
 #include <array>
 #include <stdexcept>
