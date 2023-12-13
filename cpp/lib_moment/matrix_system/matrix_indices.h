@@ -118,7 +118,7 @@ namespace Moment {
          * @return Offset of the matrix within the matrix system, and reference to the matrix.
          */
         [[nodiscard]] std::pair<size_t, matrix_t&>
-        create(MaintainsMutex::WriteLock& lock, const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
+        create(const MaintainsMutex::WriteLock& lock, const index_t& index, const MTPolicy mt_policy = MTPolicy::Optional) {
             // Must hold write lock
             assert(this->system.is_locked_write_lock(lock));
 

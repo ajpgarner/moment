@@ -46,7 +46,7 @@ namespace Moment::Tests {
 
 
     TEST_F(Symbolic_PolynomialToIndex, Empty) {
-        PolynomialIndexStorage index{this->get_factory()};
+        PolynomialLocalizingMatrixIndexStorage index{this->get_factory()};
 
         EXPECT_TRUE(index.empty());
         EXPECT_EQ(index.size(), 0);
@@ -54,8 +54,8 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_PolynomialToIndex, AddThenFind_One) {
         const auto& factory = this->get_factory();
-        PolynomialIndexStorage index{factory};
-        const PolynomialLMIndex key = {1, factory({Monomial{1, 1.0}})};
+        PolynomialLocalizingMatrixIndexStorage index{factory};
+        const ::Moment::PolynomialLocalizingMatrixIndex key{1, factory({Monomial{1, 1.0}})};
 
 
         index.insert(key, 13);
@@ -74,9 +74,9 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_PolynomialToIndex, AddThenFind_SeparateHeads) {
         const auto& factory = this->get_factory();
-        PolynomialIndexStorage index{factory};
-        const PolynomialLMIndex keyA = {1, factory({Monomial{1, 1.0}})};
-        const PolynomialLMIndex keyB = {1, factory({Monomial{2, -2.0}})};
+        PolynomialLocalizingMatrixIndexStorage index{factory};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyA = {1, factory({Monomial{1, 1.0}})};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyB = {1, factory({Monomial{2, -2.0}})};
 
         index.insert(keyA, 13);
         index.insert(keyB, 17);
@@ -99,9 +99,9 @@ namespace Moment::Tests {
 
     TEST_F(Symbolic_PolynomialToIndex, AddThenFind_Similar) {
         const auto& factory = this->get_factory();
-        PolynomialIndexStorage index{factory};
-        const PolynomialLMIndex keyA = {1, factory({Monomial{1, 1.0}})};
-        const PolynomialLMIndex keyB = {1, factory({Monomial{1, 1.1}})};
+        PolynomialLocalizingMatrixIndexStorage index{factory};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyA = {1, factory({Monomial{1, 1.0}})};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyB = {1, factory({Monomial{1, 1.1}})};
 
         index.insert(keyA, 13);
         index.insert(keyB, 17);
@@ -123,9 +123,9 @@ namespace Moment::Tests {
     TEST_F(Symbolic_PolynomialToIndex, FindOrInsert) {
         const auto& factory = this->get_factory();
 
-        PolynomialIndexStorage index{factory};
-        const PolynomialLMIndex keyA = {1, factory({Monomial{2, 1.0}})};
-        const PolynomialLMIndex keyB = {1, factory({Monomial{1, 1.1}})};
+        PolynomialLocalizingMatrixIndexStorage index{factory};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyA = {1, factory({Monomial{2, 1.0}})};
+        const ::Moment::PolynomialLocalizingMatrixIndex keyB = {1, factory({Monomial{1, 1.1}})};
 
         auto [q1_index, q1_insert] = index.insert(keyA, 13);
         EXPECT_EQ(q1_index, 13);

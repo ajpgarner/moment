@@ -451,6 +451,8 @@ namespace Moment::Pauli {
         return osg_pair();
     }
 
+
+
     std::unique_ptr<OperatorSequenceGenerator> PauliContext::new_osg(const size_t word_length) const {
         return std::make_unique<PauliSequenceGenerator>(*this, word_length);
     }

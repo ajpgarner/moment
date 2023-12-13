@@ -57,14 +57,14 @@ namespace Moment::Imported {
 
     protected:
         std::unique_ptr<class SymbolicMatrix>
-        create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+        create_moment_matrix(const WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
         std::unique_ptr<class SymbolicMatrix>
-        create_localizing_matrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
+        create_localizing_matrix(const WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                  Multithreading::MultiThreadPolicy mt_policy) override;
 
         std::unique_ptr<class PolynomialMatrix>
-        create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+        create_polynomial_localizing_matrix(const WriteLock &lock, const PolynomialLocalizingMatrixIndex &index,
                                             Multithreading::MultiThreadPolicy mt_policy) override;
 
     };

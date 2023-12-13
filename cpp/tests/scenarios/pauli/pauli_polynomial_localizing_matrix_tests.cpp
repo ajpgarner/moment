@@ -10,7 +10,7 @@
 
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
-#include "scenarios/pauli/matrices/polynomial_localizing_matrix.h"
+#include "scenarios/pauli/matrices/polynomial_matrices.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -59,7 +59,7 @@ namespace Moment::Tests {
     TEST_F(Scenarios_Pauli_PolyLMTests, Plain_MakeZero) {
         auto& system = this->get_system();
 
-        auto& plm = system.PolynomialLocalizingMatrix(PolynomialLMIndex{1, Polynomial::Zero()});
+        auto& plm = system.PolynomialLocalizingMatrix(::Moment::PolynomialLocalizingMatrixIndex{1, Polynomial::Zero()});
         EXPECT_EQ(plm.Dimension(), 4);
         for (const auto& elem: plm.SymbolMatrix()) {
             EXPECT_TRUE(elem.empty());
@@ -72,7 +72,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
         const auto& context = this->get_context();
 
-        auto& plm = system.PolynomialLocalizingMatrix(PolynomialLMIndex{1, Polynomial(Monomial{sid_X, -2.0})});
+        auto& plm = system.PolynomialLocalizingMatrix(::Moment::PolynomialLocalizingMatrixIndex{1, Polynomial(Monomial{sid_X, -2.0})});
 
         const ::Moment::LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
 
@@ -99,7 +99,7 @@ namespace Moment::Tests {
         const auto& factory = this->get_factory();
         const auto& context = this->get_context();
 
-        const PolynomialLMIndex plmIndex{1, factory({Monomial{sid_X, -2.0}, Monomial{sid_Y, 1.0}})};
+        const ::Moment::PolynomialLocalizingMatrixIndex plmIndex{1, factory({Monomial{sid_X, -2.0}, Monomial{sid_Y, 1.0}})};
         auto& plm = system.PolynomialLocalizingMatrix(plmIndex);
 
         const ::Moment::LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};

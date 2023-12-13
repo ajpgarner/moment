@@ -19,7 +19,7 @@
 namespace Moment {
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    MomentMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, const Index level,
+    MomentMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock, const Index level,
                                     const Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.create_moment_matrix(lock, level, mt_policy));
@@ -33,7 +33,7 @@ namespace Moment {
     }
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    LocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, const LocalizingMatrixIndex& lmi,
+    LocalizingMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock, const LocalizingMatrixIndex& lmi,
                                         Multithreading::MultiThreadPolicy mt_policy) {
         const auto matrixIndex = static_cast<ptrdiff_t>(system.matrices.size());
         system.matrices.emplace_back(system.create_localizing_matrix(lock, lmi, mt_policy));
@@ -48,8 +48,8 @@ namespace Moment {
     }
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
-    PolynomialLocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
-                                                  const PolynomialLMIndex &index,
+    PolynomialLocalizingMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
+                                                  const PolynomialLocalizingMatrixIndex &index,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
         auto matrixPtr = system.create_polynomial_localizing_matrix(lock, index, mt_policy);
         PolynomialMatrix& matrixRef = *matrixPtr;
@@ -59,13 +59,13 @@ namespace Moment {
     }
 
     void PolynomialLocalizingMatrixFactory::notify(const MaintainsMutex::WriteLock& lock,
-                                                   const PolynomialLMIndex &index,
+                                                   const PolynomialLocalizingMatrixIndex &index,
                                                    ptrdiff_t offset, PolynomialMatrix& matrix) {
         this->system.on_new_polynomial_localizing_matrix(lock, index, offset, matrix);
     }
 
     std::pair<ptrdiff_t, SymbolicMatrix &>
-    SubstitutedMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    SubstitutedMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                          const Index& index,
                                          const Multithreading::MultiThreadPolicy mt_policy) {
         assert(system.is_locked_write_lock(lock));
@@ -97,7 +97,7 @@ namespace Moment {
     static_assert(makes_matrices<LocalizingMatrixFactory, SymbolicMatrix, LocalizingMatrixIndex>);
 
     /** Ensure PolynomialLocalizingMatrixFactory meets concept. */
-    static_assert(makes_matrices<PolynomialLocalizingMatrixFactory, PolynomialMatrix, PolynomialLMIndex>);
+    static_assert(makes_matrices<PolynomialLocalizingMatrixFactory, PolynomialMatrix, PolynomialLocalizingMatrixIndex>);
 
     /** Ensure SubstitutedMatrixFactory meets concept. */
     static_assert(makes_matrices<SubstitutedMatrixFactory, SymbolicMatrix, SubstitutedMatrixIndex>);

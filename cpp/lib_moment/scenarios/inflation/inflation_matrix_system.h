@@ -112,12 +112,12 @@ namespace Moment::Inflation {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class ExtendedMatrix>
-        create_extended_matrix(MaintainsMutex::WriteLock &lock, const ExtendedMatrixIndex& index,
+        create_extended_matrix(const WriteLock &lock, const ExtendedMatrixIndex& index,
                                Multithreading::MultiThreadPolicy mt_policy);
 
         ptrdiff_t expand_rulebook(MomentRulebook &rulebook, size_t from_symbol) override;
 
-        virtual void on_new_extended_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_extended_matrix(const WriteLock& write_lock,
                                             const ExtendedMatrixIndex& emi,
                                             ptrdiff_t offset, const class ExtendedMatrix& em) { }
 

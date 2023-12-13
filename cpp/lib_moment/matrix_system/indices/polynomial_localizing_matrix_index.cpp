@@ -12,12 +12,13 @@
 
 namespace Moment {
 
-    std::ostream& operator<<(std::ostream& os, const PolynomialLMIndex& plmi) {
+    std::ostream& operator<<(std::ostream& os, const PolynomialLocalizingMatrixIndex& plmi) {
         os << "Localizing Matrix, Level " << plmi.Level << ", Polynomial Word";
         return os;
     }
 
-    [[nodiscard]] std::string PolynomialLMIndex::to_string(const Context& context, const SymbolTable& symbols) const {
+    [[nodiscard]] std::string PolynomialLocalizingMatrixIndex::to_string(const Context& context,
+                                                                         const SymbolTable& symbols) const {
         std::stringstream ss;
 
         ContextualOS cSS{ss, context, symbols};
@@ -28,7 +29,7 @@ namespace Moment {
         return ss.str();
     }
 
-    std::string PolynomialLMIndex::to_string(const MatrixSystem& matrix_system) const {
+    std::string PolynomialLocalizingMatrixIndex::to_string(const MatrixSystem& matrix_system) const {
         return this->to_string(matrix_system.Context(), matrix_system.Symbols());
     }
 }

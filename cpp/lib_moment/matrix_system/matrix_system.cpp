@@ -47,6 +47,13 @@ namespace Moment {
 
     MatrixSystem::~MatrixSystem() noexcept = default;
 
+    size_t MatrixSystem::osg_size(size_t level) const {
+        if (this->context->defines_operators()) [[likely]] {
+            return this->context->dictionary().WordCount(level);
+        }
+        return 0;
+    }
+
     const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
         if (index >= this->matrices.size()) {
             std::stringstream errSS;
@@ -76,7 +83,7 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    ptrdiff_t MatrixSystem::push_back(MaintainsMutex::WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix) {
+    ptrdiff_t MatrixSystem::push_back(const MaintainsMutex::WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix) {
         assert(this->is_locked_write_lock(lock));
         auto matrixIndex = static_cast<ptrdiff_t>(this->matrices.size());
         this->matrices.emplace_back(std::move(matrix));
@@ -84,7 +91,7 @@ namespace Moment {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock& lock,
+    MatrixSystem::create_moment_matrix(const MaintainsMutex::WriteLock& lock,
                                        const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
         const size_t prev_symbol_count = this->symbol_table->size();
@@ -98,7 +105,7 @@ namespace Moment {
 
 
     std::unique_ptr<class SymbolicMatrix>
-    MatrixSystem::create_localizing_matrix(WriteLock& lock,
+    MatrixSystem::create_localizing_matrix(const WriteLock& lock,
                                            const LocalizingMatrixIndex& lmi,
                                            Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->is_locked_write_lock(lock));
@@ -112,44 +119,20 @@ namespace Moment {
     }
 
     std::unique_ptr<class PolynomialMatrix>
-    MatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock,
-                                                      const PolynomialLMIndex &index, Multithreading::MultiThreadPolicy mt_policy) {
+    MatrixSystem::create_polynomial_localizing_matrix(const WriteLock &lock,
+                                                      const ::Moment::PolynomialLocalizingMatrixIndex& index,
+                                                      Multithreading::MultiThreadPolicy mt_policy) {
+
         assert(this->is_locked_write_lock(lock));
-
-        // First ensure constituent parts exist
-        PolynomialLocalizingMatrix::ConstituentInfo constituents;
-        constituents.elements.reserve(index.Polynomial.size());
-        for (auto [mono_index, factor] : index.MonomialIndices(*this->symbol_table)) {
-            auto [mono_offset, mono_matrix] = this->LocalizingMatrix.create(lock, mono_index, mt_policy);
-            constituents.elements.emplace_back(&mono_matrix, factor);
-        }
-
-        // If no constituents, we have to query for size in another way:
-        if (!constituents.auto_set_dimension()) {
-            constituents.matrix_dimension = this->context->dictionary().WordCount(index.Level);
-        }
-
-        // NB: Previous symbol updates from constituents will have already been accounted for...
-        const size_t prev_symbol_count = this->symbol_table->size();
-
-        // Synthesize into polynomial matrix
-        auto ptr = std::make_unique<class PolynomialLocalizingMatrix>(*this->context, *this->symbol_table,
-                                                                      *this->poly_factory,
-                                                                      PolynomialLMIndex{index},
-                                                                      std::move(constituents));
-
-        const size_t new_symbol_count = this->symbol_table->size();
-        if (new_symbol_count > prev_symbol_count) {
-            this->on_new_symbols_registered(lock, prev_symbol_count, new_symbol_count);
-        }
-        return ptr;
+        return PolynomialLocalizingMatrix::create(lock, *this, this->LocalizingMatrix, index, mt_policy);
     }
 
     std::pair<size_t, const Moment::PolynomialMatrix&>
     MatrixSystem::create_and_register_localizing_matrix(const size_t level, const RawPolynomial& raw_poly,
                                                         Multithreading::MultiThreadPolicy mt_policy) {
         auto write_lock = this->get_write_lock();
-        auto mat_ptr = PolynomialLocalizingMatrix::create_from_raw(write_lock, *this, level, raw_poly, mt_policy);
+        auto mat_ptr = PolynomialLocalizingMatrix::create_from_raw(write_lock, *this, this->LocalizingMatrix,
+                                                                   level, raw_poly, mt_policy);
         const auto& matrix = *mat_ptr;
         const auto offset = this->push_back(write_lock, std::move(mat_ptr));
         return {offset, matrix};

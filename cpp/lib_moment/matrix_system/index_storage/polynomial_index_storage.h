@@ -26,7 +26,7 @@ namespace Moment {
             typename element_index_t = LocalizingMatrixIndex>
     class PolynomialIndexStorageBase {
     public:
-        using Index = PolynomialLMIndexBase<base_index_t, element_index_t>;
+        using Index = PolynomialIndexBase<base_index_t, element_index_t>;
 
         class IndexPolyComparator {
         private:
@@ -146,7 +146,8 @@ namespace Moment {
 
     };
 
-    using PolynomialIndexStorage = PolynomialIndexStorageBase<size_t, LocalizingMatrixIndex>;
-    static_assert(stores_indices<PolynomialIndexStorage, PolynomialLMIndex>);
+    /** Specialization of polynomial index to localizing matrix indices */
+    using PolynomialLocalizingMatrixIndexStorage = PolynomialIndexStorageBase<size_t, ::Moment::LocalizingMatrixIndex>;
+    static_assert(stores_indices<PolynomialLocalizingMatrixIndexStorage, ::Moment::PolynomialLocalizingMatrixIndex>);
 
 }

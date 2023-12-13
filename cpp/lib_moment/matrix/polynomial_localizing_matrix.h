@@ -10,34 +10,15 @@
 #include "composite_matrix.h"
 
 #include "matrix_system/indices/polynomial_localizing_matrix_index.h"
-#include "multithreading/maintains_mutex.h"
-
-#include <complex>
-#include <span>
-#include <vector>
+#include "matrix_system/standard_matrix_indices.h"
 
 namespace Moment {
 
-    class MatrixSystem;
-    class MonomialMatrix;
-    class RawPolynomial;
-
-    class PolynomialLocalizingMatrix : public CompositeMatrix {
-    private:
-        PolynomialLMIndex index;
-        bool aliased_index = false;
-
-    public:
-        /** Constructor for non-empty polynomial localizing matrix. */
-        PolynomialLocalizingMatrix(const Context& context, SymbolTable& symbols, const PolynomialFactory& factory,
-                                   PolynomialLMIndex index, CompositeMatrix::ConstituentInfo&& constituents);
-
-        /** Creates PolynomialLocalizingMatrix from raw polynomial */
-        static std::unique_ptr<PolynomialLocalizingMatrix>
-        create_from_raw(const MaintainsMutex::WriteLock& write_lock, MatrixSystem& system,
-                        size_t level, const RawPolynomial& raw_polynomials,
-                        Multithreading::MultiThreadPolicy mt_policy);
-
-    };
+    /**
+     * Polynomial localizing matrix: composed from monomial localizing matrices.
+     */
+    using PolynomialLocalizingMatrix = CompositeMatrixImpl<MatrixSystem,
+                                                          ::Moment::PolynomialLocalizingMatrixIndex,
+                                                          ::Moment::LocalizingMatrixIndices>;
 
 }

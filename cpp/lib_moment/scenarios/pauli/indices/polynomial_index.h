@@ -29,17 +29,18 @@ namespace Moment {
           */
         template<typename constituent_index_t>
         struct PauliPolynomialIndex
-                : public PolynomialLMIndexBase<NearestNeighbourIndex, constituent_index_t> {
+                : public PolynomialIndexBase<NearestNeighbourIndex, constituent_index_t> {
         public:
-            using BaseIndex = typename PolynomialLMIndexBase<NearestNeighbourIndex, constituent_index_t>::BaseIndex;
+            using OSGIndex = NearestNeighbourIndex;
+            using ComponentIndex = constituent_index_t;
 
             /** Construct Pauli-scenario polynomial localizing matrix by initiating nearest neighbour info.. */
             PauliPolynomialIndex(const size_t level, const size_t neighbours, class Polynomial poly) noexcept
-                : PolynomialLMIndexBase<NearestNeighbourIndex, constituent_index_t>{
+                : PolynomialIndexBase<NearestNeighbourIndex, constituent_index_t>{
                         NearestNeighbourIndex{level, neighbours}, std::move(poly)} { }
 
             /** Downcast, ignoring nearest neighbour info. */
-            explicit operator PolynomialLMIndex() const {
+            explicit operator PolynomialLocalizingMatrixIndex() const {
                 return {this->Level.moment_matrix_level, this->Polynomial};
             }
         };
@@ -56,7 +57,7 @@ namespace Moment {
                 : PauliPolynomialIndex<Pauli::LocalizingMatrixIndex>{nn_index.moment_matrix_level, nn_index.neighbours,
                                                                      std::move(poly)} { }
 
-            explicit PolynomialLocalizingMatrixIndex(::Moment::PolynomialLMIndex base_index) noexcept
+            explicit PolynomialLocalizingMatrixIndex(::Moment::PolynomialLocalizingMatrixIndex base_index) noexcept
                 : PauliPolynomialIndex<Pauli::LocalizingMatrixIndex>{base_index.Level, 0,
                                                                      std::move(base_index.Polynomial)} { }
 

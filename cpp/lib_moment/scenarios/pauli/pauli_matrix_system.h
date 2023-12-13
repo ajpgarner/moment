@@ -9,7 +9,6 @@
 
 #include "matrix_system/matrix_system.h"
 
-#include "scenarios/pauli/indices/monomial_index.h"
 #include "pauli_index_collections.h"
 
 namespace Moment::Pauli {
@@ -93,75 +92,88 @@ namespace Moment::Pauli {
                              Multithreading::MultiThreadPolicy mt_policy = Multithreading::MultiThreadPolicy::Optional);
 
 
+
+        /**
+         * Gets the number of sequences in an OSG of a given length.
+         * Returns 0 if system does not define operators.
+         * NB: This could trigger the generation of a dictionary if one is not already known.
+         */
+        using MatrixSystem::osg_size;
+
+        [[nodiscard]] size_t osg_size(const NearestNeighbourIndex& index) const;
+
+
     protected:
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+        create_moment_matrix(const WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        create_localizing_matrix(WriteLock& lock, const ::Moment::LocalizingMatrixIndex& lmi,
+        create_localizing_matrix(const WriteLock& lock, const ::Moment::LocalizingMatrixIndex& lmi,
                                  Multithreading::MultiThreadPolicy mt_policy) override;
 
         [[nodiscard]] std::unique_ptr<PolynomialMatrix>
-        create_polynomial_localizing_matrix(WriteLock& lock, const PolynomialLMIndex& index,
+        create_polynomial_localizing_matrix(const WriteLock& lock,
+                                            const ::Moment::PolynomialLocalizingMatrixIndex& index,
                                             Multithreading::MultiThreadPolicy mt_policy) override;
 
         /**
          * Construct a new moment matrix, with restriction of top-row elements to N-nearest neighbours.
          */
         [[nodiscard]] std::unique_ptr<MonomialMatrix>
-        create_nearest_neighbour_moment_matrix(WriteLock& lock, const Pauli::MomentMatrixIndex& index,
+        create_nearest_neighbour_moment_matrix(const WriteLock& lock, const Pauli::MomentMatrixIndex& index,
                                                Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new monomial localizing matrix, with restriction of top-row elements to N-nearest neighbours.
          */
         [[nodiscard]] std::unique_ptr<MonomialMatrix>
-        create_nearest_neighbour_localizing_matrix(WriteLock& lock, const Pauli::LocalizingMatrixIndex& index,
+        create_nearest_neighbour_localizing_matrix(const WriteLock& lock, const Pauli::LocalizingMatrixIndex& index,
                                                    Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new polynomial localizing matrix, with restriction of top-row elements to N-nearest neighbours.
          */
         [[nodiscard]] std::unique_ptr<PolynomialMatrix>
-        create_nearest_neighbour_localizing_matrix(WriteLock& lock, const Pauli::PolynomialLocalizingMatrixIndex& index,
+        create_nearest_neighbour_localizing_matrix(const WriteLock& lock, const Pauli::PolynomialLocalizingMatrixIndex& index,
                                                    Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
          */
         [[nodiscard]] std::unique_ptr<MonomialMatrix>
-        create_commutator_matrix(WriteLock& lock, const CommutatorMatrixIndex & index,
+        create_commutator_matrix(const WriteLock& lock, const CommutatorMatrixIndex & index,
                                  Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new matrix, defined as [MM, x] for moment matrix M (maybe restricted to NN) and monomial x.
          */
         [[nodiscard]] std::unique_ptr<PolynomialMatrix>
-        create_commutator_matrix(WriteLock& lock, const PolynomialCommutatorMatrixIndex & index,
+        create_commutator_matrix(const WriteLock& lock, const PolynomialCommutatorMatrixIndex & index,
                                  Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new matrix, defined as {MM, x} for moment matrix M (maybe restricted to NN) and monomial x.
          */
         [[nodiscard]] std::unique_ptr<MonomialMatrix>
-        create_anticommutator_matrix(WriteLock& lock, const AnticommutatorMatrixIndex& index,
+        create_anticommutator_matrix(const WriteLock& lock, const AnticommutatorMatrixIndex& index,
                                      Multithreading::MultiThreadPolicy mt_policy);
 
         /**
          * Construct a new polynomial matrix, defined as {MM, x} for moment matrix M (maybe restricted to NN) and monomial x.
          */
         [[nodiscard]] std::unique_ptr<PolynomialMatrix>
-        create_anticommutator_matrix(WriteLock& lock, const PolynomialAnticommutatorMatrixIndex& index,
+        create_anticommutator_matrix(const WriteLock& lock, const PolynomialAnticommutatorMatrixIndex& index,
                                      Multithreading::MultiThreadPolicy mt_policy);
 
 
-        void on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
+        void on_new_moment_matrix(const WriteLock& write_lock, size_t level,
                                   ptrdiff_t matrix_offset, const SymbolicMatrix& mm) override;
 
         void on_new_localizing_matrix(const WriteLock& write_lock, const ::Moment::LocalizingMatrixIndex& lmi,
                                       ptrdiff_t matrix_offset, const SymbolicMatrix& lm) override;
 
-        void on_new_polynomial_localizing_matrix(const WriteLock& write_lock, const PolynomialLMIndex& lmi,
+        void on_new_polynomial_localizing_matrix(const WriteLock& write_lock,
+                                                 const ::Moment::PolynomialLocalizingMatrixIndex& lmi,
                                                  ptrdiff_t matrix_offset, const PolynomialMatrix& plm) override;
 
         /**
@@ -169,7 +181,7 @@ namespace Moment::Pauli {
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void on_new_nearest_neighbour_moment_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_nearest_neighbour_moment_matrix(const WriteLock& write_lock,
                                                             const Pauli::MomentMatrixIndex& index,
                                                             ptrdiff_t matrix_offset,
                                                             const MonomialMatrix& mm);
@@ -178,7 +190,7 @@ namespace Moment::Pauli {
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void on_new_nearest_neighbour_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_nearest_neighbour_localizing_matrix(const WriteLock& write_lock,
                                                                 const Pauli::LocalizingMatrixIndex& index,
                                                                 ptrdiff_t matrix_offset,
                                                                 const MonomialMatrix& lm);
@@ -188,7 +200,7 @@ namespace Moment::Pauli {
          * @param level The moment matrix level.
          * @param mm The newly generated moment matrix.
          */
-        virtual void on_new_nearest_neighbour_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_nearest_neighbour_localizing_matrix(const WriteLock& write_lock,
                                                                 const Pauli::PolynomialLocalizingMatrixIndex& index,
                                                                 ptrdiff_t matrix_offset,
                                                                 const PolynomialMatrix& lm);
@@ -196,28 +208,28 @@ namespace Moment::Pauli {
         /**
          * Virtual method, called after a new monomial commutator matrix is generated.
          */
-        virtual void on_new_commutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_commutator_matrix(const WriteLock& write_lock,
                                               const CommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
                                               const MonomialMatrix& cm);
 
         /**
          * Virtual method, called after a new polynomial commutator matrix is generated.
          */
-        virtual void on_new_commutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_commutator_matrix(const WriteLock& write_lock,
                                               const PolynomialCommutatorMatrixIndex& index, ptrdiff_t matrix_offset,
                                               const PolynomialMatrix& cm);
 
         /**
          * Virtual method, called after a new monomial anti-commutator matrix is generated.
          */
-        virtual void on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_anticommutator_matrix(const WriteLock& write_lock,
                                                   const AnticommutatorMatrixIndex& index,
                                                   ptrdiff_t matrix_offset,
                                                   const MonomialMatrix& acm);
         /**
          * Virtual method, called after a new polynomial anti-commutator matrix is generated.
          */
-        virtual void on_new_anticommutator_matrix(const MaintainsMutex::WriteLock& write_lock,
+        virtual void on_new_anticommutator_matrix(const WriteLock& write_lock,
                                                   const PolynomialAnticommutatorMatrixIndex& index,
                                                   ptrdiff_t matrix_offset,
                                                   const PolynomialMatrix& acm);

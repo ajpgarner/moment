@@ -52,7 +52,7 @@ namespace Moment::Derived {
         explicit DerivedMatrixFactory(MatrixSystem& system);
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, Index src_offset, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, Index src_offset, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, Index src_offset,
                     ptrdiff_t target_offset, SymbolicMatrix& matrix);

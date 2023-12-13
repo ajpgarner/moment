@@ -17,7 +17,9 @@
 
 namespace Moment {
     class Context;
+    class SymbolTable;
     class Polynomial;
+    class PolynomialFactory;
 
     /**
       * A 'raw' polynomial consists of an operator sequence and weight.
@@ -81,6 +83,9 @@ namespace Moment {
         }
 
         [[nodiscard]] std::string to_string(const Context& context) const;
+
+        /** Find symbols for Polynomial, and create appropriate object */
+        [[nodiscard]] Polynomial to_polynomial(const PolynomialFactory& factory, const SymbolTable& symbols) const;
 
     };
 }

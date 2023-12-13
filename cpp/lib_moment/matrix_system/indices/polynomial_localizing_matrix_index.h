@@ -20,13 +20,18 @@
 namespace Moment {
     class SymbolTable;
 
+    /**
+     * Generic index for matrices formed by pairing an OSG index with a Polynomial.
+     */
     template<typename base_index_t = size_t,
             typename element_index_t = LocalizingMatrixIndex>
-    struct PolynomialLMIndexBase {
+    struct PolynomialIndexBase {
     public:
-        using BaseIndex = base_index_t;
+        using OSGIndex = base_index_t;
+        using ComponentIndex = element_index_t;
 
-        BaseIndex Level;
+        OSGIndex Level;
+
         class Polynomial Polynomial;
 
     public:
@@ -38,9 +43,9 @@ namespace Moment {
         private:
             const SymbolTable* symbolPtr;
             internal_iter_t iter;
-            BaseIndex level;
+            OSGIndex level;
         public:
-            explicit MonomialLMIterator(const SymbolTable& symbols, BaseIndex level, internal_iter_t iter) noexcept
+            explicit MonomialLMIterator(const SymbolTable& symbols, OSGIndex level, internal_iter_t iter) noexcept
                 : symbolPtr{&symbols}, iter{iter}, level{level} { }
 
             [[nodiscard]] value_type operator*() const noexcept {
@@ -75,14 +80,14 @@ namespace Moment {
         class MLMRange {
         private:
             const SymbolTable& symbols;
-            BaseIndex level;
+            OSGIndex level;
             const class Polynomial& polynomial;
 
         public:
-            MLMRange(const SymbolTable& symbols, BaseIndex level, const class Polynomial& poly) noexcept
+            MLMRange(const SymbolTable& symbols, OSGIndex level, const class Polynomial& poly) noexcept
                         : symbols{symbols}, level{level}, polynomial{poly} { }
 
-            MLMRange(const SymbolTable& symbols, BaseIndex level, class Polynomial&& poly) = delete;
+            MLMRange(const SymbolTable& symbols, OSGIndex level, class Polynomial&& poly) = delete;
 
             [[nodiscard]] inline auto begin() const noexcept {
                 return MonomialLMIterator{this->symbols, this->level, this->polynomial.begin()};
@@ -99,10 +104,13 @@ namespace Moment {
 
     };
 
-    struct PolynomialLMIndex : public PolynomialLMIndexBase<size_t, LocalizingMatrixIndex> {
+    /**
+     * Index for a polynomial localizing matrix.
+     */
+    struct PolynomialLocalizingMatrixIndex : public PolynomialIndexBase<size_t, LocalizingMatrixIndex> {
 
     public:
-        friend std::ostream& operator<<(std::ostream& os, const PolynomialLMIndex& plmi);
+        friend std::ostream& operator<<(std::ostream& os, const PolynomialLocalizingMatrixIndex& plmi);
 
         [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
 

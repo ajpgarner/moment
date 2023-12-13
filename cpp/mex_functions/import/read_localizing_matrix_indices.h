@@ -116,7 +116,7 @@ namespace Moment {
 
             [[nodiscard]] ::Moment::LocalizingMatrixIndex to_monomial_index() const;
 
-            [[nodiscard]] ::Moment::PolynomialLMIndex to_polynomial_index() const;
+            [[nodiscard]] ::Moment::PolynomialLocalizingMatrixIndex to_polynomial_index() const;
 
             [[nodiscard]] Pauli::LocalizingMatrixIndex to_pauli_monomial_index() const;
 

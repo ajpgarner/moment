@@ -51,7 +51,7 @@ namespace Moment::Inflation {
     }
 
     std::pair<ptrdiff_t, ExtendedMatrix &>
-    ExtendedMatrixFactory::operator()(MaintainsMutex::WriteLock &lock, const ExtendedMatrixFactory::Index &index,
+    ExtendedMatrixFactory::operator()(const MaintainsMutex::WriteLock &lock, const ExtendedMatrixFactory::Index &index,
                                       Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
 

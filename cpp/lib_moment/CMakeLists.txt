@@ -12,7 +12,6 @@ add_library(lib_moment
         matrix/matrix_basis.cpp
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_basis.cpp
-        matrix/polynomial_localizing_matrix.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/operator_matrix/is_hermitian.cpp
@@ -87,8 +86,6 @@ add_library(lib_moment
         scenarios/pauli/indices/monomial_index.cpp
         scenarios/pauli/indices/nearest_neighbour_index.cpp
         scenarios/pauli/indices/polynomial_index.cpp
-        scenarios/pauli/matrices/polynomial_commutator_matrix.cpp
-        scenarios/pauli/matrices/polynomial_localizing_matrix.cpp
         scenarios/pauli/symmetry/lattice_duplicator.cpp
         scenarios/pauli/symmetry/moment_simplifier.cpp
         scenarios/pauli/symmetry/moment_simplifier_no_wrapping.cpp

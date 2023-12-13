@@ -47,7 +47,7 @@ namespace Moment {
         explicit MomentMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, Index level, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, Index index, ptrdiff_t offset, SymbolicMatrix& matrix);
     };
@@ -73,7 +73,7 @@ namespace Moment {
         explicit LocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& lmi, ptrdiff_t offset, SymbolicMatrix& matrix);
     };
@@ -89,7 +89,7 @@ namespace Moment {
       */
     class PolynomialLocalizingMatrixFactory  {
     public:
-        using Index = PolynomialLMIndex;
+        using Index = PolynomialLocalizingMatrixIndex;
 
     private:
         MatrixSystem& system;
@@ -98,7 +98,7 @@ namespace Moment {
         explicit PolynomialLocalizingMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, PolynomialMatrix& matrix);
@@ -107,7 +107,8 @@ namespace Moment {
     /**
      * Stores polynomial localizing matrices by polynomial and integer hierarchy depth.
      */
-    using PolynomialLMIndices = MatrixIndices<PolynomialMatrix, PolynomialLMIndex, PolynomialIndexStorage,
+    using PolynomialLMIndices = MatrixIndices<PolynomialMatrix, PolynomialLocalizingMatrixIndex,
+            PolynomialLocalizingMatrixIndexStorage,
             PolynomialLocalizingMatrixFactory, MatrixSystem>;
 
     /**
@@ -124,7 +125,7 @@ namespace Moment {
         explicit SubstitutedMatrixFactory(MatrixSystem& system) : system{system} {}
 
         [[nodiscard]] std::pair<ptrdiff_t, SymbolicMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, SymbolicMatrix& matrix);

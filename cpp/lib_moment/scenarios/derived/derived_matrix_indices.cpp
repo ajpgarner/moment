@@ -34,7 +34,7 @@ namespace Moment::Derived {
         : system{dynamic_cast<DerivedMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, SymbolicMatrix&>
-    DerivedMatrixFactory::operator()(MaintainsMutex::WriteLock& lock, Index src_offset,
+    DerivedMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock, Index src_offset,
                                      Multithreading::MultiThreadPolicy mt_policy) {
 
         auto derived_matrix = this->system.create_derived_matrix(lock, src_offset, mt_policy);

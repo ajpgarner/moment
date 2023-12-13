@@ -230,7 +230,7 @@ namespace Moment::mex {
     }
 
 
-    ::Moment::PolynomialLMIndex LocalizingMatrixIndexImporter::to_polynomial_index() const {
+    ::Moment::PolynomialLocalizingMatrixIndex LocalizingMatrixIndexImporter::to_polynomial_index() const {
         // Check
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
@@ -249,7 +249,7 @@ namespace Moment::mex {
 
         switch (this->expression_type) {
             case ExpressionType::SymbolCell:
-                return PolynomialLMIndex{this->hierarchy_level,
+                return ::Moment::PolynomialLocalizingMatrixIndex{this->hierarchy_level,
                                          raw_data_to_polynomial(this->matlabEngine, factory,
                                                                 std::get<1>(this->localizing_expression))};
             case ExpressionType::OperatorCell: {
@@ -258,7 +258,7 @@ namespace Moment::mex {
                     throw_error(matlabEngine, errors::internal_error,
                                 "OperatorCell polynomial has not yet been resolved into symbols.");
                 }
-                return PolynomialLMIndex{this->hierarchy_level, staging_poly.to_polynomial(factory)};
+                return ::Moment::PolynomialLocalizingMatrixIndex{this->hierarchy_level, staging_poly.to_polynomial(factory)};
             }
             default:
                 throw_error(matlabEngine, errors::internal_error,

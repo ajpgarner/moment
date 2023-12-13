@@ -136,6 +136,13 @@ namespace Moment {
         }
 
         /**
+         * Gets the number of sequences in an OSG of a given length.
+         * Returns 0 if system does not define operators.
+         * NB: This could trigger the generation of a dictionary if one is not already known.
+         */
+        [[nodiscard]] size_t osg_size(size_t level) const;
+
+        /**
          * Get type of matrix system
          */
         [[nodiscard]] virtual std::string system_type_name() const {
@@ -162,7 +169,7 @@ namespace Moment {
          * @param matrix Owning pointer to matrix to add.
          * @return The index of the newly appended matrix.
          */
-        [[nodiscard]] ptrdiff_t push_back(WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix);
+        [[nodiscard]] ptrdiff_t push_back(const WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix);
 
     protected:
         /**
@@ -178,7 +185,7 @@ namespace Moment {
          * @return Owning pointer of new moment matrix.
          */
         virtual std::unique_ptr<class SymbolicMatrix>
-        create_moment_matrix(WriteLock& lock, size_t level,
+        create_moment_matrix(const WriteLock& lock, size_t level,
                              Multithreading::MultiThreadPolicy mt_policy );
 
         /**
@@ -188,7 +195,7 @@ namespace Moment {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class SymbolicMatrix>
-        create_localizing_matrix(WriteLock& lock, const LocalizingMatrixIndex& lmi,
+        create_localizing_matrix(const WriteLock& lock, const LocalizingMatrixIndex& lmi,
                                  Multithreading::MultiThreadPolicy mt_policy);
 
         /**
@@ -198,7 +205,8 @@ namespace Moment {
          * @return Owning pointer of new localizing matrix.
          */
         virtual std::unique_ptr<class PolynomialMatrix>
-        create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex& index,
+        create_polynomial_localizing_matrix(const MaintainsMutex::WriteLock &lock,
+                                            const PolynomialLocalizingMatrixIndex& index,
                                             Multithreading::MultiThreadPolicy mt_policy);
 
     public:
@@ -248,7 +256,7 @@ namespace Moment {
          * @param lm The newly generated localizing matrix.
          */
         virtual void on_new_polynomial_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                         const PolynomialLMIndex& lmi,
+                                                         const PolynomialLocalizingMatrixIndex& plm_index,
                                                          ptrdiff_t matrix_offset, const class PolynomialMatrix& plm) { }
 
        /**

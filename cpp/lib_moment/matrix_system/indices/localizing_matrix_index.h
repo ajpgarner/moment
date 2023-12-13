@@ -19,6 +19,9 @@ namespace Moment {
 
     struct LocalizingMatrixIndex {
     public:
+        using OSGIndex = size_t;
+
+    public:
         size_t Level;
         OperatorSequence Word;
         size_t WordHash;

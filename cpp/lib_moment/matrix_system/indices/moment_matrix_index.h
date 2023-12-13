@@ -21,6 +21,8 @@ namespace Moment {
     /** Index of a moment matrix (i.e. its NPA hierarchy level). */
     struct MomentMatrixIndex {
     public:
+        using OSGIndex = size_t;
+
         /** The NPA hierarchy level */
         size_t Level;
 

@@ -118,21 +118,22 @@ namespace Moment::Derived {
 
     protected:
         [[nodiscard]] std::unique_ptr<class SymbolicMatrix>
-        create_moment_matrix(WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
+        create_moment_matrix(const WriteLock& lock, size_t level, Multithreading::MultiThreadPolicy mt_policy) override;
 
         [[nodiscard]] std::unique_ptr<class SymbolicMatrix>
-        create_localizing_matrix(WriteLock& lock, const LocalizingMatrixIndex &lmi,
+        create_localizing_matrix(const WriteLock& lock, const LocalizingMatrixIndex &lmi,
                                  Multithreading::MultiThreadPolicy mt_policy) override;
 
         [[nodiscard]] std::unique_ptr<class PolynomialMatrix>
-        create_polynomial_localizing_matrix(MaintainsMutex::WriteLock &lock, const PolynomialLMIndex &index,
+        create_polynomial_localizing_matrix(const MaintainsMutex::WriteLock &lock,
+                                            const PolynomialLocalizingMatrixIndex &index,
                                             Multithreading::MultiThreadPolicy mt_policy) override;
 
         /**
          * Generically create symmetrization of a matrix.
          */
         [[nodiscard]] virtual std::unique_ptr<class SymbolicMatrix>
-        create_derived_matrix(WriteLock& lock, ptrdiff_t source_offset, Multithreading::MultiThreadPolicy mt_policy);
+        create_derived_matrix(const WriteLock& lock, ptrdiff_t source_offset, Multithreading::MultiThreadPolicy mt_policy);
 
         void on_new_moment_matrix(const WriteLock& write_lock, size_t level, ptrdiff_t matrix_offset,
                                   const SymbolicMatrix& mm) override;
@@ -140,7 +141,7 @@ namespace Moment::Derived {
         void on_new_localizing_matrix(const WriteLock& write_lock, const LocalizingMatrixIndex& lmi,
                                       ptrdiff_t matrix_offset, const SymbolicMatrix& lm) override;
 
-        void on_new_polynomial_localizing_matrix(const WriteLock& write_lock, const PolynomialLMIndex& lmi,
+        void on_new_polynomial_localizing_matrix(const WriteLock& write_lock, const PolynomialLocalizingMatrixIndex& lmi,
                                                  ptrdiff_t matrix_offset, const PolynomialMatrix& plm) override;
 
         /**

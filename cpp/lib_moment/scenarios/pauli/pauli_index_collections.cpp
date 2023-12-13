@@ -6,12 +6,14 @@
  */
 #include "pauli_index_collections.h"
 
-#include "pauli_matrix_system.h"
-#include "indices/nearest_neighbour_index.h"
-#include "indices/monomial_index.h"
-#include "indices/polynomial_index.h"
+#include "scenarios/pauli/pauli_matrix_system.h"
+#include "scenarios/pauli/indices/nearest_neighbour_index.h"
+#include "scenarios/pauli/indices/monomial_index.h"
+#include "scenarios/pauli/indices/polynomial_index.h"
 
 #include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
+
 #include "scenarios/context.h"
 
 
@@ -21,7 +23,7 @@ namespace Moment::Pauli {
 
 
     std::pair<ptrdiff_t, MonomialMatrix&>
-    PauliMomentMatrixFactory::operator()(MaintainsMutex::WriteLock &lock, const Index &index,
+    PauliMomentMatrixFactory::operator()(const MaintainsMutex::WriteLock &lock, const Index &index,
                                          Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
 
@@ -41,7 +43,7 @@ namespace Moment::Pauli {
 
 
     std::pair<ptrdiff_t, MonomialMatrix&>
-    PauliLocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock &lock, const Index &index,
+    PauliLocalizingMatrixFactory::operator()(const MaintainsMutex::WriteLock &lock, const Index &index,
                                              Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
 
@@ -61,7 +63,7 @@ namespace Moment::Pauli {
 
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
-    PolynomialLocalizingMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    PolynomialLocalizingMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                          const PolynomialLocalizingMatrixFactory::Index& index,
                                          Multithreading::MultiThreadPolicy mt_policy) {
         auto matrixPtr = this->system.create_nearest_neighbour_localizing_matrix(lock, index, mt_policy);
@@ -81,7 +83,7 @@ namespace Moment::Pauli {
             : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, MonomialMatrix&>
-    MonomialCommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    MonomialCommutatorMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                                 const MonomialCommutatorMatrixFactory::Index& index,
                                                 Multithreading::MultiThreadPolicy mt_policy) {
         auto matrixPtr = system.create_commutator_matrix(lock, index, mt_policy);
@@ -102,7 +104,7 @@ namespace Moment::Pauli {
             : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, MonomialMatrix&>
-    MonomialAnticommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    MonomialAnticommutatorMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                                     const MonomialAnticommutatorMatrixFactory::Index& index,
                                                     Multithreading::MultiThreadPolicy mt_policy) {
         auto matrixPtr = system.create_anticommutator_matrix(lock, index, mt_policy);
@@ -121,7 +123,7 @@ namespace Moment::Pauli {
             : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
-    PolynomialCommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    PolynomialCommutatorMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                                   const PolynomialCommutatorMatrixFactory::Index& index,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));
@@ -142,7 +144,7 @@ namespace Moment::Pauli {
             : system{dynamic_cast<PauliMatrixSystem&>(system)} { }
 
     std::pair<ptrdiff_t, PolynomialMatrix&>
-    PolynomialAnticommutatorMatrixFactory::operator()(MaintainsMutex::WriteLock& lock,
+    PolynomialAnticommutatorMatrixFactory::operator()(const MaintainsMutex::WriteLock& lock,
                                                       const PolynomialAnticommutatorMatrixFactory::Index& index,
                                                       Multithreading::MultiThreadPolicy mt_policy) {
         assert(this->system.is_locked_write_lock(lock));

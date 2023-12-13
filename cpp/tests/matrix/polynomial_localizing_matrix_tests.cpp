@@ -64,7 +64,7 @@ namespace Moment::Tests {
         const auto &factory = this->get_system();
         auto &system = this->get_system();
 
-        auto &plm = system.PolynomialLocalizingMatrix(PolynomialLMIndex{1, Polynomial::Zero()});
+        auto &plm = system.PolynomialLocalizingMatrix(PolynomialLocalizingMatrixIndex{1, Polynomial::Zero()});
         EXPECT_EQ(plm.Dimension(), 4);
         for (const auto &elem: plm.SymbolMatrix()) {
             EXPECT_TRUE(elem.empty());
@@ -77,7 +77,7 @@ namespace Moment::Tests {
         const auto &factory = this->get_factory();
         const auto &context = this->get_context();
 
-        auto &plm = system.PolynomialLocalizingMatrix(PolynomialLMIndex{1, Polynomial(Monomial{s_a, -2.0})});
+        auto &plm = system.PolynomialLocalizingMatrix(PolynomialLocalizingMatrixIndex{1, Polynomial(Monomial{s_a, -2.0})});
 
         const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
 
@@ -104,7 +104,7 @@ namespace Moment::Tests {
         const auto &factory = this->get_factory();
         const auto &context = this->get_context();
 
-        const PolynomialLMIndex plmIndex{1, factory({Monomial{s_a, -2.0}, Monomial{s_b, 1.0}})};
+        const PolynomialLocalizingMatrixIndex plmIndex{1, factory({Monomial{s_a, -2.0}, Monomial{s_b, 1.0}})};
         auto &plm = system.PolynomialLocalizingMatrix(plmIndex);
 
         const LocalizingMatrixIndex lmi_a_1{1, OperatorSequence{{0}, context}};
@@ -140,7 +140,7 @@ namespace Moment::Tests {
         const auto& system = this->get_system();
         const auto& factory = this->get_factory();
 
-        const PolynomialLMIndex plmIndex{1, factory({Monomial{s_a, -2.0}, Monomial{s_b, 1.0}})};
+        const PolynomialLocalizingMatrixIndex plmIndex{1, factory({Monomial{s_a, -2.0}, Monomial{s_b, 1.0}})};
         EXPECT_THROW([[maybe_unused]] const auto& mm = system.PolynomialLocalizingMatrix(plmIndex),
                      Moment::errors::missing_component);
     }

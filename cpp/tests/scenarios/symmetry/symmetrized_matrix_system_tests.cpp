@@ -234,7 +234,7 @@ namespace Moment::Tests {
         const Polynomial a_plus_b = src_factory({Monomial{a, 1.0}, Monomial{b, 1.0}});
         ASSERT_EQ(a_plus_b.size(), 2);
 
-        const auto& symmetrized_lm = sms.PolynomialLocalizingMatrix(PolynomialLMIndex{1, a_plus_b});
+        const auto& symmetrized_lm = sms.PolynomialLocalizingMatrix(::Moment::PolynomialLocalizingMatrixIndex{1, a_plus_b});
         ASSERT_EQ(symmetrized_lm.Dimension(), 3);
         EXPECT_EQ((symmetrized_lm.SymbolMatrix(0,0)), Polynomial(Monomial(2, 2.0))); // 'a+b' symbol
 
@@ -269,7 +269,7 @@ namespace Moment::Tests {
         const auto& src_factory = ams.polynomial_factory();
         const Polynomial a_plus_b = src_factory({Monomial{a, 1.0}, Monomial{b, 1.0}});
         ASSERT_EQ(a_plus_b.size(), 2);
-        const PolynomialLMIndex plm_index{1, a_plus_b};
+        const ::Moment::PolynomialLocalizingMatrixIndex plm_index{1, a_plus_b};
         const auto& src_lm = ams.PolynomialLocalizingMatrix(plm_index);
         ASSERT_EQ(src_lm.Dimension(), 3);
         auto src_mat_offset = ams.PolynomialLocalizingMatrix.find_index(plm_index);

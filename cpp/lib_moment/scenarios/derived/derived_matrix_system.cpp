@@ -104,7 +104,7 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    DerivedMatrixSystem::create_moment_matrix(MaintainsMutex::WriteLock &lock,
+    DerivedMatrixSystem::create_moment_matrix(const WriteLock& lock,
                                               size_t level, Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this MM.
         const auto lsw = this->longest_supported_word();
@@ -140,7 +140,7 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    DerivedMatrixSystem::create_localizing_matrix(WriteLock& lock,
+    DerivedMatrixSystem::create_localizing_matrix(const WriteLock& lock,
                                                   const LocalizingMatrixIndex &lmi,
                                                   Multithreading::MultiThreadPolicy mt_policy) {
         // First check if map is capable of defining this LM.
@@ -179,8 +179,8 @@ namespace Moment::Derived {
 
 
     std::unique_ptr<class PolynomialMatrix>
-    DerivedMatrixSystem::create_polynomial_localizing_matrix(MaintainsMutex::WriteLock& lock,
-                                                             const PolynomialLMIndex& lmi,
+    DerivedMatrixSystem::create_polynomial_localizing_matrix(const WriteLock& lock,
+                                                             const PolynomialLocalizingMatrixIndex& lmi,
                                                              Multithreading::MultiThreadPolicy mt_policy) {
         // Check if we can convert this matrix
         const auto lsw = this->longest_supported_word();
@@ -215,7 +215,7 @@ namespace Moment::Derived {
     }
 
     std::unique_ptr<class SymbolicMatrix>
-    DerivedMatrixSystem::create_derived_matrix(MaintainsMutex::WriteLock& lock, ptrdiff_t source_offset,
+    DerivedMatrixSystem::create_derived_matrix(const WriteLock& lock, ptrdiff_t source_offset,
                                                Multithreading::MultiThreadPolicy mt_policy) {
         // Read from source
         auto read_source_lock = this->base_system().get_read_lock();
@@ -240,7 +240,7 @@ namespace Moment::Derived {
     }
 
 
-    void DerivedMatrixSystem::on_new_moment_matrix(const MaintainsMutex::WriteLock& write_lock, size_t level,
+    void DerivedMatrixSystem::on_new_moment_matrix(const WriteLock& write_lock, size_t level,
                                                    ptrdiff_t sym_offset, const SymbolicMatrix& mm) {
 
         auto base_offset = this->base_system().MomentMatrix.find_index(level);
@@ -250,7 +250,7 @@ namespace Moment::Derived {
 
     }
 
-    void DerivedMatrixSystem::on_new_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
+    void DerivedMatrixSystem::on_new_localizing_matrix(const WriteLock& write_lock,
                                                        const LocalizingMatrixIndex& lmi, ptrdiff_t sym_offset,
                                                        const SymbolicMatrix& lm) {
         auto base_offset = this->base_system().LocalizingMatrix.find_index(lmi);
@@ -259,8 +259,8 @@ namespace Moment::Derived {
         assert(actual_offset == sym_offset);
     }
 
-    void DerivedMatrixSystem::on_new_polynomial_localizing_matrix(const MaintainsMutex::WriteLock& write_lock,
-                                                                  const PolynomialLMIndex& lmi, ptrdiff_t sym_offset,
+    void DerivedMatrixSystem::on_new_polynomial_localizing_matrix(const WriteLock& write_lock,
+                                                                  const PolynomialLocalizingMatrixIndex& lmi, ptrdiff_t sym_offset,
                                                                   const PolynomialMatrix& plm) {
         auto base_offset = this->base_system().PolynomialLocalizingMatrix.find_index(lmi);
         assert(base_offset >= 0);
@@ -268,7 +268,7 @@ namespace Moment::Derived {
         assert(actual_offset == sym_offset);
     }
 
-    void DerivedMatrixSystem::on_new_derived_matrix(const MaintainsMutex::WriteLock& write_lock,
+    void DerivedMatrixSystem::on_new_derived_matrix(const WriteLock& write_lock,
                                                     ptrdiff_t source_offset, ptrdiff_t target_offset,
                                                     const SymbolicMatrix& target_matrix) {
         // TODO: Reflection to determine if source matrix is a moment matrix, localizing matrix, or P-LM, etc.

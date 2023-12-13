@@ -7,6 +7,10 @@
 #include "commutator_matrix.h"
 #include "storage_manager.h"
 
+#include "matrix/monomial_matrix.h"
+#include "matrix/polynomial_matrix.h"
+
+#include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 

@@ -79,7 +79,7 @@ namespace Moment::Inflation {
         explicit ExtendedMatrixFactory(InflationMatrixSystem& system) noexcept : system{system} { }
 
         [[nodiscard]] std::pair<ptrdiff_t, ExtendedMatrix&>
-        operator()(MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
+        operator()(const MaintainsMutex::WriteLock& lock, const Index& index, Multithreading::MultiThreadPolicy mt_policy);
 
         void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
                     ptrdiff_t offset, ExtendedMatrix& matrix);

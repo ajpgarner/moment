@@ -13,12 +13,6 @@
 #include "scenarios/pauli/indices/nearest_neighbour_index.h"
 #include "scenarios/pauli/indices/polynomial_index.h"
 
-#include "scenarios/pauli/matrices/monomial_commutator_matrix.h"
-#include "scenarios/pauli/matrices/monomial_localizing_matrix.h"
-#include "scenarios/pauli/matrices/moment_matrix.h"
-#include "scenarios/pauli/matrices/polynomial_localizing_matrix.h"
-#include "scenarios/pauli/matrices/polynomial_commutator_matrix.h"
-
 #include "symbolic/polynomial.h"
 
 namespace Moment {
@@ -46,7 +40,7 @@ namespace Moment {
             explicit PauliMomentMatrixFactory(PauliMatrixSystem& system) noexcept: system{system} {}
 
             [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -74,7 +68,7 @@ namespace Moment {
             explicit PauliLocalizingMatrixFactory(PauliMatrixSystem& system) noexcept: system{system} {}
 
             [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -107,7 +101,7 @@ namespace Moment {
             explicit MonomialCommutatorMatrixFactory(MatrixSystem& system);
 
             [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -136,7 +130,7 @@ namespace Moment {
             explicit MonomialAnticommutatorMatrixFactory(MatrixSystem& system);
 
             [[nodiscard]] std::pair<ptrdiff_t, MonomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -165,7 +159,7 @@ namespace Moment {
             explicit PolynomialLocalizingMatrixFactory(MatrixSystem& system);
 
             [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -196,7 +190,7 @@ namespace Moment {
             explicit PolynomialCommutatorMatrixFactory(MatrixSystem& system);
 
             [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
@@ -227,7 +221,7 @@ namespace Moment {
             explicit PolynomialAnticommutatorMatrixFactory(MatrixSystem& system);
 
             [[nodiscard]] std::pair<ptrdiff_t, PolynomialMatrix&>
-            operator()(MaintainsMutex::WriteLock& lock, const Index& index,
+            operator()(const MaintainsMutex::WriteLock& lock, const Index& index,
                        Multithreading::MultiThreadPolicy mt_policy);
 
             void notify(const MaintainsMutex::WriteLock& lock, const Index& index,
