@@ -10,6 +10,8 @@
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
+#include "matrix/operator_matrix/moment_matrix.h"
+
 #include "report_outcome.h"
 
 
