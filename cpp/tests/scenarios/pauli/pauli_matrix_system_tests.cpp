@@ -237,32 +237,35 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Pauli_MatrixSystem, NotFound_PolynomialLocalizingMatrix) {
         PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
+        const auto& const_system = system;
         system.generate_dictionary(1);
         auto sX1 = system.Symbols().where(system.pauliContext.sigmaX(1));
         const Pauli::PolynomialLocalizingMatrixIndex missing_index{NearestNeighbourIndex{2, 2},
                                                                    Polynomial{Monomial{sX1->Id(), 1.0}}};
-        EXPECT_THROW([[maybe_unused]] const auto& mm = system.PauliPolynomialLocalizingMatrices(missing_index),
+        EXPECT_THROW([[maybe_unused]] const auto& mm = const_system.PauliPolynomialLocalizingMatrices(missing_index),
                      Moment::errors::missing_component);
 
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, NotFound_PolynomialCommutator) {
         PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
+        const auto& const_system = system;
         system.generate_dictionary(1);
         auto sX1 = system.Symbols().where(system.pauliContext.sigmaX(1));
         const Pauli::PolynomialCommutatorMatrixIndex missing_index{NearestNeighbourIndex{2, 2},
                                                                    Polynomial{Monomial{sX1->Id(), 1.0}}};
-        EXPECT_THROW([[maybe_unused]] const auto& mm = system.PolynomialCommutatorMatrices(missing_index),
+        EXPECT_THROW([[maybe_unused]] const auto& mm = const_system.PolynomialCommutatorMatrices(missing_index),
                      Moment::errors::missing_component);
     }
 
     TEST(Scenarios_Pauli_MatrixSystem, NotFound_PolynomialAnticommutator) {
         PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(3, WrapType::None)};
+        const auto& const_system = system;
         system.generate_dictionary(1);
         auto sX1 = system.Symbols().where(system.pauliContext.sigmaX(1));
         const Pauli::PolynomialAnticommutatorMatrixIndex missing_index{NearestNeighbourIndex{2, 2},
                                                                        Polynomial{Monomial{sX1->Id(), 1.0}}};
-        EXPECT_THROW([[maybe_unused]] const auto& mm = system.PolynomialAnticommutatorMatrices(missing_index),
+        EXPECT_THROW([[maybe_unused]] const auto& mm = const_system.PolynomialAnticommutatorMatrices(missing_index),
                      Moment::errors::missing_component);
     }
 

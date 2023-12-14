@@ -823,28 +823,27 @@ namespace Moment::Tests {
     }
 
     TEST(Scenarios_Pauli_Context, Symmetrized_4x4Lattice_Triplet) {
-        // XXX: Disabled for now
-//        PauliContext context{16, true, true, 4};
-//        ASSERT_EQ(context.wrap, WrapType::Wrap);
-//        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
-//        ASSERT_EQ(context.qubit_size, 16);
-//        ASSERT_EQ(context.row_width, 4);
-//        ASSERT_EQ(context.col_height, 4);
-//        ASSERT_EQ(context.size(), 48);
-//
-//
-//        // Expected result
-//        const auto expected = context.sigmaZ(0, 0) * context.sigmaX(0, 3) * context.sigmaY(3, 0);
-//
-//        // Try various shifts
-//        for (size_t horz_shift = 0; horz_shift < 4; ++horz_shift) {
-//            for (size_t vert_shift = 0; vert_shift < 4; ++vert_shift) {
-//                auto offset = context.sigmaZ(horz_shift, vert_shift)
-//                                  * context.sigmaX(horz_shift, (vert_shift+3)%4)
-//                                  * context.sigmaY((horz_shift+3)%4, vert_shift);
-//                EXPECT_EQ(context.simplify_as_moment(std::move(offset)), expected)
-//                           << "(+" << horz_shift << ", +" << vert_shift << ")";
-//            }
-//        }
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        ASSERT_EQ(context.wrap, WrapType::Wrap);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+        ASSERT_EQ(context.qubit_size, 16);
+        ASSERT_EQ(context.row_width, 4);
+        ASSERT_EQ(context.col_height, 4);
+        ASSERT_EQ(context.size(), 48);
+
+        // Expected result
+        const auto expected = context.simplify_as_moment(context.sigmaX(0, 0) * context.sigmaY(1, 0) * context.sigmaZ(1, 1));
+        ASSERT_EQ(expected.size(), 3); // must have three operators!
+
+        // Try various shifts
+        for (size_t horz_shift = 0; horz_shift < 4; ++horz_shift) {
+            for (size_t vert_shift = 0; vert_shift < 4; ++vert_shift) {
+                auto offset =   context.sigmaX(vert_shift, horz_shift)
+                              * context.sigmaY((vert_shift+1)%4, horz_shift)
+                              * context.sigmaZ((vert_shift+1)%4, (horz_shift+1)%4);
+                EXPECT_EQ(context.simplify_as_moment(std::move(offset)), expected)
+                           << "(+" << horz_shift << ", +" << vert_shift << ")";
+            }
+        }
     }
 }
