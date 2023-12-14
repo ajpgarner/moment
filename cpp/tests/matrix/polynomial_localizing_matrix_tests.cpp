@@ -6,6 +6,8 @@
  */
 #include "gtest/gtest.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/algebraic/algebraic_context.h"
 #include "scenarios/algebraic/algebraic_matrix_system.h"
 
@@ -134,6 +136,44 @@ namespace Moment::Tests {
                                     << "col = " << col << ", row = " << row;
             }
         }
+    }
+
+    TEST_F(Matrix_PolyLMTests, MakeFromRaw) {
+        auto &system = this->get_system();
+        const auto& const_system = system;
+
+        const auto &factory = this->get_factory();
+        const auto &context = this->get_context();
+
+        const OperatorSequence ccc{{4, 4, 4}, context};
+        auto find_result_initial = system.Symbols().where(ccc);
+        ASSERT_FALSE(find_result_initial.found());
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(ccc, std::complex{0.5, 0.0});
+        EXPECT_EQ(raw_poly.size(), 1);
+
+        auto [poly_ccc_offset, poly_mat] = system.create_and_register_localizing_matrix(1, raw_poly,
+                                                                              Multithreading::MultiThreadPolicy::Never);
+        EXPECT_EQ(poly_ccc_offset, 1); // ccc mono is matrix 0
+        const auto* as_plm_ptr = dynamic_cast<const PolynomialLocalizingMatrix*>(&poly_mat);
+        ASSERT_NE(as_plm_ptr, nullptr);
+
+        auto find_result_made = system.Symbols().where(ccc);
+        ASSERT_TRUE(find_result_made.found());
+
+        // Validate index
+        EXPECT_EQ(as_plm_ptr->index.Level, 1);
+        EXPECT_EQ(as_plm_ptr->index.Polynomial.size(), 1);
+        EXPECT_EQ(as_plm_ptr->index.Polynomial[0], Monomial(find_result_made->Id(), {0.5, 0.0}));
+
+        const auto &lmCCC = dynamic_cast<const MonomialMatrix &>(const_system.LocalizingMatrix({1, ccc}));
+        EXPECT_TRUE(lmCCC.has_operator_matrix());
+        EXPECT_EQ(const_system.size(), 2); // ccc and 0.5 ccc
+
+        ASSERT_EQ(as_plm_ptr->Constituents().size(), 1);
+        EXPECT_EQ(as_plm_ptr->Constituents()[0].first, &lmCCC);
+        EXPECT_EQ(as_plm_ptr->Constituents()[0].second, std::complex<double>(0.5, 0.0));
     }
 
     TEST_F(Matrix_PolyLMTests, IndexNotFound) {

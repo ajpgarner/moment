@@ -85,7 +85,13 @@ namespace Moment {
         [[nodiscard]] std::string to_string(const Context& context) const;
 
         /** Find symbols for Polynomial, and create appropriate object */
-        [[nodiscard]] Polynomial to_polynomial(const PolynomialFactory& factory, const SymbolTable& symbols) const;
+        [[nodiscard]] Polynomial to_polynomial(const PolynomialFactory& factory) const;
+
+        /**
+         * Find or register symbols for Polynomial, and create appropriate object
+         */
+        [[nodiscard]] Polynomial to_polynomial_register_symbols(const PolynomialFactory& factory,
+                                                                SymbolTable& symbols) const;
 
     };
 }

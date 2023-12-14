@@ -9,11 +9,18 @@
 
 #include "polynomial.h"
 
+#include "symbol_errors.h"
+
 #include <iosfwd>
 
 namespace Moment {
 
     class SymbolTable;
+    class RawPolynomial;
+
+    namespace errors {
+
+    }
 
     /** Utility class for constructing symbol combos from data.
      * Allows for virtualization of sorting order template parameter. */
@@ -35,6 +42,22 @@ namespace Moment {
          * @return Newly constructed Polynomial.
          */
         [[nodiscard]] virtual Polynomial operator()(Polynomial::storage_t&& data) const = 0;
+
+        /**
+         * Construct a Polynomial from a RawPolynomial object
+         * @param raw Operator sequences paired with complex coefficients.
+         * @return A newly constructed Polynomial.
+         * @throws errors::unregistered_operator_sequence If any entry does not correspond to something in SymbolTable.
+         */
+        [[nodiscard]] Polynomial construct(const RawPolynomial& raw) const;
+
+        /**
+         * Construct a Polynomial from a RawPolynomial object
+         * @param symbols Write-accessible symbol table, where new symbols will be registered.
+         * @param raw Operator sequences paired with complex coefficients.
+         * @return A newly constructed Polynomial.
+         */
+        [[nodiscard]] Polynomial register_and_construct(SymbolTable& symbols, const RawPolynomial& raw) const;
 
         SmallVector<size_t, 1> presort_data(Polynomial::storage_t& data) const;
 

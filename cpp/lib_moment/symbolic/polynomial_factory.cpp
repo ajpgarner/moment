@@ -9,6 +9,8 @@
 
 #include "symbol_table.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -44,6 +46,53 @@ namespace Moment {
         return sort_order;
     }
 
+    namespace {
+        [[nodiscard]] inline Polynomial::storage_t
+        make_storage_data_from_raw(const SymbolTable& symbols, const RawPolynomial& raw) {
+            Polynomial::storage_t output_storage;
+            output_storage.reserve(raw.size());
+            for (const auto& elem : raw) {
+                auto search = symbols.where(elem.sequence);
+                if (!search.found()) [[unlikely]] {
+                    throw errors::unregistered_operator_sequence{elem.sequence.formatted_string(), elem.sequence.hash()};
+                }
+                assert(search.symbol != nullptr); // ^- above should throw if this is true.
+                output_storage.emplace_back(search->Id(), elem.weight, search.is_conjugated);
+            }
+            return output_storage;
+        }
+
+        [[nodiscard]] inline Polynomial::storage_t
+        register_and_make_storage_data_from_raw(SymbolTable& symbols, const RawPolynomial& raw) {
+            Polynomial::storage_t output_storage;
+            output_storage.reserve(raw.size());
+            for (const auto& elem : raw) {
+                auto search = symbols.where(elem.sequence);
+                if (!search.found()) {
+                    // Otherwise, copy symbol into symbol table, and get its inserted ID
+                    const symbol_name_t inserted_id = symbols.merge_in(OperatorSequence{elem.sequence});
+                    auto search_again = symbols.where(elem.sequence); // Search again, could be alised, or conjugated.
+                    assert(search_again.found());
+                    output_storage.emplace_back(search_again->Id(), elem.weight, search_again.is_conjugated);
+                } else {
+                    assert(search.symbol != nullptr);
+                    output_storage.emplace_back(search->Id(), elem.weight, search.is_conjugated);
+                }
+            }
+            return output_storage;
+        }
+    }
+
+    Polynomial PolynomialFactory::construct(const RawPolynomial& raw) const {
+        return (*this)(make_storage_data_from_raw(this->symbols, raw));
+    }
+
+    Polynomial PolynomialFactory::register_and_construct(SymbolTable& write_symbols,
+                                                         const RawPolynomial& raw) const {
+        assert(&(this->symbols) == &write_symbols); // Write symbol table must match factory.
+        return (*this)(register_and_make_storage_data_from_raw(write_symbols, raw));
+    }
+
     Polynomial PolynomialFactory::sum(const Monomial& lhs, const Monomial& rhs) const {
         // "Monomial"-like sum
         if ((lhs.id == rhs.id) && (lhs.conjugated == rhs.conjugated)) {
@@ -63,6 +112,20 @@ namespace Moment {
         }
     }
 
+    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Monomial& rhs) const {
+        // TODO: Efficient addition assuming LHS is sorted
+        Polynomial output{lhs};
+        this->append(output, Polynomial(rhs, this->zero_tolerance)); // <- virtual call.
+        return output;
+    }
+
+    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Polynomial& rhs) const {
+        // TODO: Efficient addition assuming LHS and RHS are sorted
+        Polynomial output{lhs};
+        this->append(output, rhs); // <- virtual call.
+        return output;
+    }
+
     size_t PolynomialFactory::maximum_degree(const Polynomial& poly) const {
         size_t largest_monomial = 0;
         for (auto& mono : poly) {
@@ -78,18 +141,6 @@ namespace Moment {
     }
 
 
-    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Monomial& rhs) const {
-        // TODO: Efficient addition assuming LHS is sorted
-        Polynomial output{lhs};
-        this->append(output, Polynomial(rhs, this->zero_tolerance)); // <- virtual call.
-        return output;
-    }
 
-    Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Polynomial& rhs) const {
-        // TODO: Efficient addition assuming LHS and RHS are sorted
-        Polynomial output{lhs};
-        this->append(output, rhs); // <- virtual call.
-        return output;
-    }
 
 }

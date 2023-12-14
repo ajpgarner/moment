@@ -117,7 +117,16 @@ namespace Moment {
          * For thread safety, call for a read lock first.
          * @throws errors::missing_component If index is invalid.
          */
-        [[nodiscard]] const SymbolicMatrix& operator[](size_t index) const;
+        [[nodiscard]] const SymbolicMatrix& operator[](ptrdiff_t index) const;
+
+        /**
+          * Get read-write access to symbolic matrix by its index.
+          * Changes should not be made without a write lock.
+          * @param index The number of the matrix within the system.
+          * @return A reference to the requested matrix.
+          * @throws errors::missing_component if index does not correspond to a matrix in the system.
+          */
+        [[nodiscard]] SymbolicMatrix& get(ptrdiff_t index);
 
         /**
          * Counts matrices in system.
@@ -211,13 +220,13 @@ namespace Moment {
 
     public:
         /**
-         * Special creation request for localizing matrix, to be used in aliased settings.
+         * Special creation request for polynomial localizing matrix without well-defined Polynomial index.
          * @param level The hierarchy level of the localizing matrix.
          * @param raw_poly The raw polynomial object of the matrix.
          * @param mt_policy Is multithreaded creation used?
          * @return Index and reference to new localizing matrix.
          */
-        std::pair<size_t, const Moment::PolynomialMatrix&>
+        std::pair<ptrdiff_t, const Moment::PolynomialMatrix&>
         create_and_register_localizing_matrix(size_t level, const RawPolynomial& raw_poly,
                                               Multithreading::MultiThreadPolicy mt_policy);
 
@@ -296,14 +305,6 @@ namespace Moment {
          */
         virtual void on_new_symbols_registered(const MaintainsMutex::WriteLock& write_lock,
                                                size_t old_symbol_count, size_t new_symbol_count) { }
-
-        /**
-         * Get read-write access to symbolic matrix by index. Changes should not be made without a write lock.
-         * @param index The number of the matrix within the system.
-         * @return A reference to the requested matrix.
-         * @throws errors::missing_component if index does not correspond to a matrix in the system.
-         */
-        SymbolicMatrix& get(size_t index);
 
 
     public:

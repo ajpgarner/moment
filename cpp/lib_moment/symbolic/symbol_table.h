@@ -7,7 +7,9 @@
 #pragma once
 
 #include "symbol.h"
+#include "symbol_errors.h"
 #include "symbol_lookup_result.h"
+
 #include "monomial.h"
 
 #include "dictionary/dictionary_map.h"
@@ -21,33 +23,10 @@
 #include <limits>
 #include <map>
 #include <set>
-#include <stdexcept>
 #include <tuple>
 #include <vector>
 
 namespace Moment {
-
-    namespace errors {
-        class zero_symbol : public std::runtime_error {
-        public:
-            const symbol_name_t id;
-            explicit zero_symbol(symbol_name_t id);
-        };
-
-        class unknown_symbol : public std::range_error {
-        public:
-            const symbol_name_t id;
-            explicit unknown_symbol(symbol_name_t id);
-        };
-
-        class unknown_basis_elem : public std::range_error {
-        public:
-            const ptrdiff_t id;
-            const bool real;
-            unknown_basis_elem(bool is_real, ptrdiff_t id);
-        };
-    }
-
 
     /**
      * List of symbols associated with matrix system.

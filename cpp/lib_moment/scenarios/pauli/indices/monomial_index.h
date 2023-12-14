@@ -75,6 +75,9 @@ namespace Moment::Pauli {
         LocalizingMatrixIndex(const NearestNeighbourIndex& nn_info, OperatorSequence word) noexcept
             : PauliMonomialIndex{nn_info, std::move(word)} { }
 
+        LocalizingMatrixIndex(size_t level, size_t neighbours, OperatorSequence word) noexcept
+            : PauliMonomialIndex{NearestNeighbourIndex{level, neighbours}, std::move(word)} { }
+
         [[nodiscard]] std::string to_string() const;
         [[nodiscard]] inline std::string to_string(const PauliMatrixSystem& system) const {
             return this->to_string();
@@ -88,6 +91,9 @@ namespace Moment::Pauli {
         explicit CommutatorMatrixIndex(Pauli::LocalizingMatrixIndex plmi) noexcept
             : PauliMonomialIndex{plmi.Index, std::move(plmi.Word)} { }
 
+        CommutatorMatrixIndex(size_t level, size_t neighbours, OperatorSequence word) noexcept
+        : PauliMonomialIndex{NearestNeighbourIndex{level, neighbours}, std::move(word)} { }
+
         [[nodiscard]] std::string to_string() const;
         [[nodiscard]] inline std::string to_string(const PauliMatrixSystem& system) const {
             return this->to_string();
@@ -100,6 +106,9 @@ namespace Moment::Pauli {
 
         explicit AnticommutatorMatrixIndex(Pauli::LocalizingMatrixIndex plmi) noexcept
             : PauliMonomialIndex{plmi.Index, std::move(plmi.Word)} { }
+
+        AnticommutatorMatrixIndex(size_t level, size_t neighbours, OperatorSequence word) noexcept
+        : PauliMonomialIndex{NearestNeighbourIndex{level, neighbours}, std::move(word)} { }
 
         [[nodiscard]] std::string to_string() const;
         [[nodiscard]] inline std::string to_string(const PauliMatrixSystem& system) const {

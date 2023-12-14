@@ -18,39 +18,6 @@
 
 namespace Moment {
 
-    namespace errors {
-        namespace {
-            std::string make_zs_err_msg(symbol_name_t id) {
-                std::stringstream errMsg;
-                errMsg << "Symbol " << id << " is identically zero; but zero should be uniquely represented as \"0\"";
-                return errMsg.str();
-            }
-
-            std::string make_us_err_msg(symbol_name_t id) {
-                std::stringstream errMsg;
-                errMsg << "Symbol " << id << " is not defined in symbol table.";
-                return errMsg.str();
-            }
-
-            std::string make_ube_err_msg(bool real, ptrdiff_t id) {
-                std::stringstream errMsg;
-                if (real) {
-                    errMsg << "Real";
-                } else {
-                    errMsg << "Imaginary";
-                }
-                errMsg << " basis element " << id << " is not defined in symbol table.";
-                return errMsg.str();
-            }
-        }
-
-        zero_symbol::zero_symbol(symbol_name_t sid) : std::runtime_error{make_zs_err_msg(sid)}, id{sid} { }
-
-        unknown_symbol::unknown_symbol(Moment::symbol_name_t sid) : std::range_error{make_us_err_msg(sid)}, id{sid} { }
-
-        unknown_basis_elem::unknown_basis_elem(bool real_or, ptrdiff_t basis_id)
-        : std::range_error{make_ube_err_msg(real_or, basis_id)}, real{real_or}, id{basis_id} { }
-    }
 
     SymbolTable::SymbolTable(const Context& context)
         : Basis{*this}, context{context}, OSGIndex{context, *this},

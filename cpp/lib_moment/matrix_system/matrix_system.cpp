@@ -54,8 +54,8 @@ namespace Moment {
         return 0;
     }
 
-    const SymbolicMatrix &MatrixSystem::operator[](size_t index) const {
-        if (index >= this->matrices.size()) {
+    const SymbolicMatrix& MatrixSystem::operator[](ptrdiff_t index) const {
+        if ((index < 0) || (index >= this->matrices.size())) {
             std::stringstream errSS;
             errSS << "Matrix index " << index << " is out of range (max index: " << (this->matrices.size()-1) << ").";
             throw errors::missing_component{errSS.str()};
@@ -68,8 +68,8 @@ namespace Moment {
         return *this->matrices[index];
     }
 
-    SymbolicMatrix& MatrixSystem::get(size_t index) {
-        if (index >= this->matrices.size()) {
+    SymbolicMatrix& MatrixSystem::get(ptrdiff_t index) {
+        if ((index < 0) || (index >= this->matrices.size())) {
             std::stringstream errSS;
             errSS << "Matrix index " << index << " is out of range (max index: " << (this->matrices.size()-1) << ").";
             throw errors::missing_component{errSS.str()};
@@ -127,7 +127,7 @@ namespace Moment {
         return PolynomialLocalizingMatrix::create(lock, *this, this->LocalizingMatrix, index, mt_policy);
     }
 
-    std::pair<size_t, const Moment::PolynomialMatrix&>
+    std::pair<ptrdiff_t, const Moment::PolynomialMatrix&>
     MatrixSystem::create_and_register_localizing_matrix(const size_t level, const RawPolynomial& raw_poly,
                                                         Multithreading::MultiThreadPolicy mt_policy) {
         auto write_lock = this->get_write_lock();

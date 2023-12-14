@@ -1,6 +1,9 @@
 /**
  * composite_matrix.h
  *
+ * Forms polynomial matrices by summing together a collection of other matrices. This is the base class of, e.g.
+ * polynomial localizing matrices of various flavours, and polynomial (anti-)commutator matrices.
+ *
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
@@ -15,6 +18,8 @@
 
 #include "multithreading/maintains_mutex.h"
 #include "multithreading/multithreading.h"
+
+#include "symbolic/polynomial_factory.h"
 
 #include <cassert>
 
@@ -31,13 +36,16 @@ namespace Moment {
      */
     class CompositeMatrix : public PolynomialMatrix {
     public:
+        /**
+         * Construction information: defines the constituents that form a composite matrix.
+         */
         struct ConstituentInfo {
         public:
             /** The size of the matrix */
             size_t matrix_dimension;
 
             /** Pointers to the elements of the matrix */
-            std::vector<std::pair<const SymbolicMatrix*, std::complex<double>>> elements;
+            std::vector<std::pair<SymbolicMatrix const *, std::complex<double>>> elements;
 
             /** Delete copy constructor. */
             ConstituentInfo(const ConstituentInfo& rhs) = delete;
@@ -67,6 +75,23 @@ namespace Moment {
                 return this->elements.empty();
             }
 
+            /** Begin iteration over constituents */
+            [[nodiscard]] auto begin() const noexcept {
+                return this->elements.cbegin();
+            }
+
+            /** End iteration over constituents */
+            [[nodiscard]] auto end() const noexcept {
+                return this->elements.cend();
+            }
+
+            /** Get constituent by index. */
+            [[nodiscard]] std::pair<SymbolicMatrix const *, std::complex<double>>
+            operator[](size_t index) const noexcept {
+                assert(index < this->elements.size());
+                return this->elements[index];
+            }
+
             /** Attempt to set dimension automatically; returns false if could not */
             bool auto_set_dimension() noexcept {
                 // Cannot infer dimension if no matrices added
@@ -89,6 +114,12 @@ namespace Moment {
         /** Constructor for non-empty polynomial localizing matrix. */
         CompositeMatrix(const Context& context, SymbolTable& symbols,
                         const PolynomialFactory& factory, ConstituentInfo&& constituents);
+
+        /** Get constituent part information */
+        [[nodiscard]] const ConstituentInfo& Constituents() const noexcept {
+            return this->constituents;
+        }
+
 
     protected:
         /**
@@ -140,7 +171,7 @@ namespace Moment {
         static std::unique_ptr<ImplType>
         create(const MaintainsMutex::WriteLock& write_lock,
                matrix_system_t& system, monomial_indices_t& monomial_matrices,
-               const PolynomialIndex& polynomial_index,
+               PolynomialIndex polynomial_index,
                Multithreading::MultiThreadPolicy mt_policy) {
             assert(system.is_locked_write_lock(write_lock));
 
@@ -157,13 +188,13 @@ namespace Moment {
                 constituents.elements.emplace_back(&mono_matrix, factor);
             }
 
-            // If no constituents, we have to query for size in another way:
+            // If no constituents, we have to query for matrix size by asking system about its OSG:
             if (!constituents.auto_set_dimension()) {
                 constituents.matrix_dimension = system.osg_size(polynomial_index.Level);
             }
 
             return std::make_unique<ImplType>(context, symbols, system.polynomial_factory(),
-                                              polynomial_index,
+                                              std::move(polynomial_index),
                                               std::move(constituents));
         }
 
@@ -185,32 +216,15 @@ namespace Moment {
                         Multithreading::MultiThreadPolicy mt_policy) {
             assert(system.is_locked_write_lock(write_lock));
 
-            // First invoke factory to ensure constituent parts exist
-            CompositeMatrix::ConstituentInfo constituents;
-            constituents.elements.reserve(raw_polynomial.size());
-            for (auto& [op_seq, factor] : raw_polynomial) {
-                auto [mono_offset, mono_matrix] = monomial_matrices.create(write_lock,
-                                                                           MonomialIndex{osg_index, op_seq},
-                                                                           mt_policy);
-                constituents.elements.emplace_back(&mono_matrix, factor);
-            }
-
-            if (!constituents.auto_set_dimension()) {
-                constituents.matrix_dimension = system.osg_size(osg_index);
-            }
-
-            // Now, make raw matrix from this
-            const auto& context = system.Context();
+            // Get system information for symbol registration
             auto& symbols = system.Symbols();
             const auto& poly_factory = system.polynomial_factory();
 
-            return std::make_unique<ImplType>(context, symbols, system.polynomial_factory(),
-                                              PolynomialIndex{osg_index,
-                                                              raw_polynomial.to_polynomial(poly_factory, symbols)},
-                                              std::move(constituents));
+            // Now, register raw polynomial into symbols to make new index, then invoke non-raw construction
+            return ImplType::create(write_lock, system, monomial_matrices,
+                                    polynomial_index_t{std::move(osg_index),
+                                                       poly_factory.register_and_construct(symbols, raw_polynomial)},
+                                    mt_policy);
         }
     };
-
-
-
 }

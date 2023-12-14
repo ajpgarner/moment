@@ -35,19 +35,12 @@ namespace Moment {
         return ss.str();
     }
 
-    Polynomial RawPolynomial::to_polynomial(const PolynomialFactory& factory, const SymbolTable& symbols) const {
-        Polynomial::storage_t output_storage;
-        output_storage.reserve(this->data.size());
-        for (const auto& elem : this->data) {
-            auto search = symbols.where(elem.sequence);
-            if (!search.found()) [[unlikely]] {
-                throw std::runtime_error{
-                    "RawPolynomial contained at least one operator sequence that has not yet been registered in the symbol table!"
-                };
-            }
-            assert(search.symbol != nullptr); // ^- above should throw if this is true.
-            output_storage.emplace_back(search->Id(), elem.weight, search.is_conjugated);
-        }
-        return factory(std::move(output_storage));
+    Polynomial RawPolynomial::to_polynomial(const PolynomialFactory& factory) const {
+        return factory.construct(*this);
+    }
+
+    Polynomial RawPolynomial::to_polynomial_register_symbols(const PolynomialFactory& factory,
+                                                             SymbolTable& symbols) const {
+        return factory.register_and_construct(symbols, *this);
     }
 }
