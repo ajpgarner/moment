@@ -1,4 +1,4 @@
-clear%% EXAMPLE: cvx_polynomial.m
+%% EXAMPLE: cvx_polynomial.m
 % Demonstrates AlgebraicScenario with CVX.
 %
 %% Params
