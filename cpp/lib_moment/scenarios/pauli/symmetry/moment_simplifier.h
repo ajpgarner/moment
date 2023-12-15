@@ -11,7 +11,10 @@
 #pragma once
 #include "integer_types.h"
 #include "hashed_sequence.h"
+
 #include "dictionary/operator_sequence.h"
+
+#include "../pauli_context.h"
 
 #include <cassert>
 
@@ -84,5 +87,43 @@ namespace Moment::Pauli {
          * @return
          */
         [[nodiscard]] static std::unique_ptr<MomentSimplifier> make(const PauliContext& context);
+
+        /**
+         * Create a copied list of operators, offset as if it were a chain.
+         * If offset is invalid (e.g. it pushes sequence out of chain in non-wrapping mode), behaviour is undefined.
+         */
+        [[nodiscard]] virtual sequence_storage_t chain_offset(const std::span<const oper_name_t> input,
+                                                              ptrdiff_t offset) const = 0;
+
+        /**
+         * Create a copied OperatorSequence, offset as if it were a chain.
+         * If offset is invalid (e.g. it pushes sequence out of chain in non-wrapping mode), behaviour is undefined.
+         */
+        [[nodiscard]] inline OperatorSequence
+        chain_offset(const OperatorSequence& input, const ptrdiff_t offset) const {
+            return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
+                                    this->chain_offset(input.raw(), offset), this->context, input.get_sign()};
+        }
+
+        /**
+         * Create a copied list of operators, offset as if it were in a lattice.
+         * If offset is invalid (e.g. it pushes sequence out of lattice in non-wrapping mode), behaviour is undefined.
+         */
+        [[nodiscard]] virtual sequence_storage_t lattice_offset(const std::span<const oper_name_t> input,
+                                                                ptrdiff_t row_offset,
+                                                                ptrdiff_t col_offset) const = 0;
+
+        /**
+         * Create a copied OperatorSequence, offset as if it were in a lattice.
+         * If offset is invalid (e.g. it pushes sequence out of lattice in non-wrapping mode), behaviour is undefined.
+         */
+        [[nodiscard]] inline OperatorSequence lattice_offset(const OperatorSequence& input,
+                                                             const ptrdiff_t row_offset,
+                                                             const ptrdiff_t col_offset) const {
+            return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
+                                    this->lattice_offset(input.raw(), row_offset, col_offset),
+                                    this->context, input.get_sign()};
+        }
+
     };
 }

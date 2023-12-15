@@ -77,26 +77,101 @@ namespace Moment::Tests {
                  (std::pair<size_t, size_t>{0, 2}));
     }
 
-    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapChain_Maximum) {
+    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapChain_Supremum) {
         PauliContext context{10, WrapType::None, SymmetryType::Translational};
         MomentSimplifierNoWrappingChain simplifier{context};
         EXPECT_EQ(simplifier.impl_label, MomentSimplifierNoWrappingChain::expected_label);
         EXPECT_NE(simplifier.impl_label, MomentSimplifierNoWrappingLattice::expected_label);
 
-        EXPECT_EQ(simplifier.chain_maximum(context.zero()), 10);
-        EXPECT_EQ(simplifier.chain_maximum(context.identity()), 10);
+        EXPECT_EQ(simplifier.chain_supremum(context.zero()), 0);
+        EXPECT_EQ(simplifier.chain_supremum(context.identity()), 0);
 
         EXPECT_EQ(simplifier.qubits, 10);
         for (size_t qubit = 0; qubit < 10; ++qubit) {
-            EXPECT_EQ(simplifier.chain_maximum(context.sigmaX(qubit)), qubit) << " qubit = " << qubit;
-            EXPECT_EQ(simplifier.chain_maximum(context.sigmaY(qubit)), qubit) << " qubit = " << qubit;
-            EXPECT_EQ(simplifier.chain_maximum(context.sigmaZ(qubit)), qubit) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_supremum(context.sigmaX(qubit)), 1+qubit) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_supremum(context.sigmaY(qubit)), 1+qubit) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_supremum(context.sigmaZ(qubit)), 1+qubit) << " qubit = " << qubit;
         }
 
-        EXPECT_EQ(simplifier.chain_maximum(context.sigmaX(0) * context.sigmaY(5)), 5);
+        EXPECT_EQ(simplifier.chain_supremum(context.sigmaX(0) * context.sigmaY(5)), 6);
     }
 
-    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapLattice_Maximum) {
+    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapChain_Offset) {
+        PauliContext context{10, WrapType::None, SymmetryType::Translational};
+        MomentSimplifierNoWrappingChain simplifier{context};
+        EXPECT_EQ(simplifier.chain_supremum(context.identity()), 0);
+        EXPECT_EQ(simplifier.qubits, 10);
+        for (size_t qubit = 0; qubit < 10; ++qubit) {
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaX(0), qubit),
+                      context.sigmaX(qubit)) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaY(0), qubit),
+                      context.sigmaY(qubit)) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaZ(0), qubit),
+                      context.sigmaZ(qubit)) << " qubit = " << qubit;
+        }
+
+        EXPECT_EQ(simplifier.chain_offset(context.sigmaX(0) * context.sigmaY(3), 2),
+                  context.sigmaX(2) * context.sigmaY(5));
+    }
+
+
+    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapLattice_Offset) {
+        PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
+        const auto& simplifier = context.moment_simplifier();
+        ASSERT_EQ(simplifier.impl_label, MomentSimplifierNoWrappingLattice::expected_label);
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaX(0, 0), row, col),
+                          context.sigmaX(row, col)) << " col = " << col << ", row = " << row;
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaY(0, 0), row, col),
+                          context.sigmaY(row, col)) << " col = " << col << ", row = " << row;
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaZ(0, 0), row, col),
+                          context.sigmaZ(row, col)) << " col = " << col << ", row = " << row;
+            }
+        }
+
+        EXPECT_EQ(simplifier.lattice_offset(context.sigmaX(0, 0) * context.sigmaZ(0, 2), 0, 1),
+                  context.sigmaX(0, 1) * context.sigmaZ(0, 3));
+    }
+
+    TEST(Scenarios_Pauli_MomentSimplifier, WrappingChain_Offset) {
+        PauliContext context{10, WrapType::Wrap, SymmetryType::Translational};
+        const auto& simplifier = context.moment_simplifier();
+        for (size_t qubit = 0; qubit < 10; ++qubit) {
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaX(0), qubit),
+                      context.sigmaX(qubit)) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaY(0), qubit),
+                      context.sigmaY(qubit)) << " qubit = " << qubit;
+            EXPECT_EQ(simplifier.chain_offset(context.sigmaZ(0), qubit),
+                      context.sigmaZ(qubit)) << " qubit = " << qubit;
+        }
+
+        EXPECT_EQ(simplifier.chain_offset(context.sigmaX(0) * context.sigmaY(3), 2),
+                  context.sigmaX(2) * context.sigmaY(5));
+
+        EXPECT_EQ(simplifier.chain_offset(context.sigmaX(0) * context.sigmaY(3), 9),
+                  context.sigmaX(9) * context.sigmaY(2));
+    }
+
+    TEST(Scenarios_Pauli_MomentSimplifier, WrappingLattice_Offset) {
+        PauliContext context{4, 4, WrapType::Wrap, SymmetryType::Translational};
+        const auto& simplifier = context.moment_simplifier();
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaX(0, 0), row, col),
+                          context.sigmaX(row, col)) << " col = " << col << ", row = " << row;
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaY(0, 0), row, col),
+                          context.sigmaY(row, col)) << " col = " << col << ", row = " << row;
+                EXPECT_EQ(simplifier.lattice_offset(context.sigmaZ(0, 0), row, col),
+                          context.sigmaZ(row, col)) << " col = " << col << ", row = " << row;
+            }
+        }
+
+        EXPECT_EQ(simplifier.lattice_offset(context.sigmaX(0, 0) * context.sigmaZ(0, 3), 0, 1),
+                  context.sigmaZ(0, 0) * context.sigmaX(0, 1));
+    }
+
+    TEST(Scenarios_Pauli_MomentSimplifier, NoWrapLattice_Supremum) {
         PauliContext context{4, 4, WrapType::None, SymmetryType::Translational};
         MomentSimplifierNoWrappingLattice simplifier{context};
         EXPECT_EQ(simplifier.qubits, 16);
@@ -105,21 +180,21 @@ namespace Moment::Tests {
         EXPECT_EQ(simplifier.impl_label, MomentSimplifierNoWrappingLattice::expected_label);
         EXPECT_NE(simplifier.impl_label, MomentSimplifierNoWrappingChain::expected_label);
 
-        EXPECT_EQ(simplifier.lattice_maximum(context.zero()), (std::pair<size_t, size_t>{4, 4}));
-        EXPECT_EQ(simplifier.lattice_maximum(context.identity()),  (std::pair<size_t, size_t>{4, 4}));
+        EXPECT_EQ(simplifier.lattice_supremum(context.zero()), (std::pair<size_t, size_t>{0, 0}));
+        EXPECT_EQ(simplifier.lattice_supremum(context.identity()),  (std::pair<size_t, size_t>{0, 0}));
 
         for (size_t col = 0; col < 4; ++col) {
             for (size_t row = 0; row < 4; ++row) {
-                EXPECT_EQ(simplifier.lattice_maximum(context.sigmaX(row, col)),
-                          (std::pair<size_t, size_t>{row, col})) << " row = " << row << ", col = " << col;
-                EXPECT_EQ(simplifier.lattice_maximum(context.sigmaY(row, col)),
-                          (std::pair<size_t, size_t>{row, col})) << " row = " << row << ", col = " << col;
-                EXPECT_EQ(simplifier.lattice_maximum(context.sigmaZ(row, col)),
-                          (std::pair<size_t, size_t>{row, col})) << " row = " << row << ", col = " << col;
+                EXPECT_EQ(simplifier.lattice_supremum(context.sigmaX(row, col)),
+                          (std::pair<size_t, size_t>{row + 1, col + 1})) << " row = " << row << ", col = " << col;
+                EXPECT_EQ(simplifier.lattice_supremum(context.sigmaY(row, col)),
+                          (std::pair<size_t, size_t>{row + 1, col + 1})) << " row = " << row << ", col = " << col;
+                EXPECT_EQ(simplifier.lattice_supremum(context.sigmaZ(row, col)),
+                          (std::pair<size_t, size_t>{row + 1, col + 1})) << " row = " << row << ", col = " << col;
             }
         }
-        EXPECT_EQ(simplifier.lattice_maximum(context.sigmaX(0, 3) * context.sigmaY(1, 2)),
-                  (std::pair<size_t, size_t>{1, 3}));
+        EXPECT_EQ(simplifier.lattice_supremum(context.sigmaX(0, 3) * context.sigmaY(1, 2)),
+                  (std::pair<size_t, size_t>{2, 4}));
     }
 
 

@@ -8,10 +8,13 @@
 #include "lattice_duplicator.h"
 
 #include "../pauli_context.h"
+
 #include "moment_simplifier_wrapping.h"
 #include "moment_simplifier_no_wrapping.h"
 
+#include "dictionary/raw_polynomial.h"
 #include "dictionary/multi_operator_iterator.h"
+
 
 #include "utilities/small_vector.h"
 
@@ -141,9 +144,9 @@ namespace Moment::Pauli {
 
             // Reason from indices if aliasing is completely impossible
             MomentSimplifierNoWrappingLattice nowrap{duplicator.context};
-            auto [max_row, max_col] = nowrap.lattice_maximum(lattice_indices);
-            const bool no_horz_alias = (max_row < hasher.row_width/2);
-            const bool no_vert_alias = (max_col < hasher.column_height/2);
+            auto [max_row, max_col] = nowrap.lattice_supremum(lattice_indices);
+            const bool no_horz_alias = (max_row <= hasher.row_width/2);
+            const bool no_vert_alias = (max_col <= hasher.column_height/2);
             if (no_horz_alias && no_vert_alias) {
                 return do_unaliased_lattice_symmetric_fill(duplicator, output, hasher, lattice_indices);
             }
@@ -351,14 +354,14 @@ namespace Moment::Pauli {
         MomentSimplifierNoWrappingLattice simplifier{this->context};
 
         // Determine minimum and maximum offsets
-        const auto [number_rows, number_cols] = simplifier.lattice_maximum(lattice_indices);
+        const auto [number_rows, number_cols] = simplifier.lattice_supremum(lattice_indices);
 
         const size_t initial_index = this->output.size();
 
         // Prepare to iterate over lattice
         std::vector<size_t> actual_indices(lattice_indices.size(), 0);
-        for (size_t col = 0, max_col = (simplifier.row_width - number_cols); col < max_col; ++col) {
-            for (size_t row = 0, max_row = (simplifier.column_height - number_rows); row < max_row; ++row) {
+        for (size_t col = 0, max_col = (1 + simplifier.row_width - number_cols); col < max_col; ++col) {
+            for (size_t row = 0, max_row = (1 + simplifier.column_height - number_rows); row < max_row; ++row) {
 
                 // Get transformed site indices
                 const size_t the_offset = (col * simplifier.column_height) + row;
@@ -375,6 +378,87 @@ namespace Moment::Pauli {
 
         // Report range inserted
         return std::pair<size_t, size_t>{initial_index, this->output.size()};
+    }
+
+    namespace {
+
+        [[nodiscard]] inline size_t get_max_chain_offset(const PauliContext& context, const RawPolynomial& input) {
+            if (context.wrap == WrapType::Wrap) {
+                return context.qubit_size;
+            } else {
+                return 1 + context.qubit_size - MomentSimplifierNoWrappingChain::chain_supremum(input);
+            }
+        }
+
+        [[nodiscard]] RawPolynomial
+        do_apply_symmetry_chain(const PauliContext& context, const RawPolynomial& input) {
+            const auto& simplifier = context.moment_simplifier();
+            const size_t max_offset = get_max_chain_offset(context, input);
+            const double prefactor = 1.0 / static_cast<double>(max_offset);
+
+            RawPolynomial output;
+            for (const auto& [sequence, weight] : input) {
+                const std::complex<double> new_weight = weight * prefactor;
+                output.emplace_back(sequence, new_weight);
+                for (size_t chain_offset = 1; chain_offset < max_offset; ++chain_offset) {
+                    output.emplace_back(simplifier.chain_offset(sequence, chain_offset), new_weight);
+                }
+            }
+            return output;
+        }
+
+        [[nodiscard]] inline std::pair<size_t, size_t>
+        get_max_lattice_offset(const PauliContext& context, const RawPolynomial& input) {
+            if (context.wrap == WrapType::Wrap) {
+                return {context.col_height, context.row_width}; // AKA {number of rows, number of columns}
+            } else {
+                MomentSimplifierNoWrappingLattice simplifier{context};
+                const auto [eff_h, eff_w] = simplifier.lattice_supremum(input);
+                return std::make_pair(1 + context.col_height - eff_h,
+                                      1 + context.row_width - eff_w);
+            }
+        }
+
+        [[nodiscard]] RawPolynomial
+        do_apply_symmetry_lattice(const PauliContext& context, const RawPolynomial& input) {
+            RawPolynomial output;
+            const auto& simplifier = context.moment_simplifier();
+            const auto [effective_height, effective_width] = get_max_lattice_offset(context, input);
+            const double prefactor = 1.0 / static_cast<double>(effective_height * effective_width);
+
+            for (const auto& [sequence, weight] : input) {
+                const std::complex<double> new_weight = weight * prefactor;
+                output.emplace_back(sequence, new_weight);
+                for (size_t col_offset = 0; col_offset < effective_width; ++col_offset) {
+                    for (size_t row_offset = ((col_offset==0)? 1 : 0); row_offset < effective_height; ++row_offset) {
+                        output.emplace_back(simplifier.lattice_offset(sequence, row_offset, col_offset), new_weight);
+                    }
+                }
+            }
+            return output;
+        }
+    }
+
+
+    RawPolynomial LatticeDuplicator::symmetrical_copy(const Moment::Pauli::PauliContext& context,
+                                                      const Moment::RawPolynomial& input) {
+
+        // No symmetry, or operator sequence is trivial scalar; so can just copy:
+        if ((context.translational_symmetry == SymmetryType::None) || input.is_scalar()) {
+            RawPolynomial raw_poly;
+            for (const auto& [op_seq, weight] : input) {
+                raw_poly.emplace_back(op_seq, weight);
+            }
+            return raw_poly;
+        }
+
+        // Otherwise, select appropriate duplication mode:
+        if (context.is_lattice()) {
+            return do_apply_symmetry_lattice(context, input);
+        } else {
+            return do_apply_symmetry_chain(context, input);
+        }
+
     }
 
 }

@@ -63,28 +63,40 @@ namespace Moment {
 
     public:
         RawPolynomial() = default;
-        RawPolynomial(const RawPolynomial& rhs) = delete;
+        RawPolynomial(const RawPolynomial& rhs) = default;
         RawPolynomial(RawPolynomial&& rhs) = default;
 
         inline void emplace_back(OperatorSequence seq, std::complex<double> w) {
             data.emplace_back(std::move(seq), w);
         }
 
-        inline size_t size() const noexcept {
+        [[nodiscard]] inline size_t size() const noexcept {
             return this->data.size();
         }
 
-        inline auto begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return this->data.cbegin();
         }
 
-        inline auto end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return this->data.cend();
         }
 
+        [[nodiscard]] inline const RawPolynomialElement& operator[](size_t index) const noexcept {
+            return this->data[index];
+        }
+
+        /**
+         * True if all entries are effectively scalar multiples of the identity.
+         */
+        [[nodiscard]] bool is_scalar() const noexcept;
+
         [[nodiscard]] std::string to_string(const Context& context) const;
 
-        /** Find symbols for Polynomial, and create appropriate object */
+        /**
+         * Find symbols for Polynomial, and create appropriate object.
+         * @throws errors::unregistered_operator_sequence If any sequence cannot be found in the relevant SymbolTable.
+         */
         [[nodiscard]] Polynomial to_polynomial(const PolynomialFactory& factory) const;
 
         /**

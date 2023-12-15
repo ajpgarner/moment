@@ -61,6 +61,43 @@ namespace Moment::Pauli {
             // Is input operator sequence already minimal?
             return (smallest_hash == actual_hash);
         }
+
+        using MomentSimplifier::chain_offset;
+
+
+        [[nodiscard]] sequence_storage_t chain_offset(const std::span<const oper_name_t> input,
+                                                      ptrdiff_t offset) const final {
+            // Translate offsets to positive range:
+            offset = offset % this->context.qubit_size;
+            if (offset < 0) {
+                offset = this->site_hasher.qubits - offset;
+            }
+
+            // Via hash, shift:
+            return this->site_hasher.unhash(this->site_hasher.cyclic_shift(this->site_hasher.hash(input), offset));
+        }
+
+        using MomentSimplifier::lattice_offset;
+
+        [[nodiscard]]
+        sequence_storage_t lattice_offset(const std::span<const oper_name_t> input,
+                                          ptrdiff_t row_offset,
+                                          ptrdiff_t col_offset) const final {
+            // Translate offsets to positive range:
+            row_offset = row_offset % this->context.qubit_size;
+            if (row_offset < 0) {
+                row_offset = this->site_hasher.qubits - row_offset;
+            }
+
+            col_offset = col_offset % this->context.qubit_size;
+            if (col_offset < 0) {
+                col_offset = this->site_hasher.qubits - col_offset;
+            }
+
+            // Via hash, shift:
+            return this->site_hasher.unhash(this->site_hasher.lattice_shift(this->site_hasher.hash(input),
+                                                                            row_offset, col_offset));
+        }
     };
 
 }

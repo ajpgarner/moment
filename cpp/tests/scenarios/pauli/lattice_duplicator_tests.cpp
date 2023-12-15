@@ -6,6 +6,8 @@
  */
 #include "gtest/gtest.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/symmetry/lattice_duplicator.h"
 
@@ -326,4 +328,120 @@ namespace Moment::Tests {
         EXPECT_EQ(output_list[17], lattice.sigmaZ(1) * lattice.sigmaZ(3));
 
     }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_NoWrapChain_Single) {
+        PauliContext chain{5, WrapType::None, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(chain.sigmaX(0), 1.0);
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(chain, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 5);
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            EXPECT_EQ(duplicated_poly[qubit].sequence, chain.sigmaX(qubit)) << "qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_NoWrapChain_Neighbour) {
+        PauliContext chain{5, WrapType::None, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(chain.sigmaX(0) * chain.sigmaY(1), 1.0);
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(chain, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 4);
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            EXPECT_EQ(duplicated_poly[qubit].sequence, chain.sigmaX(qubit) * chain.sigmaY(qubit+1))
+                    << "qubit = " << qubit;
+        }
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_WrappingChain_Single) {
+        PauliContext chain{5, WrapType::Wrap, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(chain.sigmaX(0), 1.0);
+        ASSERT_FALSE(base_poly.is_scalar());
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(chain, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 5);
+        for (size_t qubit = 0; qubit < 5; ++qubit) {
+            EXPECT_EQ(duplicated_poly[qubit].sequence, chain.sigmaX(qubit)) << "qubit = " << qubit;
+        }
+    }
+
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_WrappingChain_Neighbour) {
+        PauliContext chain{5, WrapType::Wrap, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(chain.sigmaX(0) * chain.sigmaY(1), 1.0);
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(chain, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 5);
+        for (size_t qubit = 0; qubit < 4; ++qubit) {
+            EXPECT_EQ(duplicated_poly[qubit].sequence, chain.sigmaX(qubit) * chain.sigmaY(qubit+1))
+                                << "qubit = " << qubit;
+        }
+        EXPECT_EQ(duplicated_poly[4].sequence, chain.sigmaX(4) * chain.sigmaY(0));
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_NoWrapLattice_Single) {
+        PauliContext lattice{3, 3, WrapType::None, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(lattice.sigmaX(0, 0), 1.0);
+        ASSERT_FALSE(base_poly.is_scalar());
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(lattice, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 9);
+
+        for (size_t col = 0; col < 3; ++col) {
+            for (size_t row = 0; row < 3; ++row) {
+                EXPECT_EQ(duplicated_poly[col*3 + row].sequence, lattice.sigmaX(row, col))
+                    << "row = " << row << ", col = " << col;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_NoWrapLattice_HorzNeighbour) {
+        PauliContext lattice{3, 3, WrapType::None, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(lattice.sigmaX(0, 0) * lattice.sigmaY(0, 1), 1.0);
+        ASSERT_FALSE(base_poly.is_scalar());
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(lattice, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 6);
+
+        for (size_t col = 0; col < 2; ++col) {
+            for (size_t row = 0; row < 3; ++row) {
+                EXPECT_EQ(duplicated_poly[col*3 + row].sequence, lattice.sigmaX(row, col) * lattice.sigmaY(row, col+1))
+                    << "row = " << row << ", col = " << col;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_WrappingLattice_Single) {
+        PauliContext lattice{3, 3, WrapType::Wrap, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(lattice.sigmaX(0, 0), 1.0);
+        ASSERT_FALSE(base_poly.is_scalar());
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(lattice, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 9);
+
+        for (size_t col = 0; col < 3; ++col) {
+            for (size_t row = 0; row < 3; ++row) {
+                EXPECT_EQ(duplicated_poly[col*3 + row].sequence, lattice.sigmaX(row, col))
+                    << "row = " << row << ", col = " << col;
+            }
+        }
+    }
+
+    TEST(Scenarios_Pauli_LatticeDuplicator, CopyRawPolynomial_WrappingLattice_HorzNeighbour) {
+        PauliContext lattice{3, 3, WrapType::Wrap, SymmetryType::Translational};
+        RawPolynomial base_poly;
+        base_poly.emplace_back(lattice.sigmaX(0, 0) * lattice.sigmaY(0, 1), 1.0);
+        ASSERT_FALSE(base_poly.is_scalar());
+        const auto duplicated_poly = LatticeDuplicator::symmetrical_copy(lattice, base_poly);
+        ASSERT_EQ(duplicated_poly.size(), 9);
+
+        for (size_t col = 0; col < 3; ++col) {
+            for (size_t row = 0; row < 3; ++row) {
+                EXPECT_EQ(duplicated_poly[col*3 + row].sequence,
+                          lattice.sigmaX(row, col) * lattice.sigmaY(row, (col+1)%3))
+                                    << "row = " << row << ", col = " << col;
+            }
+        }
+    }
+
+
 }

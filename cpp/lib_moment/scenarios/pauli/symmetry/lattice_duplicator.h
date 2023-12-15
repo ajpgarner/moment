@@ -12,6 +12,10 @@
 #include "dictionary/operator_sequence.h"
 #include <vector>
 
+namespace Moment {
+    class RawPolynomial;
+}
+
 namespace Moment::Pauli {
     class PauliContext;
 
@@ -65,6 +69,13 @@ namespace Moment::Pauli {
          */
         std::pair<size_t, size_t> wrapless_symmetrical_fill(std::span<const size_t> lattice_sites);
 
+        /**
+         * Applies all symmetry of a lattice to the supplied polynomial
+         * @param context The pauli context.
+         * @param input The input raw polynomial.
+         * @return A raw polynomial, formed from duplication of supplied input.
+         */
+        [[nodiscard]] static RawPolynomial symmetrical_copy(const PauliContext& context, const RawPolynomial& input);
 
     };
 

@@ -16,6 +16,7 @@
 #include "utilities/format_factor.h"
 #include "utilities/float_utils.h"
 
+#include <algorithm>
 #include <sstream>
 
 namespace Moment {
@@ -33,6 +34,18 @@ namespace Moment {
         }
 
         return ss.str();
+    }
+
+    bool RawPolynomial::is_scalar() const noexcept {
+        // Empty sequence is scalar (0)
+        if (this->data.empty()) {
+            return true;
+        }
+
+        // Non-empty sequence is scalar if all of its elements are scalar
+        return std::all_of(this->data.begin(), this->data.end(), [](const RawPolynomialElement& os_w) -> bool {
+            return os_w.sequence.empty();
+        });
     }
 
     Polynomial RawPolynomial::to_polynomial(const PolynomialFactory& factory) const {

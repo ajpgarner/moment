@@ -10,8 +10,9 @@
 #include "moment_simplifier_no_wrapping.h"
 #include "site_hasher.h"
 
-#include "scenarios/pauli/pauli_context.h"
 #include "dictionary/operator_sequence.h"
+
+#include "scenarios/pauli/pauli_context.h"
 
 namespace Moment::Pauli {
     MomentSimplifier::MomentSimplifier(const PauliContext& context, const uint64_t label)
@@ -73,5 +74,9 @@ namespace Moment::Pauli {
         return OperatorSequence{OperatorSequence::ConstructPresortedFlag{},
                                 this->canonical_sequence(input.raw()), this->context, input.get_sign()};
     }
+
+
+
+
 
 }

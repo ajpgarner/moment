@@ -6,11 +6,28 @@
  */
 
 #include "moment_simplifier_no_wrapping.h"
+
+#include "dictionary/raw_polynomial.h"
 #include "scenarios/pauli/pauli_context.h"
 
 #include <algorithm>
 
 namespace Moment::Pauli {
+
+    namespace {
+        [[nodiscard]] inline sequence_storage_t
+        do_chain_offset(const std::span<const oper_name_t> input, const ptrdiff_t offset) {
+            // Prepare offset data, then transform it
+            sequence_storage_t output_data;
+            output_data.reserve(input.size());
+            const ptrdiff_t oper_offset = 3 * offset;
+            std::transform(input.begin(), input.end(), std::back_inserter(output_data),
+                           [oper_offset](const oper_name_t op) -> oper_name_t {
+                               return op + oper_offset;
+                           });
+            return output_data;
+        }
+    }
 
     MomentSimplifierNoWrappingChain::MomentSimplifierNoWrappingChain(const PauliContext& context)
             : MomentSimplifier{context, MomentSimplifierNoWrappingChain::expected_label},
@@ -38,6 +55,26 @@ namespace Moment::Pauli {
     }
 
 
+    size_t MomentSimplifierNoWrappingChain::chain_supremum(const Moment::RawPolynomial& input) noexcept {
+        size_t max_val = 0;
+        for (const auto& [seq, weight] : input) {
+            if (!seq.empty()) {
+                max_val = std::max(max_val, (1 + static_cast<size_t>(seq.raw().back()) / 3));
+            }
+        }
+        return max_val;
+    }
+
+    sequence_storage_t
+    MomentSimplifierNoWrappingChain::chain_offset(const std::span<const oper_name_t> input, ptrdiff_t offset) const {
+        return do_chain_offset(input, offset);
+    }
+
+    sequence_storage_t
+    MomentSimplifierNoWrappingChain::lattice_offset(const std::span<const oper_name_t> input,
+                                                    const ptrdiff_t row_offset, const ptrdiff_t col_offset) const {
+        return do_chain_offset(input, (col_offset * this->qubits) + row_offset);
+    }
 
     MomentSimplifierNoWrappingLattice::MomentSimplifierNoWrappingLattice(const PauliContext& context)
             : MomentSimplifier{context, MomentSimplifierNoWrappingLattice::expected_label},
@@ -109,41 +146,62 @@ namespace Moment::Pauli {
     }
 
     std::pair<size_t, size_t>
-    MomentSimplifierNoWrappingLattice::lattice_maximum(const std::span<const oper_name_t> input) const {
+    MomentSimplifierNoWrappingLattice::lattice_supremum(const std::span<const oper_name_t> input) const {
         // Special case for empty:
         if (input.empty()) [[unlikely]] {
-            return {this->column_height, this->row_width};
+            return {0, 0};
         }
 
         // Max column will be column of last qubit:
-        const size_t max_column = input.back() / this->column_op_height;
+        const size_t max_column = 1 + (input.back() / this->column_op_height);
 
         // Scan for maximum row
-        size_t max_row = (input[0] / 3) % this->column_height;
+        size_t max_row = ((input[0] / 3) % this->column_height) + 1;
         for (size_t idx = 1; idx < input.size(); ++idx) {
-            max_row = std::max(max_row, (input[idx] /3) % this->column_height);
+            max_row = std::max(max_row, 1 + ((input[idx] / 3) % this->column_height));
         }
 
         return {max_row, max_column};
     }
 
     std::pair<size_t, size_t>
-    MomentSimplifierNoWrappingLattice::lattice_maximum(const std::span<const size_t> input) const {
+    MomentSimplifierNoWrappingLattice::lattice_supremum(const std::span<const size_t> input) const {
         // Special case for empty:
         if (input.empty()) [[unlikely]] {
-            return {this->column_height, this->row_width};
+            return {0, 0};
         }
 
         // Max column will be column of last qubit:
-        const size_t max_column = input.back() / this->column_height;
+        const size_t max_column = 1 + (input.back() / this->column_height);
 
         // Scan for maximum row
-        size_t max_row = input[0] % this->column_height;
+        size_t max_row = (input[0] % this->column_height) + 1;
         for (size_t idx = 1; idx < input.size(); ++idx) {
-            max_row = std::max(max_row, input[idx]  % this->column_height);
+            max_row = std::max(max_row, (input[idx]  % this->column_height) + 1);
         }
 
         return {max_row, max_column};
+    }
+
+    std::pair<size_t, size_t> MomentSimplifierNoWrappingLattice::lattice_supremum(const RawPolynomial& input) const {
+        std::pair<size_t, size_t> output{0, 0};
+        for (const auto& [seq, w] : input) {
+            auto seq_max = this->lattice_supremum(seq.raw());
+            output.first = std::max(output.first, seq_max.first);
+            output.second = std::max(output.second, seq_max.second);
+        }
+        return output;
+    }
+
+    sequence_storage_t
+    MomentSimplifierNoWrappingLattice::chain_offset(const std::span<const oper_name_t> input, ptrdiff_t offset) const {
+        return do_chain_offset(input, offset);
+    }
+
+    sequence_storage_t
+    MomentSimplifierNoWrappingLattice::lattice_offset(const std::span<const oper_name_t> input,
+                                                      const ptrdiff_t row_offset, const ptrdiff_t col_offset) const {
+        return do_chain_offset(input, (col_offset * this->column_height) + row_offset);
     }
 
 }
