@@ -25,6 +25,9 @@ classdef MTKMonomial < MTKObject
         % Symbol cell representation of object
         SymbolCell
         
+        % Operator cell representation of object
+        OperatorCell
+        
         % The real basis element representing the real part of this monomial, or 0.
         RealBasisIndex
         
@@ -44,9 +47,10 @@ classdef MTKMonomial < MTKObject
         symbol_conjugated = false;
         re_basis_index = -1;
         im_basis_index = -1;
-        is_alias = false;
-        
+        is_alias = false;        
         symbol_cell = cell(0,0);
+        operator_cell = cell(0, 0);       
+        has_oc = false;
         has_sc = false;
     end
     
@@ -235,6 +239,14 @@ classdef MTKMonomial < MTKObject
                 obj.has_sc = true;
             end
             val = obj.symbol_cell;                           
+        end
+        
+        function val = get.OperatorCell(obj)
+            if ~obj.has_oc
+                obj.operator_cell = obj.makeOperatorCell();
+                obj.has_oc = true;
+            end
+            val = obj.operator_cell;                           
         end
         
         function val = get.IsAlias(obj)

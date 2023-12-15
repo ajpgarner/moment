@@ -188,10 +188,18 @@ classdef PauliScenario < MTKScenario
                                   || isa(thing, 'MTKPolynomial')), ...
                 "Symmetrization only works on Monomials and Polynomials");
             assert(thing.Scenario == obj, "Mismatched scenarios!");
+            assert(thing.IsScalar, "Can only symmetrize scalar objects.");
             
+            % Effectively promote monomial to polynomial:
+            if isa(thing, 'MTKMonomial')
+                cell_input = {thing.OperatorCell};
+            else
+                cell_input = thing.OperatorCell;
+            end
+ 
             % Call for symmetrization on operator cell
             poly_spec = mtk('lattice_symmetrize', obj.System.RefId, ...
-                            thing.OperatorCell);
+                            cell_input);
 
             % Construct Polynomial from result
             val = MTKPolynomial.InitFromOperatorPolySpec(obj, {poly_spec});
