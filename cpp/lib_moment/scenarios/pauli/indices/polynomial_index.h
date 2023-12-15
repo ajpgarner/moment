@@ -63,6 +63,9 @@ namespace Moment {
 
             [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
             [[nodiscard]] std::string to_string(const MatrixSystem& system) const;
+            [[nodiscard]] static std::string raw_to_string(const Context& context, const SymbolTable& symbols,
+                                                           const NearestNeighbourIndex& nn_index,
+                                                           const RawPolynomial& raw);
         };
 
         /**
@@ -84,6 +87,9 @@ namespace Moment {
 
             [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
             [[nodiscard]] std::string to_string(const MatrixSystem& system) const;
+            [[nodiscard]] static std::string raw_to_string(const Context& context, const SymbolTable& symbols,
+                                                          const NearestNeighbourIndex& nn_index,
+                                                           const RawPolynomial& raw);
         };
 
         /**
@@ -106,6 +112,10 @@ namespace Moment {
 
             [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
             [[nodiscard]] std::string to_string(const MatrixSystem& system) const;
+
+            [[nodiscard]] static std::string raw_to_string(const Context& context, const SymbolTable& symbols,
+                                                           const NearestNeighbourIndex& nn_index,
+                                                           const RawPolynomial& raw);
         };
     }
 }

@@ -18,6 +18,7 @@
 
 
 namespace Moment {
+    class RawPolynomial;
     class SymbolTable;
 
     /**
@@ -114,7 +115,12 @@ namespace Moment {
 
         [[nodiscard]] std::string to_string(const Context& context, const SymbolTable& symbols) const;
 
+
+
         [[nodiscard]] std::string to_string(const MatrixSystem& matrix_system) const;
+
+        [[nodiscard]] static std::string raw_to_string(const Context& context, const SymbolTable& symbols,
+                                                   size_t level, const RawPolynomial& raw);
     };
 
 

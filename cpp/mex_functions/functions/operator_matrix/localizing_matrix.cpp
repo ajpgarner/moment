@@ -288,7 +288,7 @@ namespace Moment::mex::functions {
                            MatrixSystem& system, LocalizingMatrixParams& input,
                            Multithreading::MultiThreadPolicy mt_policy) {
 
-            // Can expression be parsed without new symbols?
+            // Must be able to parse expression without registering new symbols
             auto symbol_read_lock = [&system]() -> MaintainsMutex::ReadLock {
                 if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(&system); dms_ptr != nullptr) {
                     return dms_ptr->base_system().get_read_lock();
@@ -296,17 +296,18 @@ namespace Moment::mex::functions {
                 return system.get_read_lock();
             }();
 
+            // Apply context to
             auto& lmi_importer = input.lmi_importer();
             lmi_importer.supply_context_only(symbol_read_lock);
 
             if (auto * pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system); pms_ptr != nullptr) {
                 Pauli::PauliMatrixSystem& pauli_system = *pms_ptr;
                 auto [raw_level, raw_poly] = lmi_importer.to_pauli_raw_polynomial_index();
-                symbol_read_lock.unlock();
+                symbol_read_lock.unlock(); // symbol read finished, and next line calls write lock.
                 return pauli_system.create_and_register_localizing_matrix(raw_level, raw_poly, mt_policy);
             } else {
                 auto [raw_level, raw_poly] = lmi_importer.to_raw_polynomial_index();
-                symbol_read_lock.unlock();
+                symbol_read_lock.unlock(); // symbol read finished, and next line calls write lock.
                 return system.create_and_register_localizing_matrix(raw_level, raw_poly, mt_policy);
             }
         }

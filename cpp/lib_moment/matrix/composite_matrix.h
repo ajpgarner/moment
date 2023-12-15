@@ -26,6 +26,7 @@
 #include <complex>
 #include <concepts>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Moment {
@@ -152,11 +153,20 @@ namespace Moment {
         /** Full index that defines this polynomial matrix */
         const PolynomialIndex index;
 
+        const std::optional<RawPolynomial> unaliased_index;
+
     public:
         CompositeMatrixImpl(const Context& context, SymbolTable& symbols, const PolynomialFactory& factory,
-                            PolynomialIndex index_in, CompositeMatrix::ConstituentInfo&& constituents_in)
-                : CompositeMatrix{context, symbols, factory, std::move(constituents_in)}, index{std::move(index_in)} {
-            this->description = index.to_string(context, symbols);
+                            PolynomialIndex index_in, CompositeMatrix::ConstituentInfo&& constituents_in,
+                            std::optional<RawPolynomial> unaliased_index_in = std::nullopt)
+                : CompositeMatrix{context, symbols, factory, std::move(constituents_in)},
+                  index{std::move(index_in)}, unaliased_index{std::move(unaliased_index_in)} {
+            if (unaliased_index.has_value()) {
+                this->description = PolynomialIndex::raw_to_string(context, symbols,
+                                                                   index_in.Level, unaliased_index.value());
+            } else {
+                this->description = index.to_string(context, symbols);
+            }
         }
 
         /**
@@ -218,13 +228,43 @@ namespace Moment {
 
             // Get system information for symbol registration
             auto& symbols = system.Symbols();
+            const auto& context = system.Context();
             const auto& poly_factory = system.polynomial_factory();
 
-            // Now, register raw polynomial into symbols to make new index, then invoke non-raw construction
-            return ImplType::create(write_lock, system, monomial_matrices,
-                                    polynomial_index_t{std::move(osg_index),
-                                                       poly_factory.register_and_construct(symbols, raw_polynomial)},
-                                    mt_policy);
+            // If there are no aliases in the scenario, we can register raw polynomial into symbols to make new index,
+            // then invoke the non-raw construction:
+            if (!context.can_have_aliases()) {
+                return ImplType::create(write_lock, system, monomial_matrices,
+                                        polynomial_index_t{std::move(osg_index),
+                                                           poly_factory.register_and_construct(symbols,
+                                                                                               raw_polynomial)},
+                                        mt_policy);
+            }
+
+            // Otherwise, we have to treat the constituents of the raw polynomial one element at a time.
+            // First ensure constituent parts exist:
+            CompositeMatrix::ConstituentInfo constituents;
+            constituents.elements.reserve(raw_polynomial.size());
+            for (const auto& [mono_sequence, factor] : raw_polynomial) {
+                auto [mono_offset, mono_matrix] = monomial_matrices.create(write_lock,
+                                                                           MonomialIndex{osg_index, mono_sequence},
+                                                                           mt_policy);
+                constituents.elements.emplace_back(&mono_matrix, factor);
+            }
+
+            // If no constituents, we have to query for matrix size by asking system about its OSG:
+            if (!constituents.auto_set_dimension()) {
+                constituents.matrix_dimension = system.osg_size(osg_index);
+            }
+
+            // Make approximate and true index
+            auto aliased_polynomial = poly_factory.construct(raw_polynomial);
+            return std::make_unique<ImplType>(context, symbols, system.polynomial_factory(),
+                                              polynomial_index_t{std::move(osg_index), std::move(aliased_polynomial)},
+                                              std::move(constituents),
+                                              raw_polynomial);
+
+
         }
     };
 }

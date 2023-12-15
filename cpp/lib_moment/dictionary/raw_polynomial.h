@@ -52,8 +52,7 @@ namespace Moment {
             }
         }
 
-        RawPolynomialElement(const RawPolynomialElement& rhs) = delete;
-
+        RawPolynomialElement(const RawPolynomialElement& rhs) = default;
         RawPolynomialElement(RawPolynomialElement&& rhs) = default;
     };
 

@@ -269,4 +269,62 @@ namespace Moment::Tests {
                      Moment::errors::missing_component);
     }
 
+    TEST(Scenarios_Pauli_MatrixSystem, Aliased_PolyLocalizingMatrix) {
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(4, WrapType::None, SymmetryType::Translational)};
+        const auto& context = system.pauliContext;
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+
+        system.generate_dictionary(1); // Generate symbols for X, Y and Z
+        EXPECT_EQ(system.Symbols().size(), 5); // 0, 1, X, Y and Z
+
+
+
+        // Get two aliased operators
+        const auto x1 = context.sigmaX(0);
+        const auto x2 = context.sigmaX(1);
+        EXPECT_EQ(context.simplify_as_moment(OperatorSequence{x2}), x1);
+
+
+        auto sX1_res = system.Symbols().where(x1);
+        ASSERT_TRUE(sX1_res.found());
+        ASSERT_FALSE(sX1_res.is_aliased);
+        auto sX2_res = system.Symbols().where(x2);
+        ASSERT_TRUE(sX2_res.found());
+        EXPECT_TRUE(sX2_res.is_aliased);
+        EXPECT_EQ(sX1_res->Id(), sX2_res->Id());
+        const symbol_name_t sX = sX1_res->Id();
+
+
+        // Aliased raw polynomial
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(x1, 0.5);
+        raw_poly.emplace_back(x2, 0.5);
+
+        // Check aliasing resolves to just single moment
+        const auto& factory = system.polynomial_factory();
+        auto pure_poly = raw_poly.to_polynomial(factory);
+        ASSERT_EQ(pure_poly.size(), 1);
+        EXPECT_EQ(pure_poly[0].factor, 1.0);
+
+        // Make aliased LM
+        const auto& [matrix_id, matrix] = system.create_and_register_localizing_matrix(NearestNeighbourIndex{1,0},
+                                                                                       raw_poly);
+
+
+        // X1X2 should have been defined in the process...
+        auto sX1X2_res = system.Symbols().where(x1*x2);
+        ASSERT_TRUE(sX1X2_res.found());
+        ASSERT_FALSE(sX1X2_res.is_aliased);
+        const symbol_name_t sX1X2 = sX1X2_res->Id();
+
+        // Now, test matrix...
+        EXPECT_EQ(system.size(), 3);
+        EXPECT_EQ(matrix_id, 2);
+        ASSERT_TRUE(matrix.is_polynomial());
+        EXPECT_EQ((matrix.SymbolMatrix(0, 0)), Polynomial(Monomial(sX, 1.0))); // 0.5 <X1> + 0.5<X2> = <X1> (after alias)
+        EXPECT_EQ((matrix.SymbolMatrix(0, 1)), factory({Monomial(1, 0.5), Monomial{sX1X2, 0.5}}));
+
+    }
+
 }
