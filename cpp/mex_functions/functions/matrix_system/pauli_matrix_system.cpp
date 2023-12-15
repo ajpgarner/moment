@@ -56,9 +56,6 @@ namespace Moment::mex::functions {
 
         // Are we symmetrized
         if (this->flags.contains(u"symmetrized")) {
-            if (!this->wrap) {
-                throw_error(this->matlabEngine, errors::bad_param, "Symmetrization requires wrapping.");
-            }
             this->symmetrized = true;
         }
     }

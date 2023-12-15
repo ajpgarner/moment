@@ -9,6 +9,7 @@
 
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
+#include "functions/lattice_symmetrize.h"
 #include "functions/make_representation.h"
 #include "functions/release.h"
 #include "functions/settings.h"
@@ -60,9 +61,9 @@ namespace Moment::mex::functions {
         std::map<std::string, MTKEntryPointID> make_str_to_entrypoint_map() {
             std::map<std::string, MTKEntryPointID> output;
             output.emplace("algebraic_matrix_system",   MTKEntryPointID::AlgebraicMatrixSystem);
-            output.emplace("alphabetic_name",   MTKEntryPointID::AlphabeticName);
-            output.emplace("apply_moment_rules",MTKEntryPointID::ApplyMomentRules);
-            output.emplace("collins_gisin",     MTKEntryPointID::CollinsGisin);
+            output.emplace("alphabetic_name",           MTKEntryPointID::AlphabeticName);
+            output.emplace("apply_moment_rules",        MTKEntryPointID::ApplyMomentRules);
+            output.emplace("collins_gisin",             MTKEntryPointID::CollinsGisin);
             output.emplace("commutator_matrix", MTKEntryPointID::CommutatorMatrix);
             output.emplace("complete",          MTKEntryPointID::Complete);
             output.emplace("conjugate",         MTKEntryPointID::Conjugate);
@@ -76,6 +77,7 @@ namespace Moment::mex::functions {
             output.emplace("import_matrix",   MTKEntryPointID::ImportMatrix);
             output.emplace("imported_matrix_system",    MTKEntryPointID::ImportedMatrixSystem);
             output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
+            output.emplace("lattice_symmetrize",  MTKEntryPointID::LatticeSymmetrize);
             output.emplace("localizing_matrix",         MTKEntryPointID::LocalizingMatrix);
             output.emplace("locality_matrix_system",    MTKEntryPointID::LocalityMatrixSystem);
             output.emplace("logging",            MTKEntryPointID::Logging);
@@ -187,6 +189,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::InflationMatrixSystem:
                 the_function = std::make_unique<functions::InflationMatrixSystem>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::LatticeSymmetrize:
+                the_function = std::make_unique<functions::LatticeSymmetrize>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::List:
                 the_function = std::make_unique<functions::List>(engine, storageManager);

@@ -15,7 +15,6 @@
 
 #include "MatlabDataArray.hpp"
 
-
 namespace matlab::engine {
     class MATLABEngine;
 }
@@ -53,7 +52,7 @@ namespace Moment::mex {
         /**
          * Instantiates a raw polynomial from contextualized inputs
          */
-        RawPolynomial to_raw_polynomial() const;
+        [[nodiscard]] RawPolynomial to_raw_polynomial() const;
 
         /**
          * Look up symbols for contextualized monomials.

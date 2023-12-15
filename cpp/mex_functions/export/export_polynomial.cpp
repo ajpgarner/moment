@@ -8,6 +8,8 @@
 #include "export_polynomial.h"
 #include "export_operator_sequence.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include "scenarios/contextual_os_helper.h"
 
 #include "symbolic/polynomial.h"
@@ -107,6 +109,29 @@ namespace Moment::mex {
 
 
     FullMonomialSpecification
+    PolynomialExporter::sequences(const Moment::RawPolynomial& raw_polynomial) const {
+        FullMonomialSpecification output{factory, raw_polynomial.size(), false, false}; // no symbols, no aliases
+
+        auto op_iter = output.operators.begin();
+        auto coef_iter = output.coefficients.begin();
+        auto hash_iter = output.hashes.begin();
+
+        for (const auto& [op_seq, weight]: raw_polynomial) {
+            *op_iter = export_operator_sequence(factory, op_seq, true);
+            *coef_iter = weight;
+            *hash_iter = op_seq.hash();
+
+            // Advance output iterators
+            ++op_iter;
+            ++coef_iter;
+            ++hash_iter;
+        }
+
+        return output;
+    }
+
+
+    FullMonomialSpecification
     PolynomialExporter::sequences(const Moment::Polynomial& polynomial, bool include_symbols) const {
 
         const bool include_aliases = this->symbols.can_have_aliases && include_symbols;
@@ -116,8 +141,8 @@ namespace Moment::mex {
         auto op_iter = output.operators.begin();
         auto coef_iter = output.coefficients.begin();
         auto hash_iter = output.hashes.begin();
-        auto conj_iter = output.is_conjugated.begin();
         auto symbol_iter = include_symbols ? output.symbol_ids.begin() : output.symbol_ids.end();
+        auto conj_iter = output.is_conjugated.begin();
         auto real_basis_iter = include_symbols ? output.real_basis_elems.begin() : output.real_basis_elems.end();
         auto im_basis_iter = include_symbols ? output.im_basis_elems.begin() : output.im_basis_elems.end();
         auto alias_iter = include_aliases ? output.is_aliased.begin() : output.is_aliased.end();

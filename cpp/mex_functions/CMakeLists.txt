@@ -53,6 +53,7 @@ matlab_add_mex(NAME moment_mex
             utilities/reflection.cpp
             utilities/reporting.cpp
             functions/import_matrix.cpp
+            functions/lattice_symmetrize.cpp
             functions/generate_basis.cpp
             functions/make_representation.cpp
             functions/release.cpp

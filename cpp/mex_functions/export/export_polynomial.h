@@ -22,6 +22,7 @@
 
 namespace Moment {
     class SymbolTable;
+    class RawPolynomial;
 }
 
 namespace Moment::mex {
@@ -114,13 +115,19 @@ namespace Moment::mex {
         /**
          * Export polynomial in terms of its constituent operator sequences, their hashes and weights.
          * Error if symbol not defined!
-         * @param factory The array factory.
          * @param polynomial The polynomial to export.
          * @param include_symbols True to also include symbol IDs and real/imaginary basis elements.
          */
         [[nodiscard]] FullMonomialSpecification
         sequences(const Polynomial& polynomial,
                   bool include_symbols = false) const;
+
+        /**
+         * Export raw polynomial in terms of its constituent operator sequences, their hashes and weights.
+         * @param polynomial The polynomial to export.
+         */
+        [[nodiscard]] FullMonomialSpecification
+        sequences(const RawPolynomial& polynomial) const;
 
         /**
         * Export vector of polynomials as a vector of cell array full specifications

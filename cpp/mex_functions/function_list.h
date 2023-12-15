@@ -40,6 +40,7 @@ namespace Moment::mex::functions {
         ImportMatrix,
         ImportedMatrixSystem,
         InflationMatrixSystem,
+        LatticeSymmetrize,
         List,
         LocalityMatrixSystem,
         LocalizingMatrix,

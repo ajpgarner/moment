@@ -70,7 +70,7 @@ classdef PauliScenario < MTKScenario
                     case 'wrap'
                        wrap = logical(pauli_options{idx+1});
                     case 'symmetrized'
-                        symmetrized = logical(pauli_options{idx+1});
+                       symmetrized = logical(pauli_options{idx+1});
                 end
             end
             
@@ -179,6 +179,22 @@ classdef PauliScenario < MTKScenario
                 error("Qubit number must be between 1 and %d.", obj.QubitCount);
             end
             val = MTKMonomial(obj, site*3, 1.0);
+        end
+        
+        function val = symmetrize(obj, thing)
+        % SYMMETRIZE Apply lattice/chain symmetries to polynomial
+        %            
+            assert((nargin >= 2) && (isa(thing, 'MTKMonomial') ...
+                                  || isa(thing, 'MTKPolynomial')), ...
+                "Symmetrization only works on Monomials and Polynomials");
+            assert(thing.Scenario == obj, "Mismatched scenarios!");
+            
+            % Call for symmetrization on operator cell
+            poly_spec = mtk('lattice_symmetrize', obj.System.RefId, ...
+                            thing.OperatorCell);
+
+            % Construct Polynomial from result
+            val = MTKPolynomial.InitFromOperatorPolySpec(obj, {poly_spec});
         end
     end
     
