@@ -9,9 +9,9 @@
 
 namespace Moment::mex::functions  {
 
-    struct EchoParams : public SortedInputs {
+    struct EchoMatrixParams : public SortedInputs {
     public:
-        explicit  EchoParams(SortedInputs&& inputs);
+        explicit EchoMatrixParams(SortedInputs&& inputs);
 
         enum OutputMode {
             Dense,
@@ -24,12 +24,12 @@ namespace Moment::mex::functions  {
         } matrix_mode = MatrixMode::Real;
     };
 
-    class Echo : public ParameterizedMTKFunction<EchoParams, MTKEntryPointID::Echo> {
+    class EchoMatrix : public ParameterizedMTKFunction<EchoMatrixParams, MTKEntryPointID::EchoMatrix> {
     public:
-        explicit Echo(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
+        explicit EchoMatrix(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
     protected:
-        void operator()(IOArgumentRange output, EchoParams &input) override;
+        void operator()(IOArgumentRange output, EchoMatrixParams &input) override;
 
     };
 

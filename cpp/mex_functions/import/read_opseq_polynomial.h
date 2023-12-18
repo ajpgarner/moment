@@ -40,6 +40,11 @@ namespace Moment::mex {
                                    const matlab::data::Array& input,
                                    std::string inputName);
 
+        StagingPolynomial(const StagingPolynomial& rhs) = delete;
+
+        StagingPolynomial(StagingPolynomial&& rhs) noexcept;
+
+
         ~StagingPolynomial() noexcept;
 
         /**

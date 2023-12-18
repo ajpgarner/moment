@@ -31,9 +31,9 @@ namespace Moment::mex::functions {
 
         [[nodiscard]] const MonomialMatrix&
         input_to_monomial_matrix(matlab::engine::MATLABEngine& matlabEngine,
-                                 const MatrixSystem& matrixSystem, const AlgebraicOperand& input) {
+                                 const MatrixSystem& matrixSystem, AlgebraicOperand& input) {
             // Get matrix, or throw
-            const auto& symMatrix = input.to_matrix(matlabEngine, matrixSystem);
+            const auto& symMatrix = input.to_matrix(matrixSystem);
 
             if (!symMatrix.is_monomial()) {
                 throw_error(matlabEngine, errors::internal_error,
@@ -49,13 +49,13 @@ namespace Moment::mex::functions {
 
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         matrix_by_polynomial(matlab::engine::MATLABEngine& matlabEngine,
-                             const MultiplyParams &input, MatrixSystem &matrixSystem) {
+                             MultiplyParams &input, MatrixSystem &matrixSystem) {
 
             // Get read lock on matrix system
             auto write_lock = matrixSystem.get_write_lock();
 
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.lhs);
-            const auto polynomial = input.rhs.to_polynomial(matlabEngine, matrixSystem);
+            const auto polynomial = input.rhs.to_polynomial(matrixSystem);
 
             try {
                 if (polynomial.is_monomial() && (!polynomial.empty())) {
@@ -72,12 +72,12 @@ namespace Moment::mex::functions {
 
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         polynomial_by_matrix(matlab::engine::MATLABEngine& matlabEngine,
-                             const MultiplyParams &input, MatrixSystem &matrixSystem) {
+                             MultiplyParams &input, MatrixSystem &matrixSystem) {
 
             // Get read lock on matrix system
             auto write_lock = matrixSystem.get_write_lock();
 
-            const auto polynomial = input.lhs.to_polynomial(matlabEngine, matrixSystem);
+            const auto polynomial = input.lhs.to_polynomial(matrixSystem);
             const auto& matrix = input_to_monomial_matrix(matlabEngine, matrixSystem, input.rhs);
 
             try {
@@ -95,7 +95,7 @@ namespace Moment::mex::functions {
 
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         do_multiplication(matlab::engine::MATLABEngine& matlabEngine,
-                          const MultiplyParams &input, MatrixSystem &matrixSystem) {
+                          MultiplyParams &input, MatrixSystem &matrixSystem) {
             switch (input.lhs.type) {
                 case AlgebraicOperand::InputType::MatrixID:
                     switch (input.rhs.type) {
@@ -203,16 +203,16 @@ namespace Moment::mex::functions {
     }
 
     MultiplyParams::MultiplyParams(SortedInputs &&structuredInputs)
-            : SortedInputs(std::move(structuredInputs)) {
+            : SortedInputs{std::move(structuredInputs)}, lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
         // Get matrix system reference
         this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
                                                                   this->inputs[0], 0);
 
         // Check type of LHS input
-        this->lhs.parse_input(matlabEngine, "LHS", this->inputs[1]);
+        this->lhs.parse_input(this->inputs[1]);
 
         // Check type of RHS input
-        this->rhs.parse_input(matlabEngine, "RHS", this->inputs[2]);
+        this->rhs.parse_input(this->inputs[2]);
 
         // How do we output?
         if (this->flags.contains(u"strings")) {

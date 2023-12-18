@@ -63,11 +63,13 @@ matlab_add_mex(NAME moment_mex
             functions/transform_matrix.cpp
             functions/transform_symbols.cpp
             functions/word_list.cpp
+            functions/algebraic/commutator.cpp
             functions/algebraic/conjugate.cpp
             functions/algebraic/multiply.cpp
             functions/algebraic/plus.cpp
             functions/algebraic/simplify.cpp
-            functions/debug/echo.cpp
+            functions/debug/echo_matrix.cpp
+            functions/debug/echo_operand.cpp
             functions/debug/logging.cpp
             functions/debug/list.cpp
             functions/debug/moment_rule_superset.cpp
@@ -81,7 +83,7 @@ matlab_add_mex(NAME moment_mex
             functions/moment_rules/apply_moment_rules.cpp
             functions/moment_rules/create_moment_rules.cpp
             functions/moment_rules/moment_rules.cpp
-        functions/operator_matrix/commutator_matrix.cpp
+            functions/operator_matrix/commutator_matrix.cpp
             functions/operator_matrix/extended_matrix.cpp
             functions/operator_matrix/localizing_matrix.cpp
             functions/operator_matrix/moment_matrix.cpp

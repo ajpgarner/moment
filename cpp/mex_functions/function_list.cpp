@@ -18,11 +18,13 @@
 #include "functions/transform_matrix.h"
 #include "functions/transform_symbols.h"
 #include "functions/word_list.h"
+#include "functions/algebraic/commutator.h"
 #include "functions/algebraic/conjugate.h"
 #include "functions/algebraic/multiply.h"
 #include "functions/algebraic/plus.h"
 #include "functions/algebraic/simplify.h"
-#include "functions/debug/echo.h"
+#include "functions/debug/echo_matrix.h"
+#include "functions/debug/echo_operand.h"
 #include "functions/debug/list.h"
 #include "functions/debug/logging.h"
 #include "functions/debug/moment_rule_superset.h"
@@ -64,45 +66,47 @@ namespace Moment::mex::functions {
             output.emplace("alphabetic_name",           MTKEntryPointID::AlphabeticName);
             output.emplace("apply_moment_rules",        MTKEntryPointID::ApplyMomentRules);
             output.emplace("collins_gisin",             MTKEntryPointID::CollinsGisin);
-            output.emplace("commutator_matrix", MTKEntryPointID::CommutatorMatrix);
-            output.emplace("complete",          MTKEntryPointID::Complete);
-            output.emplace("conjugate",         MTKEntryPointID::Conjugate);
-            output.emplace("create_moment_rules",   MTKEntryPointID::CreateMomentRules);
-            output.emplace("echo",            MTKEntryPointID::Echo);
-            output.emplace("extended_matrix", MTKEntryPointID::ExtendedMatrix);
-            output.emplace("flatten_indices", MTKEntryPointID::FlattenIndices);
-            output.emplace("full_correlator", MTKEntryPointID::FullCorrelator);
-            output.emplace("generate_basis",  MTKEntryPointID::GenerateBasis);
-            output.emplace("list",            MTKEntryPointID::List);
-            output.emplace("import_matrix",   MTKEntryPointID::ImportMatrix);
+            output.emplace("commutator",                MTKEntryPointID::Commutator);
+            output.emplace("commutator_matrix",         MTKEntryPointID::CommutatorMatrix);
+            output.emplace("complete",                  MTKEntryPointID::Complete);
+            output.emplace("conjugate",                 MTKEntryPointID::Conjugate);
+            output.emplace("create_moment_rules",       MTKEntryPointID::CreateMomentRules);
+            output.emplace("echo_matrix",               MTKEntryPointID::EchoMatrix);
+            output.emplace("echo_operand",              MTKEntryPointID::EchoOperand);
+            output.emplace("extended_matrix",           MTKEntryPointID::ExtendedMatrix);
+            output.emplace("flatten_indices",           MTKEntryPointID::FlattenIndices);
+            output.emplace("full_correlator",           MTKEntryPointID::FullCorrelator);
+            output.emplace("generate_basis",            MTKEntryPointID::GenerateBasis);
+            output.emplace("list",                      MTKEntryPointID::List);
+            output.emplace("import_matrix",             MTKEntryPointID::ImportMatrix);
             output.emplace("imported_matrix_system",    MTKEntryPointID::ImportedMatrixSystem);
             output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
-            output.emplace("lattice_symmetrize",  MTKEntryPointID::LatticeSymmetrize);
+            output.emplace("lattice_symmetrize",        MTKEntryPointID::LatticeSymmetrize);
             output.emplace("localizing_matrix",         MTKEntryPointID::LocalizingMatrix);
             output.emplace("locality_matrix_system",    MTKEntryPointID::LocalityMatrixSystem);
-            output.emplace("logging",            MTKEntryPointID::Logging);
-            output.emplace("make_explicit",      MTKEntryPointID::MakeExplicit);
-            output.emplace("make_representation",MTKEntryPointID::MakeRepresentation);
-            output.emplace("moment_rules",       MTKEntryPointID::MomentRules);
-            output.emplace("moment_matrix",      MTKEntryPointID::MomentMatrix);
+            output.emplace("logging",                   MTKEntryPointID::Logging);
+            output.emplace("make_explicit",             MTKEntryPointID::MakeExplicit);
+            output.emplace("make_representation",       MTKEntryPointID::MakeRepresentation);
+            output.emplace("moment_rules",              MTKEntryPointID::MomentRules);
+            output.emplace("moment_matrix",             MTKEntryPointID::MomentMatrix);
             output.emplace("moment_rule_superset",      MTKEntryPointID::MomentRuleSuperset);
-            output.emplace("multiply",           MTKEntryPointID::Multiply);
-            output.emplace("operator_matrix",    MTKEntryPointID::OperatorMatrix);
-            output.emplace("operator_rules",     MTKEntryPointID::OperatorRules);
-            output.emplace("pauli_matrix_system",MTKEntryPointID::PauliMatrixSystem);
-            output.emplace("plus",               MTKEntryPointID::Plus);
-            output.emplace("probability_table",  MTKEntryPointID::ProbabilityTable);
-            output.emplace("release",            MTKEntryPointID::Release);
-            output.emplace("settings",           MTKEntryPointID::Settings);
-            output.emplace("simplify",           MTKEntryPointID::Simplify);
-            output.emplace("substituted_matrix", MTKEntryPointID::SubstitutedMatrix);
-            output.emplace("suggest_extensions", MTKEntryPointID::SuggestExtensions);
+            output.emplace("multiply",                  MTKEntryPointID::Multiply);
+            output.emplace("operator_matrix",           MTKEntryPointID::OperatorMatrix);
+            output.emplace("operator_rules",            MTKEntryPointID::OperatorRules);
+            output.emplace("pauli_matrix_system",       MTKEntryPointID::PauliMatrixSystem);
+            output.emplace("plus",                      MTKEntryPointID::Plus);
+            output.emplace("probability_table",         MTKEntryPointID::ProbabilityTable);
+            output.emplace("release",                   MTKEntryPointID::Release);
+            output.emplace("settings",                  MTKEntryPointID::Settings);
+            output.emplace("simplify",                  MTKEntryPointID::Simplify);
+            output.emplace("substituted_matrix",        MTKEntryPointID::SubstitutedMatrix);
+            output.emplace("suggest_extensions",        MTKEntryPointID::SuggestExtensions);
             output.emplace("symmetrized_matrix_system", MTKEntryPointID::SymmetrizedMatrixSystem);
-            output.emplace("symbol_table",       MTKEntryPointID::SymbolTable);
-            output.emplace("transform_matrix",   MTKEntryPointID::TransformMatrix);
-            output.emplace("transform_symbols",  MTKEntryPointID::TransformSymbols);
-            output.emplace("version",            MTKEntryPointID::Version);
-            output.emplace("word_list",          MTKEntryPointID::WordList);
+            output.emplace("symbol_table",              MTKEntryPointID::SymbolTable);
+            output.emplace("transform_matrix",          MTKEntryPointID::TransformMatrix);
+            output.emplace("transform_symbols",         MTKEntryPointID::TransformSymbols);
+            output.emplace("version",                   MTKEntryPointID::Version);
+            output.emplace("word_list",                 MTKEntryPointID::WordList);
             return output;
         }
 
@@ -110,7 +114,7 @@ namespace Moment::mex::functions {
             std::map<MTKEntryPointID, std::string> output;
             auto fwd_map = make_str_to_entrypoint_map();
             for (auto [str, entry] : fwd_map) {
-                auto [key, did_insert] = output.insert(std::make_pair(entry, str));
+                [[maybe_unused]] auto [key, did_insert] = output.insert(std::make_pair(entry, str));
                 assert(did_insert);
             }
             return output;
@@ -154,6 +158,9 @@ namespace Moment::mex::functions {
             case functions::MTKEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
                 break;
+            case functions::MTKEntryPointID::Commutator:
+                the_function = std::make_unique<functions::Commutator>(engine, storageManager);
+                break;
             case functions::MTKEntryPointID::CommutatorMatrix:
                 the_function = std::make_unique<functions::CommutatorMatrix>(engine, storageManager);
                 break;
@@ -166,8 +173,11 @@ namespace Moment::mex::functions {
             case functions::MTKEntryPointID::CreateMomentRules:
                 the_function = std::make_unique<functions::CreateMomentRules>(engine, storageManager);
                 break;
-            case functions::MTKEntryPointID::Echo:
-                the_function = std::make_unique<functions::Echo>(engine, storageManager);
+            case functions::MTKEntryPointID::EchoMatrix:
+                the_function = std::make_unique<functions::EchoMatrix>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::EchoOperand:
+                the_function = std::make_unique<functions::EchoOperand>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::ExtendedMatrix:
                 the_function = std::make_unique<functions::ExtendedMatrix>(engine, storageManager);

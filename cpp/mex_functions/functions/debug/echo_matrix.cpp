@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
-#include "echo.h"
+#include "echo_matrix.h"
 
 #include "eigen/export_eigen_dense.h"
 #include "eigen/export_eigen_sparse.h"
@@ -14,7 +14,7 @@
 #include "utilities/reporting.h"
 
 namespace Moment::mex::functions {
-    EchoParams::EchoParams(SortedInputs&& raw_input) : SortedInputs(std::move(raw_input)) {
+    EchoMatrixParams::EchoMatrixParams(SortedInputs&& raw_input) : SortedInputs(std::move(raw_input)) {
         switch (inputs[0].getType()) {
             case matlab::data::ArrayType::MATLAB_STRING:
             case matlab::data::ArrayType::DOUBLE:
@@ -61,7 +61,7 @@ namespace Moment::mex::functions {
         }
     }
 
-    Echo::Echo(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
+    EchoMatrix::EchoMatrix(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 1;
         this->max_inputs = 1;
@@ -77,13 +77,14 @@ namespace Moment::mex::functions {
         this->mutex_params.add_mutex(u"complex", u"real");
 
     }
-    void Echo::operator()(IOArgumentRange output, EchoParams &input) {
+
+    void EchoMatrix::operator()(IOArgumentRange output, EchoMatrixParams &input) {
         const bool output_to_console = this->verbose || (output.size() == 0);
         const bool output_to_matlab = output.size() > 0;
 
-        if (input.output_mode == EchoParams::OutputMode::Dense) {
+        if (input.output_mode == EchoMatrixParams::OutputMode::Dense) {
 
-            if (input.matrix_mode == EchoParams::MatrixMode::Real) {
+            if (input.matrix_mode == EchoMatrixParams::MatrixMode::Real) {
                 auto eigen_dense_object = read_eigen_dense(this->matlabEngine, input.inputs[0]);
                 if (output_to_console) {
                     std::stringstream ss;
@@ -96,7 +97,7 @@ namespace Moment::mex::functions {
                     output[0] = export_eigen_dense(this->matlabEngine, factory, eigen_dense_object);
                 }
                 return;
-            } else if (input.matrix_mode == EchoParams::MatrixMode::Complex) {
+            } else if (input.matrix_mode == EchoMatrixParams::MatrixMode::Complex) {
                 auto eigen_dc_object = read_eigen_dense_complex(this->matlabEngine, input.inputs[0]);
                 if (output_to_console) {
                     std::stringstream ss;
@@ -113,9 +114,9 @@ namespace Moment::mex::functions {
             throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown MatrixMode.");
         }
 
-        if (input.output_mode == EchoParams::OutputMode::Sparse) {
+        if (input.output_mode == EchoMatrixParams::OutputMode::Sparse) {
 
-            if (input.matrix_mode == EchoParams::MatrixMode::Real) {
+            if (input.matrix_mode == EchoMatrixParams::MatrixMode::Real) {
                 auto eigen_sparse_object = read_eigen_sparse(this->matlabEngine, input.inputs[0]);
                 if (output_to_console) {
                     std::stringstream ss;
@@ -128,7 +129,7 @@ namespace Moment::mex::functions {
                     output[0] = export_eigen_sparse(this->matlabEngine, factory, eigen_sparse_object);
                 }
                 return;
-            } else if (input.matrix_mode == EchoParams::MatrixMode::Complex) {
+            } else if (input.matrix_mode == EchoMatrixParams::MatrixMode::Complex) {
                 auto eigen_sc_object = read_eigen_sparse_complex(this->matlabEngine, input.inputs[0]);
                 if (output_to_console) {
                     std::stringstream ss;

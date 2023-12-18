@@ -128,8 +128,8 @@ namespace Moment::mex::functions {
                                PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            auto& matrixLHS = lhs.to_matrix(matlabEngine, matrixSystem);
-            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+            auto& matrixLHS = lhs.to_matrix(matrixSystem);
+            auto& matrixRHS = rhs.to_matrix(matrixSystem);
 
             // Check size compatibility for many<->many
             if (matrixLHS.Dimension() != matrixRHS.Dimension()) {
@@ -152,12 +152,12 @@ namespace Moment::mex::functions {
         }
 
         void add_one_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
-                            IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                            IOArgumentRange& output, AlgebraicOperand& lhs, AlgebraicOperand& rhs,
                             PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            auto polyLHS = lhs.to_polynomial(matlabEngine, matrixSystem, true);
-            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+            auto polyLHS = lhs.to_polynomial(matrixSystem, true);
+            auto& matrixRHS = rhs.to_matrix(matrixSystem);
 
             // Do addition
             auto added_matrix_ptr = matrixRHS.add(polyLHS, matrixSystem.polynomial_factory(),
@@ -175,12 +175,12 @@ namespace Moment::mex::functions {
         }
 
         void add_many_matrix(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
-                             IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                             IOArgumentRange& output, AlgebraicOperand& lhs, AlgebraicOperand& rhs,
                              PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            auto polysLHS = lhs.to_polynomial_array(matlabEngine, matrixSystem, true);
-            auto& matrixRHS = rhs.to_matrix(matlabEngine, matrixSystem);
+            auto polysLHS = lhs.to_polynomial_array(matrixSystem, true);
+            auto& matrixRHS = rhs.to_matrix(matrixSystem);
 
             const auto& poly_factory =  matrixSystem.polynomial_factory();
 
@@ -211,12 +211,12 @@ namespace Moment::mex::functions {
         }
 
         void add_one_one(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
-                         IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                         IOArgumentRange& output, AlgebraicOperand& lhs, AlgebraicOperand& rhs,
                          PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            auto polyOutput = lhs.to_polynomial(matlabEngine, matrixSystem, true);
-            auto polyRHS = rhs.to_polynomial(matlabEngine, matrixSystem, true);
+            auto polyOutput = lhs.to_polynomial(matrixSystem, true);
+            auto polyRHS = rhs.to_polynomial(matrixSystem, true);
 
             // Do addition
             const auto& poly_factory = matrixSystem.polynomial_factory();
@@ -229,12 +229,12 @@ namespace Moment::mex::functions {
         }
 
         void add_one_many(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
-                         IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                         IOArgumentRange& output, AlgebraicOperand& lhs, AlgebraicOperand& rhs,
                          PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            const auto polyLHS = lhs.to_polynomial(matlabEngine, matrixSystem, true);
-            auto polysOutput = rhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+            const auto polyLHS = lhs.to_polynomial(matrixSystem, true);
+            auto polysOutput = rhs.to_polynomial_array(matrixSystem, true);
 
             // Do addition
             const auto& poly_factory = matrixSystem.polynomial_factory();
@@ -248,12 +248,12 @@ namespace Moment::mex::functions {
         }
 
         void add_many_many(matlab::engine::MATLABEngine& matlabEngine, MatrixSystem& matrixSystem,
-                           IOArgumentRange& output, const AlgebraicOperand& lhs, const AlgebraicOperand& rhs,
+                           IOArgumentRange& output, AlgebraicOperand& lhs, AlgebraicOperand& rhs,
                            PlusParams::OutputMode output_mode) {
             // Read inputs
             auto read_lock = matrixSystem.get_read_lock();
-            auto polysOutput = lhs.to_polynomial_array(matlabEngine, matrixSystem, true);
-            auto polysRHS = rhs.to_polynomial_array(matlabEngine, matrixSystem, true);
+            auto polysOutput = lhs.to_polynomial_array(matrixSystem, true);
+            auto polysRHS = rhs.to_polynomial_array(matrixSystem, true);
 
             // Check size compatibility for many<->many
             if (!std::equal(lhs.shape.cbegin(), lhs.shape.cend(), rhs.shape.cbegin(), rhs.shape.cend())) {
@@ -275,16 +275,16 @@ namespace Moment::mex::functions {
     }
 
     PlusParams::PlusParams(SortedInputs &&structuredInputs)
-            : SortedInputs(std::move(structuredInputs)) {
+            : SortedInputs{std::move(structuredInputs)}, lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
         // Get matrix system reference
         this->matrix_system_key = read_positive_integer<uint64_t>(this->matlabEngine, "MatrixSystem reference",
                                                                   this->inputs[0], 0);
 
         // Get left operand
-        this->lhs.parse_input(this->matlabEngine, "LHS", this->inputs[1]);
+        this->lhs.parse_input(this->inputs[1]);
 
         // Get right operand
-        this->rhs.parse_input(this->matlabEngine, "RHS", this->inputs[2]);
+        this->rhs.parse_input(this->inputs[2]);
 
         // How do we output?
         if (this->flags.contains(u"strings")) {
@@ -364,6 +364,7 @@ namespace Moment::mex::functions {
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_many_matrix(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
                         break;
+                    default:
                     case AlgebraicOperand::InputType::Unknown:
                         throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
@@ -379,6 +380,7 @@ namespace Moment::mex::functions {
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_one_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    default:
                     case AlgebraicOperand::InputType::Unknown:
                         throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
@@ -394,10 +396,12 @@ namespace Moment::mex::functions {
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_many_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    default:
                     case AlgebraicOperand::InputType::Unknown:
                         throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
+            default:
             case AlgebraicOperand::InputType::Unknown:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown LHS operand.");
         }

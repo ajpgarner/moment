@@ -188,6 +188,8 @@ namespace Moment::mex {
 
     StagingPolynomial::~StagingPolynomial() noexcept = default;
 
+    StagingPolynomial::StagingPolynomial(Moment::mex::StagingPolynomial&& rhs) noexcept = default;
+
     void StagingPolynomial::supply_context(const Context &context) {
         assert(this->data);
         for (size_t index = 0; index < this->data_length; ++index) {
