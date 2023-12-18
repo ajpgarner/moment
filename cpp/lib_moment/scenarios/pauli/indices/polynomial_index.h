@@ -40,7 +40,7 @@ namespace Moment {
                         NearestNeighbourIndex{level, neighbours}, std::move(poly)} { }
 
             /** Downcast, ignoring nearest neighbour info. */
-            explicit operator PolynomialLocalizingMatrixIndex() const {
+            explicit operator ::Moment::PolynomialLocalizingMatrixIndex() const {
                 return {this->Level.moment_matrix_level, this->Polynomial};
             }
         };
@@ -66,6 +66,8 @@ namespace Moment {
             [[nodiscard]] static std::string raw_to_string(const Context& context, const SymbolTable& symbols,
                                                            const NearestNeighbourIndex& nn_index,
                                                            const RawPolynomial& raw);
+
+            using PauliPolynomialIndex<Pauli::LocalizingMatrixIndex>::operator Moment::PolynomialLocalizingMatrixIndex;
         };
 
         /**

@@ -26,7 +26,7 @@
 namespace Moment {
 
     class Context;
-    class Monomial;
+    struct Monomial;
     class OperatorMatrix;
     class Polynomial;
     class PolynomialFactory;
