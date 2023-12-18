@@ -12,14 +12,32 @@
 #include "symbolic/polynomial.h"
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
+#include "symbolic/symbol_errors.h"
 
 #include "utilities/format_factor.h"
 #include "utilities/float_utils.h"
+
+#include <cassert>
 
 #include <algorithm>
 #include <sstream>
 
 namespace Moment {
+
+    RawPolynomial::RawPolynomial(const Polynomial& symbolic_source, const SymbolTable& symbols) {
+        this->data.reserve(symbolic_source.size());
+        for (const auto& monomial : symbolic_source) {
+            if ((monomial.id < 0) || (monomial.id >= symbols.size())) [[unlikely]] {
+                throw errors::unknown_symbol{monomial.id};
+            }
+            const auto& symbol = symbols[monomial.id];
+            if (!symbol.has_sequence()) [[unlikely]] {
+                throw std::runtime_error{"An operator sequence was requested for a symbol that does not have one associated with it."};
+            }
+            this->data.emplace_back(monomial.conjugated ? symbol.sequence_conj() : symbol.sequence(),
+                                    monomial.factor);
+        }
+    }
 
     std::string RawPolynomial::to_string(const Context& context) const {
         std::stringstream ss;

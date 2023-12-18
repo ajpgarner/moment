@@ -1,7 +1,7 @@
 /**
  * localizing_matrix_tests.cpp
  * 
- * @copyright Copyright (c) 2022 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2022-2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 
@@ -12,14 +12,14 @@
 #include "matrix_system/matrix_system.h"
 #include "matrix/operator_matrix/localizing_matrix.h"
 
-#include "../matrix/compare_os_matrix.h"
+#include "compare_os_matrix.h"
 
 namespace Moment::Tests {
-    TEST(Operators_LocalizingMatrix, OpSeq_OneElem) {
+    TEST(Matrix_LocalizingMatrix, OpSeq_OneElem) {
         MatrixSystem system{std::make_unique<Context>(1)}; //One symbol
         const auto& context = system.Context();
 
-        oper_name_t theOp = 0; // context[0];
+        oper_name_t theOp = 0;
 
         ASSERT_EQ(context.size(), 1);
 
@@ -60,7 +60,7 @@ namespace Moment::Tests {
                                          OperatorSequence({theOp, theOp, theOp, theOp, theOp}, context)});
     }
 
-    TEST(Operators_LocalizingMatrix, OpSeq_TwoElem) {
+    TEST(Matrix_LocalizingMatrix, OpSeq_TwoElem) {
         MatrixSystem system{std::make_unique<Context>(2)}; // One party, two symbols
         const auto& context = system.Context();
 

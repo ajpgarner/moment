@@ -3,7 +3,8 @@ include_directories(${Moment_SOURCE_DIR}/cpp/lib_moment)
 include(GoogleTest)
 
 add_executable(moment_tests
-        matrix/matrix_tests.cpp
+        matrix/localizing_matrix_tests.cpp
+        matrix/matrix_basis_tests.cpp
         matrix/moment_matrix_tests.cpp
         matrix/monomial_matrix_tests.cpp
         matrix/operator_matrix_tests.cpp
@@ -15,10 +16,10 @@ add_executable(moment_tests
         multithreading/substituted_matrix_tests.cpp
         multithreading/queue_tests.cpp
         operators/hashed_sequence_tests.cpp
-        operators/localizing_matrix_tests.cpp
         operators/multi_operator_iterator_tests.cpp
         operators/operator_sequence_tests.cpp
         operators/operator_sequence_generator_tests.cpp
+        operators/raw_polynomial_tests.cpp
         operators/sequence_sign_type_tests.cpp
         scenarios/context_tests.cpp
         scenarios/contextual_os_tests.cpp

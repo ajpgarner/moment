@@ -65,6 +65,13 @@ namespace Moment {
         RawPolynomial(const RawPolynomial& rhs) = default;
         RawPolynomial(RawPolynomial&& rhs) = default;
 
+        /**
+         * Construct raw polynomial from symbolic polynomial and symbol table.
+         * @param source The symbolic polynomial .
+         * @param symbols The interpretation of symbols.
+         */
+        RawPolynomial(const Polynomial& symbolic_source, const SymbolTable& symbols);
+
         inline void emplace_back(OperatorSequence seq, std::complex<double> w) {
             data.emplace_back(std::move(seq), w);
         }
