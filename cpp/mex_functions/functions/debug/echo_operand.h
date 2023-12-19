@@ -26,6 +26,9 @@ namespace Moment::mex::functions  {
         /** Algebraic object to echo */
         AlgebraicOperand operand;
 
+        /** Set to true to parse to symbolic Polynomial; false for RawPolynomial */
+        bool parse_to_symbols = false;
+
     };
 
     class EchoOperand : public ParameterizedMTKFunction<EchoOperandParams, MTKEntryPointID::EchoOperand> {
@@ -34,7 +37,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, EchoOperandParams &input) override;
-
     };
 
 }

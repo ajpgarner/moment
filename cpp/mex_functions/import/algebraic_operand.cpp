@@ -33,6 +33,14 @@ namespace Moment::mex {
                 this->parse_as_matrix_key(input);
                 return;
             case matlab::data::ArrayType::CELL:
+                // Empty input -> flag as such
+                if (input.isEmpty()) {
+                    this->type = InputType::EmptyObject;
+                    this->shape = std::vector<size_t>{0, 0};
+                    return;
+                }
+
+                // Otherwise, try and parse
                 if (expect_symbol_cell) {
                     this->parse_as_symbol_cell(input);
                 } else {

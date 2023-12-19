@@ -237,6 +237,21 @@ namespace Moment::mex {
         return output;
     }
 
+    matlab::data::CellArray
+    PolynomialExporter::sequence_cell_vector(std::span<const RawPolynomial> poly_list,
+                                             const std::vector<size_t>& shape) const {
+        auto output = factory.createCellArray(shape);
+
+        auto write_iter = output.begin();
+        for (const auto& poly : poly_list) {
+            auto poly_spec = this->sequences(poly);
+            (*write_iter) = poly_spec.move_to_cell(factory);
+            ++write_iter;
+        }
+
+        return output;
+    }
+
     FullMonomialSpecification
     PolynomialExporter::monomial_sequence_cell_vector(std::span<const Polynomial> poly_list,
                                                       const std::vector<size_t>& shape,

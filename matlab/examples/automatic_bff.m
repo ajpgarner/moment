@@ -1,3 +1,6 @@
+%% automatic_bff.m
+% Currently, does not work!
+
 %% First, define locality scenario
 scenario = LocalityScenario(2,2,2);
 chsh = 0.80;

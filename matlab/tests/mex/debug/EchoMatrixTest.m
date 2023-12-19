@@ -1,7 +1,6 @@
 classdef EchoMatrixTest < MTKTestBase
 % ECHOMATRIXTEST Unit tests for echo_matrix function.
-% Particularly, this tests import and export between MATLAB and Eigen-type
-% matrices.
+% This tests import and export between MATLAB and Eigen-type matrices.
     methods (Test, TestTags={'mex'})
         function DenseDouble_To_Dense(testCase)
             A = [[1, 2, 0, 10]; [3, 4, 5, 11]; [6, 7, 0, 12]];

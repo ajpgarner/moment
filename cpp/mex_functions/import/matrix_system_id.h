@@ -36,7 +36,8 @@ namespace Moment {
             uint64_t key;
 
         public:
-            MatrixSystemId(matlab::engine::MATLABEngine& engine, std::string param_name_in = "Matrix system reference") noexcept
+            MatrixSystemId(matlab::engine::MATLABEngine& engine,
+                           std::string param_name_in = "Matrix system reference") noexcept
                  : matlabEngine{engine}, param_name{std::move(param_name_in)} { }
 
             /**
@@ -48,6 +49,8 @@ namespace Moment {
             uint64_t parse_input(const matlab::data::Array& input_array);
 
             std::shared_ptr<MatrixSystem> operator()(StorageManager& manager) const;
+
+            [[nodiscard]] inline uint64_t value() const noexcept { return this->key; }
 
             friend std::ostream& operator<<(std::ostream& os, const MatrixSystemId& msi);
         };
