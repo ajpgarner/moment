@@ -11,12 +11,16 @@
 
 #include "integer_types.h"
 #include "import/algebraic_operand.h"
+#include "import/matrix_system_id.h"
 
 namespace Moment::mex::functions {
 
     struct CommutatorParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
+
+        /** True to calculate anticommutator, false for commutator */
         bool anticommute = false;
 
         AlgebraicOperand lhs;
@@ -32,8 +36,5 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, CommutatorParams &input) override;
-
-        void extra_input_checks(CommutatorParams &input) const override;
-
     };
 }

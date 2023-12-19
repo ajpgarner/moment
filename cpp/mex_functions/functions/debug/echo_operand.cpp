@@ -12,10 +12,10 @@
 namespace Moment::mex::functions  {
 
     EchoOperandParams::EchoOperandParams(SortedInputs &&structuredInputs)
-            : SortedInputs{std::move(structuredInputs)}, operand{matlabEngine, "Operand"} {
+            : SortedInputs{std::move(structuredInputs)},
+            matrix_system_key{matlabEngine},  operand{matlabEngine, "Operand"} {
         // Get matrix system reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         const bool expect_symbols = this->flags.contains(u"symbolic");
         this->operand.parse_input(this->inputs[1], expect_symbols);
@@ -28,12 +28,6 @@ namespace Moment::mex::functions  {
         this->min_outputs = 0;
         this->max_outputs = 1;
         this->flag_names.emplace(u"symbolic");
-    }
-
-    void EchoOperand::extra_input_checks(EchoOperandParams& input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
-        }
     }
 
     void EchoOperand::operator()(IOArgumentRange output, EchoOperandParams &input) {

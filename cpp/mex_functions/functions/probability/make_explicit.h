@@ -7,6 +7,7 @@
 #pragma once
 #include "mtk_function.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_measurement_indices.h"
 
 #include <vector>
@@ -19,8 +20,8 @@ namespace Moment::mex::functions {
 
     struct MakeExplicitParams : public SortedInputs {
     public:
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         /** The requested measurements  */
         std::vector<RawIndexPair> free_indices;

@@ -7,12 +7,14 @@
 
 #pragma once
 #include "../../mtk_function.h"
+#include "import/matrix_system_id.h"
 
 namespace Moment::mex::functions  {
 
     struct MomentRuleSupersetParams : public SortedInputs {
     public:
-        uint64_t storage_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         size_t ruleset_A_index = 0;
 
@@ -29,8 +31,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, MomentRuleSupersetParams &input) override;
-
-        void extra_input_checks(MomentRuleSupersetParams &input) const override;
 
     };
 

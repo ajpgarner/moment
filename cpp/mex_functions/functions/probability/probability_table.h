@@ -10,6 +10,7 @@
 #include "scenarios/inflation/observable_variant_index.h"
 #include "scenarios/locality/party_measurement_index.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_measurement_indices.h"
 
 namespace Moment {
@@ -40,8 +41,8 @@ namespace Moment::mex::functions {
             Symbols
         } output_mode = OutputMode::Symbols;
 
-        /** The reference to the matrix system */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         /** Measurements that we get all outcomes for */
         std::vector<RawIndexPair> free{};
@@ -60,9 +61,6 @@ class ProbabilityTable : public ParameterizedMTKFunction<ProbabilityTableParams,
 protected:
     void operator()(IOArgumentRange output, ProbabilityTableParams &input) override;
 
-    void extra_input_checks(ProbabilityTableParams &input) const override;
-
-private:
 
 private:
         void export_whole_tensor(IOArgumentRange output,

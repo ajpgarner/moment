@@ -12,7 +12,7 @@
 namespace Moment::mex::functions {
 
     ReleaseParams::ReleaseParams(SortedInputs &&raw_inputs)
-        : SortedInputs(std::move(raw_inputs)) {
+        : SortedInputs{std::move(raw_inputs)} {
 
         // Attempt to read MomentMatrix delete request...
         if (this->params.contains(u"matrix_system")) {

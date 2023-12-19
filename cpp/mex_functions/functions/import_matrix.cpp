@@ -21,9 +21,8 @@
 
 namespace Moment::mex::functions {
     ImportMatrixParams::ImportMatrixParams(Moment::mex::SortedInputs &&rawInputs)
-       : SortedInputs(std::move(rawInputs)), inputMatrix{std::move(this->inputs[1])} {
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+       : SortedInputs{std::move(rawInputs)}, matrix_system_key{matlabEngine}, inputMatrix{std::move(this->inputs[1])} {
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Verify form of second argument...!
         auto dimensions = this->inputMatrix.getDimensions();
@@ -60,24 +59,9 @@ namespace Moment::mex::functions {
         this->mutex_params.add_mutex({u"hermitian", u"symmetric", u"real", u"complex"});
     }
 
-    void ImportMatrix::extra_input_checks(ImportMatrixParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-    }
-
     void ImportMatrix::operator()(IOArgumentRange output, ImportMatrixParams &input) {
         // Attempt to get matrix system, and cast to ImportedMatrixSystem
-        std::shared_ptr<MatrixSystem> matrixSystemPtr = [&]() { ;
-            try {
-                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
-            } catch (const Moment::errors::persistent_object_error &poe) {
-                std::stringstream errSS;
-                errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key
-                      << std::dec;
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-            }
-        }();
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
 
         MatrixSystem& matrixSystem = *matrixSystemPtr;
         auto* imsPtr = dynamic_cast<Imported::ImportedMatrixSystem*>(&matrixSystem);

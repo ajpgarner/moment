@@ -8,8 +8,10 @@
 #pragma once
 #include "../../mtk_function.h"
 
-#include "integer_types.h"
 #include "import/algebraic_operand.h"
+#include "import/matrix_system_id.h"
+
+#include "integer_types.h"
 
 
 namespace Moment::mex::functions  {
@@ -18,8 +20,10 @@ namespace Moment::mex::functions  {
     public:
         explicit  EchoOperandParams(SortedInputs&& inputs);
 
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
+        /** Algebraic object to echo */
         AlgebraicOperand operand;
 
     };
@@ -30,8 +34,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, EchoOperandParams &input) override;
-
-        void extra_input_checks(EchoOperandParams &input) const override;
 
     };
 

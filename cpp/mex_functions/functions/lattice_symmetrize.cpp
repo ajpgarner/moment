@@ -26,9 +26,8 @@
 namespace Moment::mex::functions {
 
     LatticeSymmetrizeParams::LatticeSymmetrizeParams(Moment::mex::SortedInputs &&rawInputs)
-            : SortedInputs(std::move(rawInputs)) {
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+            : SortedInputs{std::move(rawInputs)}, matrix_system_key{matlabEngine} {
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         if (this->inputs[1].isEmpty() || (this->inputs[1].getType() != matlab::data::ArrayType::CELL)) {
             throw_error(this->matlabEngine, errors::bad_param, "Argument must be an operator cell.");
@@ -45,24 +44,9 @@ namespace Moment::mex::functions {
         this->max_outputs = 1;
     }
 
-    void LatticeSymmetrize::extra_input_checks(LatticeSymmetrizeParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-    }
-
     void LatticeSymmetrize::operator()(IOArgumentRange output, LatticeSymmetrizeParams& input) {
         // Attempt to get matrix system, and cast to ImportedMatrixSystem:
-        std::shared_ptr<MatrixSystem> matrixSystemPtr = [&]() { ;
-            try {
-                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
-            } catch (const Moment::errors::persistent_object_error &poe) {
-                std::stringstream errSS;
-                errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key
-                      << std::dec;
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-            }
-        }();
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
 
         // Attempt to cast to Pauli matrix system:
         auto* pmsPtr = dynamic_cast<Pauli::PauliMatrixSystem*>(matrixSystemPtr.get());

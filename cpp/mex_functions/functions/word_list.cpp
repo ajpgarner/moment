@@ -22,10 +22,9 @@
 namespace Moment::mex::functions {
 
     WordListParams::WordListParams(SortedInputs &&rawInput)
-            : SortedInputs(std::move(rawInput)) {
-        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                            this->inputs[0], 0);
+            : SortedInputs{std::move(rawInput)}, matrix_system_key{matlabEngine} {
 
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         this->word_length = read_positive_integer<size_t>(matlabEngine, "Word length",
                                                           this->inputs[1], 0);
@@ -35,8 +34,6 @@ namespace Moment::mex::functions {
             this->extra_data.nearest_neighbours
                 = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'neighbours'", param, 0);
         });
-
-
 
         if (this->flags.contains(u"register_symbols")) {
             this->register_symbols = true;
@@ -66,12 +63,6 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"neighbours");
 
         this->mutex_params.add_mutex(u"operators", u"monomial");
-    }
-
-    void WordList::extra_input_checks(WordListParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
     }
 
     namespace {
@@ -117,12 +108,7 @@ namespace Moment::mex::functions {
         }
 
         // Get referred to matrix system (or fail)
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
-        } catch(const Moment::errors::persistent_object_error& poe) {
-            throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
 
         if (input.register_symbols) {
             matrixSystemPtr->generate_dictionary(input.word_length);

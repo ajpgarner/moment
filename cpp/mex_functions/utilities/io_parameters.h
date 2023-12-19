@@ -144,7 +144,10 @@ namespace Moment::mex {
         /** Get named parameter, or throw an error */
         [[nodiscard]] matlab::data::Array& find_or_throw(const ParamNameStr& paramName);
 
-        /** Execute provided functor if named parameter is set */
+        /**
+         * Execute provided functor if named parameter is set.
+         * @return True, if parameter was found.
+         */
         template<typename functor_t>
         bool find_and_parse(const ParamNameStr& paramName, functor_t action) {
             auto find_iter = this->params.find(paramName);
@@ -153,6 +156,13 @@ namespace Moment::mex {
             }
             action(find_iter->second);
             return true;
+        }
+
+        /** Execute provided functor if named parameter is set; otherwise throw an error. */
+        template<typename functor_t>
+        void find_and_parse_or_throw(const ParamNameStr& paramName, functor_t action) {
+            auto& found_param = this->find_or_throw(paramName);
+            action(found_param);
         }
 
     };

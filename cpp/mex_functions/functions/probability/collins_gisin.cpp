@@ -74,10 +74,10 @@ namespace Moment::mex::functions  {
 
 
     CollinsGisinParams::CollinsGisinParams(SortedInputs &&inputIn)
-            : SortedInputs(std::move(inputIn)) {
+            : SortedInputs{std::move(inputIn)}, matrix_system_key{matlabEngine} {
 
         // Get matrix system class
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Reference id", this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // See if output type is set
         if (this->flags.contains(u"symbols")) {
@@ -128,17 +128,9 @@ namespace Moment::mex::functions  {
     }
 
 
-    void CollinsGisin::extra_input_checks(CollinsGisinParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-    }
-
-
-
     void CollinsGisin::operator()(IOArgumentRange output, CollinsGisinParams &input) {
         // Get stored moment matrix
-        auto msPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        auto msPtr = input.matrix_system_key(this->storageManager);
         assert(msPtr); // ^- above should throw if absent
         MatrixSystem& system = *msPtr;
 

@@ -25,9 +25,9 @@
 
 namespace Moment::mex::functions {
     CreateMomentRulesParams::CreateMomentRulesParams(SortedInputs &&rawInput)
-            : SortedInputs(std::move(rawInput)) {
+            : SortedInputs{std::move(rawInput)}, matrix_system_key{matlabEngine} {
         // Read matrix key
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "Matrix system reference", inputs[0], 0);
+        this->matrix_system_key.parse_input(inputs[0]);
 
         // Ascertain input mode
         if (this->flags.contains(u"info")) {
@@ -258,22 +258,9 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"complete_only");
     }
 
-    void CreateMomentRules::extra_input_checks(CreateMomentRulesParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
-        }
-    }
-
     void CreateMomentRules::operator()(IOArgumentRange output, CreateMomentRulesParams &input) {
         // Get stored moment matrix
-        auto msPtr = [&]() -> std::shared_ptr<MatrixSystem> {
-            try {
-                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
-            } catch (const Moment::errors::not_found_error& nfe) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            std::string("Matrix system not found: ").append(nfe.what()));
-            }
-        }();
+        auto msPtr = input.matrix_system_key(this->storageManager);
         auto& system = *msPtr;
 
         // Create rule-book with new rules

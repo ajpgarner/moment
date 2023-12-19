@@ -15,10 +15,9 @@
 namespace Moment::mex::functions {
     CommutatorParams::CommutatorParams(SortedInputs &&structuredInputs)
             : SortedInputs{std::move(structuredInputs)},
-              lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
+              matrix_system_key{matlabEngine}, lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
         // Get matrix system reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Check type of LHS input
         this->lhs.parse_input(this->inputs[1]);
@@ -31,12 +30,6 @@ namespace Moment::mex::functions {
             this->anticommute = false;
         } else if (this->flags.contains(u"anticommute")) {
             this->anticommute = true;
-        }
-    }
-
-    void Commutator::extra_input_checks(CommutatorParams& input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
         }
     }
 

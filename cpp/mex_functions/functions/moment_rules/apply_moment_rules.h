@@ -11,6 +11,7 @@
 
 #include "integer_types.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 
 #include <vector>
@@ -19,8 +20,8 @@ namespace Moment::mex::functions {
 
     struct ApplyMomentRulesParams : public SortedInputs {
     public:
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         /** The reference to the substitution rules . */
         size_t rulebook_index = 0;
@@ -58,7 +59,5 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, ApplyMomentRulesParams &input) override;
-
-        void extra_input_checks(ApplyMomentRulesParams &input) const override;
     };
 }

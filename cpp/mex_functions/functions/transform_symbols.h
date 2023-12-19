@@ -9,6 +9,7 @@
 #include "../mtk_function.h"
 
 #include "integer_types.h"
+#include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 
 #include <variant>
@@ -22,8 +23,8 @@ namespace Moment::mex::functions {
 
     struct TransformSymbolsParams : public SortedInputs {
     public:
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         enum class InputType {
             Unknown,
@@ -72,8 +73,6 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, TransformSymbolsParams &input) override;
-
-        void extra_input_checks(TransformSymbolsParams &input) const override;
 
     private:
         void transform_symbol_ids(IOArgumentRange& output, TransformSymbolsParams &input,

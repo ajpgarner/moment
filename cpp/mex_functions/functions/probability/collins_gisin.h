@@ -8,6 +8,7 @@
 
 #include "mtk_function.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_measurement_indices.h"
 
 namespace Moment {
@@ -22,7 +23,8 @@ namespace Moment::mex::functions  {
 
     struct CollinsGisinParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         enum class ExportShape {
             WholeTensor,
@@ -50,8 +52,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, CollinsGisinParams &input) override;
-
-        void extra_input_checks(CollinsGisinParams &input) const override;
 
         void export_whole_tensor(IOArgumentRange output, CollinsGisinParams &input, MatrixSystem& system);
 

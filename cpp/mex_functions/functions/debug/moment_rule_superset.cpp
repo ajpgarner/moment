@@ -17,9 +17,8 @@
 namespace Moment::mex::functions  {
 
     MomentRuleSupersetParams::MomentRuleSupersetParams(SortedInputs &&rawInput)
-            : SortedInputs(std::move(rawInput)) {
-        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                            this->inputs[0], 0);
+            : SortedInputs{std::move(rawInput)}, matrix_system_key{matlabEngine} {
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         this->ruleset_A_index = read_positive_integer<size_t>(matlabEngine, "Rulebook A", this->inputs[1], 0);
 
@@ -32,20 +31,9 @@ namespace Moment::mex::functions  {
         this->min_inputs = this->max_inputs = 3;
     }
 
-    void MomentRuleSuperset::extra_input_checks(MomentRuleSupersetParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
-    }
-
     void MomentRuleSuperset::operator()(IOArgumentRange output, MomentRuleSupersetParams &input) {
         // Get referred to matrix system (or fail)
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
-        } catch(const Moment::errors::persistent_object_error& poe) {
-            throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
         const auto& matrixSystem = *matrixSystemPtr;
 
         // Get read lock on system

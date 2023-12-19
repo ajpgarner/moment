@@ -8,6 +8,7 @@
 #include "mtk_function.h"
 #include "integer_types.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 
 #include <map>
@@ -30,7 +31,7 @@ namespace Moment::mex::functions {
     class MomentRulesParams : public SortedInputs {
     public:
         /** The matrix system the ruleset is associated with */
-        uint64_t matrix_system_key = 0;
+        MatrixSystemId matrix_system_key;
 
         /** The ID of an existing ruleset  */
         uint64_t rulebook_index = 0;
@@ -56,8 +57,6 @@ namespace Moment::mex::functions {
     class MomentRules : public ParameterizedMTKFunction<MomentRulesParams, MTKEntryPointID::MomentRules> {
     public:
         explicit MomentRules(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage);
-
-        void extra_input_checks(MomentRulesParams &input) const override;
 
     protected:
         void operator()(IOArgumentRange output, MomentRulesParams &input) override;

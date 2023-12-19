@@ -8,6 +8,7 @@
 
 #include "../mtk_function.h"
 
+#include "import/matrix_system_id.h"
 #include "integer_types.h"
 
 #include <string>
@@ -16,7 +17,8 @@ namespace Moment::mex::functions  {
 
     struct ImportMatrixParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         bool matrix_is_complex = true;
 
@@ -35,8 +37,5 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, ImportMatrixParams &input) override;
-
-    protected:
-        void extra_input_checks(ImportMatrixParams &input) const override;
     };
 }

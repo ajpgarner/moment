@@ -8,12 +8,13 @@
 #pragma once
 
 #include "mtk_function.h"
+#include "import/matrix_system_id.h"
 
 namespace Moment::mex::functions {
     struct TransformMatrixParams : public SortedInputs {
     public:
-        /** The reference to the symmetrized matrix system. */
-        uint64_t target_system_key;
+        /** The key to the symmetrized matrix system. */
+        MatrixSystemId target_system_key;
 
         /** The ID of the matrix to transform. */
         uint64_t matrix_id;
@@ -29,8 +30,6 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, TransformMatrixParams& input) override;
-
-        void extra_input_checks(TransformMatrixParams &input) const override;
 
     };
 }

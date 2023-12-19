@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../mtk_function.h"
+#include "import/matrix_system_id.h"
 #include "integer_types.h"
 
 namespace Moment {
@@ -22,7 +23,7 @@ namespace Moment::mex::functions  {
     struct SymbolTableParams : public SortedInputs {
     public:
         /** The associated matrix system ID */
-        uint64_t storage_key = 0;
+        MatrixSystemId matrix_system_key;
 
         /** How should the table be exported? */
         enum class OutputMode {
@@ -52,9 +53,6 @@ namespace Moment::mex::functions  {
         explicit SymbolTable(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
 
         void operator()(IOArgumentRange output, SymbolTableParams& input) final;
-
-    protected:
-        void extra_input_checks(SymbolTableParams &input) const override;
 
     private:
         [[nodiscard]] matlab::data::Array

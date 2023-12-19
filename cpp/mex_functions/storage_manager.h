@@ -24,9 +24,13 @@ namespace Moment::mex {
      */
     class StorageManager {
     public:
-        PersistentStorage<MatrixSystem> MatrixSystems{make_signature({'m','s','y','s'})};
-        PersistentStorageMonoid<EnvironmentalVariables> Settings{make_signature({'e','n','v','v'})};
-        PersistentStorageMonoid<class Logger> Logger{make_signature({'l','o','g','r'})};
+        static constexpr uint64_t matrix_system_signature = make_signature({'m','s','y','s'});
+        static constexpr uint64_t settings_signature      = make_signature({'e','n','v','v'});
+        static constexpr uint64_t logger_signature        = make_signature({'l','o','g','r'});
+
+        PersistentStorage<MatrixSystem> MatrixSystems{StorageManager::matrix_system_signature};
+        PersistentStorageMonoid<EnvironmentalVariables> Settings{StorageManager::settings_signature};
+        PersistentStorageMonoid<class Logger> Logger{StorageManager::logger_signature};
 
     public:
         StorageManager() = default;

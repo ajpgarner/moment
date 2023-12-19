@@ -14,10 +14,10 @@
 
 namespace Moment::mex::functions {
     TransformMatrixParams::TransformMatrixParams(SortedInputs &&structuredInputs)
-            : SortedInputs(std::move(structuredInputs)) {
+            : SortedInputs{std::move(structuredInputs)}, target_system_key{matlabEngine} {
         // Get matrix system reference
-        this->target_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->target_system_key.parse_input(this->inputs[0]);
+
         // Get matrix ID
         this->matrix_id = read_positive_integer<uint64_t>(matlabEngine, "Matrix index", this->inputs[1], 0);
     }
@@ -31,23 +31,10 @@ namespace Moment::mex::functions {
         this->max_outputs = 1;
     }
 
-    void TransformMatrix::extra_input_checks(TransformMatrixParams& input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.target_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
-        }
-    }
-
     void TransformMatrix::operator()(IOArgumentRange output, TransformMatrixParams& input) {
 
         // First, get derived system
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.target_system_key);
-        } catch (const Moment::errors::persistent_object_error &poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.target_system_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.target_system_key(this->storageManager);
         assert(matrixSystemPtr); // ^-- should throw if not found
 
         auto& target_system = [&]() -> Derived::DerivedMatrixSystem& {

@@ -8,6 +8,7 @@
 #include "mtk_function.h"
 
 #include "integer_types.h"
+#include "import/matrix_system_id.h"
 
 #include <span>
 #include <vector>
@@ -20,8 +21,8 @@ namespace Moment::mex::functions {
 
     struct ConjugateParams : public SortedInputs {
     public:
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         /** The operator string(s) to conjugate. */
         std::vector<std::vector<oper_name_t>> operator_string;
@@ -43,7 +44,6 @@ namespace Moment::mex::functions {
     protected:
         void operator()(IOArgumentRange output, ConjugateParams &input) override;
 
-        void extra_input_checks(ConjugateParams &input) const override;
 
     private:
         /** Raise error if operator string is bad. */

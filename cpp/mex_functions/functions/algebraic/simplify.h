@@ -8,6 +8,8 @@
 #pragma once
 #include "mtk_function.h"
 
+
+#include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 
 #include "integer_types.h"
@@ -23,7 +25,7 @@ namespace Moment::mex::functions {
     struct SimplifyParams : public SortedInputs {
     public:
         /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        MatrixSystemId matrix_system_key;
 
         /** The operator string to simplify. */
         std::vector<std::vector<oper_name_t>> operator_string;
@@ -66,8 +68,6 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, SimplifyParams &input) override;
-
-        void extra_input_checks(SimplifyParams &input) const override;
 
     private:
         void simplify_operator(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);

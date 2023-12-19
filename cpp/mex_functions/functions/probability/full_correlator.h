@@ -9,6 +9,7 @@
 
 #include "mtk_function.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_measurement_indices.h"
 
 namespace Moment {
@@ -19,7 +20,8 @@ namespace Moment::mex::functions  {
 
     struct FullCorrelatorParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         enum class ExportShape {
             WholeTensor,
@@ -51,8 +53,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, FullCorrelatorParams &input) override;
-
-        void extra_input_checks(FullCorrelatorParams &input) const override;
 
         void export_whole_tensor(IOArgumentRange output, FullCorrelatorParams &input, MatrixSystem& system);
 

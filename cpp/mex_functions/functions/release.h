@@ -17,7 +17,7 @@ namespace Moment::mex::functions {
             Unknown = 0,
             MatrixSystem
         } type = StorableType::Unknown;
-        size_t key = 0;
+        uint64_t key = 0;
 
         explicit ReleaseParams(SortedInputs&& raw_inputs);
     };

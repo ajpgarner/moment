@@ -83,10 +83,9 @@ namespace Moment::mex::functions {
     }
 
     TransformSymbolsParams::TransformSymbolsParams(SortedInputs &&structuredInputs)
-            : SortedInputs(std::move(structuredInputs)) {
+            : SortedInputs{std::move(structuredInputs)}, matrix_system_key{matlabEngine} {
         // Get matrix system reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Infer input type
         if (this->inputs.size() >= 3) {
@@ -198,13 +197,6 @@ namespace Moment::mex::functions {
         throw_error(matlabEngine, errors::bad_param, "TransformSymbolsParams::read_basis not implemented.");
     }
 
-
-    void TransformSymbols::extra_input_checks(TransformSymbolsParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
-        }
-    }
-
     TransformSymbols::TransformSymbols(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
             : ParameterizedMTKFunction{matlabEngine, storage} {
         this->min_inputs = 2;
@@ -227,14 +219,7 @@ namespace Moment::mex::functions {
             }
         }
 
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch (const Moment::errors::persistent_object_error &poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
         assert(matrixSystemPtr); // ^-- should throw if not found
 
         const auto& matrixSystem = [&]() -> const Derived::DerivedMatrixSystem& {

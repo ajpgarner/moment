@@ -6,7 +6,6 @@
  */
 #pragma once
 
-
 #include "mtk_function.h"
 
 namespace Moment::mex::functions  {

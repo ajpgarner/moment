@@ -10,7 +10,6 @@
 
 #include "export/export_polynomial.h"
 
-#include "utilities/read_as_scalar.h"
 #include "utilities/read_as_vector.h"
 #include "utilities/reporting.h"
 
@@ -132,10 +131,9 @@ namespace Moment::mex::functions {
     }
 
     MakeExplicitParams::MakeExplicitParams(SortedInputs &&structuredInputs)
-           : SortedInputs(std::move(structuredInputs)) {
+           : SortedInputs{std::move(structuredInputs)}, matrix_system_key{matlabEngine} {
         // Get system reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Get output mode if set
         if (this->flags.contains(u"symbols")) {
@@ -189,29 +187,15 @@ namespace Moment::mex::functions {
     }
 
     void MakeExplicit::extra_input_checks(MakeExplicitParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
-        }
-
         if (!this->quiet && input.is_conditional && input.free_indices.empty()) {
             print_warning(matlabEngine,
                           "Conditional probability export was requested, but no fixed outcomes were specified.");
         }
-
     }
 
     void MakeExplicit::operator()(IOArgumentRange output, MakeExplicitParams &input) {
         // Get matrix system ptr from storage
-        std::shared_ptr<MatrixSystem> matrixSystemPtr = [&]() { ;
-            try {
-                return this->storageManager.MatrixSystems.get(input.matrix_system_key);
-            } catch (const Moment::errors::persistent_object_error &poe) {
-                std::stringstream errSS;
-                errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key
-                      << std::dec;
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-            }
-        }();
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
         assert(matrixSystemPtr); // ^-- should throw if not found
 
         // Lock and get slice / cast matrix to form where probability tensor is defined.

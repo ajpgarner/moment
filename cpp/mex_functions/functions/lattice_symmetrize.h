@@ -9,6 +9,8 @@
 
 #include "mtk_function.h"
 #include "integer_types.h"
+
+#include "import/matrix_system_id.h"
 #include "import/read_opseq_polynomial.h"
 
 #include <string>
@@ -17,7 +19,8 @@ namespace Moment::mex::functions {
 
     struct LatticeSymmetrizeParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         std::unique_ptr<StagingPolynomial> input_polynomial;
 
@@ -32,8 +35,5 @@ namespace Moment::mex::functions {
 
     protected:
         void operator()(IOArgumentRange output, LatticeSymmetrizeParams& input) override;
-
-    protected:
-        void extra_input_checks(LatticeSymmetrizeParams& input) const override;
     };
 }

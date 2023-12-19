@@ -7,6 +7,9 @@
 #pragma once
 
 #include "../../mtk_function.h"
+
+#include "import/matrix_system_id.h"
+
 #include "integer_types.h"
 
 #include <concepts>
@@ -22,7 +25,8 @@ namespace Moment::mex::functions  {
 
     struct OperatorMatrixParams : public SortedInputs {
     public:
-        uint64_t storage_key = 0;
+        /** Key to the associated matrix system. */
+        MatrixSystemId  matrix_system_key;;
 
         /**
          * How should matrix be output.
@@ -50,7 +54,8 @@ namespace Moment::mex::functions  {
         static const NameSet output_mode_names;
 
     public:
-        explicit OperatorMatrixParams(SortedInputs&& inputs) : SortedInputs(std::move(inputs)) { }
+        explicit OperatorMatrixParams(SortedInputs&& inputs)
+            : SortedInputs{std::move(inputs)}, matrix_system_key{matlabEngine} { }
 
         void parse();
 
@@ -106,8 +111,6 @@ namespace Moment::mex::functions  {
     protected:
         void process(IOArgumentRange output, OperatorMatrixParams& input);
 
-        void check_mat_sys_id(OperatorMatrixParams &input) const;
-
         void do_validate_output_count(size_t outputs, const OperatorMatrixParams& inputs) const;
 
         /**
@@ -157,7 +160,6 @@ namespace Moment::mex::functions  {
 
         void extra_input_checks(om_param_t &input) const final {
             input.parse();
-            this->check_mat_sys_id(input);
         }
 
         void validate_output_count(size_t outputs, const SortedInputs &inputs) const override {

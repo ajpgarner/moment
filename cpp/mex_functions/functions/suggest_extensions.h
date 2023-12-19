@@ -7,12 +7,13 @@
 #pragma once
 
 #include "../mtk_function.h"
+#include "import/matrix_system_id.h"
 
 namespace Moment::mex::functions  {
     struct SuggestExtensionsParams : public SortedInputs {
     public:
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
 
         /** The reference to the matrix within the system. */
         uint64_t matrix_index = 0;
@@ -32,7 +33,6 @@ namespace Moment::mex::functions  {
     protected:
         void operator()(IOArgumentRange output, SuggestExtensionsParams &input) override;
 
-        void extra_input_checks(SuggestExtensionsParams &input) const override;
     };
 
 

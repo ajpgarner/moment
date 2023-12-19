@@ -52,12 +52,23 @@ namespace Moment {
         explicit PersistentStorageBase(const uint32_t signature) : signature{signature} { }
 
         /**
-         * Check if an item key has a matching signature with this bank
-         * @param itemKey The item key
-         * @return True, if the signature matches this bank
+         * Check if an item key has a matching signature with this bank.
+         * @param item_key The item key.
+         * @return True, if the signature matches this bank.
          */
-        [[nodiscard]] constexpr bool check_signature(uint64_t itemKey) const noexcept {
-            return static_cast<uint32_t>((itemKey & 0xFFFFFFFF00000000) >> 32) == signature;
+        [[nodiscard]] inline constexpr bool check_signature(uint64_t item_key) const noexcept {
+            return PersistentStorageBase::check_signature(signature, item_key);
+        };
+
+        /**
+         * Check if an item key matches a given signature
+         * @param signature The signature (prefix of stored ID).
+         * @param item_key The item key (full stored object ID).
+         * @return True, if the item key  matches the signature
+         */
+        [[nodiscard]] inline constexpr static bool
+        check_signature(const uint32_t signature, uint64_t item_key) noexcept {
+            return static_cast<uint32_t>((item_key & 0xFFFFFFFF00000000) >> 32) == signature;
         };
     };
 

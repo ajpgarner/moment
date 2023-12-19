@@ -84,8 +84,9 @@ namespace Moment::mex::functions  {
             }
 
             // Get ref id
-            auto& ref_param = this->find_or_throw(u"reference_id");
-            this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "Parameter 'reference_id'", ref_param, 0);
+            this->find_and_parse_or_throw(u"reference_id", [this](auto& ref_param) {
+                this->matrix_system_key.parse_input(ref_param);
+            });
 
             // Extra parsing
             this->extra_parse_params();
@@ -104,7 +105,7 @@ namespace Moment::mex::functions  {
             throw errors::BadInput{errors::too_many_inputs,
                                    "Input should be provided in form: " + this->input_format()};
         }
-        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", inputs[0], 0);
+        this->matrix_system_key.parse_input(inputs[0]);
 
         // Extra parsing
         this->extra_parse_inputs();
@@ -130,13 +131,6 @@ namespace Moment::mex::functions  {
     bool RawOperatorMatrixParams::any_param_set() const {
         const bool index_specified = this->params.contains(u"index");
         return index_specified || OperatorMatrixParams::any_param_set();
-    }
-
-    void OperatorMatrixVirtualBase::check_mat_sys_id(OperatorMatrixParams &input) const {
-        // Check key vs. storage manager
-        if (!this->omvb_storageManager.MatrixSystems.check_signature(input.storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
     }
 
     void OperatorMatrixVirtualBase::do_validate_output_count(size_t outputs, const OperatorMatrixParams& input) const {
@@ -175,14 +169,7 @@ namespace Moment::mex::functions  {
 
     void OperatorMatrixVirtualBase::process(IOArgumentRange output, OperatorMatrixParams& input) {
 
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->omvb_storageManager.MatrixSystems.get(input.storage_key);
-        } catch(const Moment::errors::persistent_object_error& poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.storage_key << std::dec;
-            throw_error(this->omvb_matlabEngine, errors::bad_param, errSS.str());
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->omvb_storageManager);
         MatrixSystem& matrixSystem = *matrixSystemPtr;
 
         auto matIndexPair = this->get_or_make_matrix(matrixSystem, input);

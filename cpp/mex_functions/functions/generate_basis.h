@@ -7,6 +7,7 @@
 #pragma once
 #include "../mtk_function.h"
 
+#include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 #include <variant>
 
@@ -18,14 +19,14 @@ namespace Moment::mex::functions {
 
     struct GenerateBasisParams : public SortedInputs {
     public:
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
+
         /** True, if output should be a sparse matrix */
         bool sparse_output = false;
 
         /** True, if output should be an indexed sparse array, or a flattened monolithic array */
         bool monolithic_output = false;
-
-        /** The reference to the matrix system. */
-        uint64_t matrix_system_key = 0;
 
         /** The type of input */
         enum class InputType {
@@ -62,8 +63,6 @@ class GenerateBasis : public ParameterizedMTKFunction<GenerateBasisParams, MTKEn
 
     protected:
         void operator()(IOArgumentRange output, GenerateBasisParams &input) override;
-
-        void extra_input_checks(GenerateBasisParams &input) const override;
 
     private:
         void generate_matrix_basis(IOArgumentRange& output, GenerateBasisParams &input,

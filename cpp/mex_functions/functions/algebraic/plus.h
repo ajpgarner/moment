@@ -11,6 +11,7 @@
 #include "integer_types.h"
 
 #include "import/algebraic_operand.h"
+#include "import/matrix_system_id.h"
 
 #include <span>
 #include <string>
@@ -19,7 +20,7 @@ namespace Moment::mex::functions  {
 
     struct PlusParams : public SortedInputs {
     public:
-        uint64_t matrix_system_key = 0;
+        MatrixSystemId matrix_system_key;
 
         AlgebraicOperand lhs;
         AlgebraicOperand rhs;
@@ -42,7 +43,5 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, PlusParams &input) override;
-
-        void extra_input_checks(PlusParams &input) const override;
     };
 }

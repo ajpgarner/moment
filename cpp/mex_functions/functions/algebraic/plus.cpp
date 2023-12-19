@@ -275,10 +275,10 @@ namespace Moment::mex::functions {
     }
 
     PlusParams::PlusParams(SortedInputs &&structuredInputs)
-            : SortedInputs{std::move(structuredInputs)}, lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
+            : SortedInputs{std::move(structuredInputs)},
+              matrix_system_key{matlabEngine}, lhs{matlabEngine, "LHS"}, rhs{matlabEngine, "RHS"} {
         // Get matrix system reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(this->matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Get left operand
         this->lhs.parse_input(this->inputs[1]);
@@ -300,12 +300,6 @@ namespace Moment::mex::functions {
                 throw_error(matlabEngine, errors::bad_param,
                             "At least one operand must be a matrix for matrix index output.");
             }
-        }
-    }
-
-    void Plus::extra_input_checks(PlusParams& input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
         }
     }
 
@@ -339,15 +333,8 @@ namespace Moment::mex::functions {
         }
 
         // First, get matrix system
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch (const Moment::errors::persistent_object_error &poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-        }
-
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
+        
         assert(matrixSystemPtr); // ^-- should throw if not found
         MatrixSystem& matrixSystem = *matrixSystemPtr;
 

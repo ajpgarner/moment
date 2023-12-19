@@ -8,12 +8,14 @@
 #pragma once
 
 #include "../mtk_function.h"
+#include "import/matrix_system_id.h"
 
 namespace Moment::mex::functions  {
 
     struct WordListParams : public SortedInputs {
     public:
-        uint64_t storage_key = 0;
+        /** Key to the matrix system whose words we want. */
+        MatrixSystemId matrix_system_key;
 
         bool register_symbols = false;
 
@@ -39,8 +41,6 @@ namespace Moment::mex::functions  {
 
     protected:
         void operator()(IOArgumentRange output, WordListParams &input) override;
-
-        void extra_input_checks(WordListParams &input) const override;
 
     };
 

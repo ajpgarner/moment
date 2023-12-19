@@ -23,8 +23,8 @@
 
 namespace Moment::mex::functions {
     SymbolTableParams::SymbolTableParams(SortedInputs &&rawInput)
-        : SortedInputs(std::move(rawInput)) {
-        this->storage_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference", this->inputs[0], 0);
+        : SortedInputs{std::move(rawInput)}, matrix_system_key{matlabEngine} {
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         auto fromIter = this->params.find(u"from");
         if (fromIter != this->params.end()) {
@@ -85,7 +85,7 @@ namespace Moment::mex::functions {
 
     std::string SymbolTableParams::to_string() const {
         std::stringstream ss;
-        ss << "Exporting symbol table from ref=" << this->storage_key << " ";
+        ss << "Exporting symbol table from ref=" << this->matrix_system_key << " ";
         switch (this->output_mode) {
             case SymbolTableParams::OutputMode::AllSymbols:
                 ss << "in AllSymbols mode.\n";
@@ -125,24 +125,9 @@ namespace Moment::mex::functions {
         this->param_names.emplace(u"from");
     }
 
-
-
-    void SymbolTable::extra_input_checks(SymbolTableParams &input) const {
-        // Check key vs. storage manager
-        if (!this->storageManager.MatrixSystems.check_signature(input.storage_key)) {
-            throw errors::BadInput{errors::bad_signature, "Reference supplied is not to a MatrixSystem."};
-        }
-    }
-
-
     void SymbolTable::operator()(IOArgumentRange output, SymbolTableParams& input) {
         // Get referred to matrix system (or fail)
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.storage_key);
-        } catch(const Moment::errors::persistent_object_error& poe) {
-            throw_error(this->matlabEngine, errors::bad_param, "Could not find referenced MatrixSystem.");
-        }
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
         const auto& matrixSystem = *matrixSystemPtr;
 
         // Get read lock on system

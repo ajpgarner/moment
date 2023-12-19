@@ -41,8 +41,8 @@ namespace Moment::mex::functions  {
     }
 
     SuggestExtensionsParams::SuggestExtensionsParams(SortedInputs &&rawInputs)
-        : SortedInputs(std::move(rawInputs)) {
-        this->matrix_system_key = read_as_scalar<uint64_t>(matlabEngine, this->inputs[0]);
+        : SortedInputs{std::move(rawInputs)}, matrix_system_key{matlabEngine} {
+        this->matrix_system_key.parse_input(this->inputs[0]);
         this->matrix_index = read_as_scalar<uint64_t>(matlabEngine, this->inputs[1]);
     }
 
@@ -53,16 +53,9 @@ namespace Moment::mex::functions  {
         this->min_outputs = this->max_outputs = 1;
     }
 
-
-    void SuggestExtensions::extra_input_checks(SuggestExtensionsParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a moment matrix.");
-        }
-    }
-
     void SuggestExtensions::operator()(IOArgumentRange output, SuggestExtensionsParams &input) {
         // Get matrix system, and check it is of the right type
-        auto matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
+        auto matrixSystemPtr = input.matrix_system_key(this->storageManager);
         assert(matrixSystemPtr); // ^-- should throw if not found
         const MatrixSystem& matrixSystem = *matrixSystemPtr;
         const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&matrixSystem);

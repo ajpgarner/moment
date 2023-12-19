@@ -8,14 +8,18 @@
 
 #include "mtk_function.h"
 
+#include "import/matrix_system_id.h"
+
 namespace Moment::mex::functions {
 
     class MakeRepresentationParams : public SortedInputs {
     public:
-        MakeRepresentationParams(SortedInputs&& raw_inputs);
 
-        uint64_t matrix_system_key = 0;
+        /** Key to the matrix system. */
+        MatrixSystemId matrix_system_key;
         size_t word_length;
+
+        MakeRepresentationParams(SortedInputs&& raw_inputs);
 
     };
 
@@ -23,8 +27,6 @@ namespace Moment::mex::functions {
             : public ParameterizedMTKFunction<MakeRepresentationParams, MTKEntryPointID::MakeRepresentation> {
     public:
         explicit MakeRepresentation(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage);
-
-        void extra_input_checks(MakeRepresentationParams &input) const override;
 
     protected:
         void operator()(IOArgumentRange output, MakeRepresentationParams &input) override;

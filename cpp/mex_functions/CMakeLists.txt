@@ -33,6 +33,7 @@ matlab_add_mex(NAME moment_mex
             export/exporter.cpp
             export/full_monomial_specification.cpp
             import/algebraic_operand.cpp
+            import/matrix_system_id.cpp
             import/read_localizing_matrix_indices.cpp
             import/read_measurement_indices.cpp
             import/read_monomial_rules.cpp

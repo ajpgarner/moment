@@ -34,10 +34,9 @@ namespace Moment::mex::functions {
     }
 
     GenerateBasisParams::GenerateBasisParams(Moment::mex::SortedInputs &&structuredInputs)
-            : SortedInputs(std::move(structuredInputs)) {
+            : SortedInputs{std::move(structuredInputs)}, matrix_system_key{matlabEngine} {
         // Get reference
-        this->matrix_system_key = read_positive_integer<uint64_t>(matlabEngine, "MatrixSystem reference",
-                                                                  this->inputs[0], 0);
+        this->matrix_system_key.parse_input(this->inputs[0]);
 
         if (this->inputs[1].getType() == matlab::data::ArrayType::CELL) {
             this->input_type = InputType::SymbolCell;
@@ -106,23 +105,8 @@ namespace Moment::mex::functions {
 
 
 
-    void GenerateBasis::extra_input_checks(GenerateBasisParams &input) const {
-        if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw_error(matlabEngine, errors::bad_param, "Supplied key was not to a matrix system.");
-        }
-    }
-
-
     void GenerateBasis::operator()(IOArgumentRange output, GenerateBasisParams &input) {
-        std::shared_ptr<MatrixSystem> matrixSystemPtr;
-        try {
-            matrixSystemPtr = this->storageManager.MatrixSystems.get(input.matrix_system_key);
-        } catch (const Moment::errors::persistent_object_error& poe) {
-            std::stringstream errSS;
-            errSS << "Could not find MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec;
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
-        }
-
+        std::shared_ptr<MatrixSystem> matrixSystemPtr = input.matrix_system_key(this->storageManager);
         assert(matrixSystemPtr); // ^-- should throw if not found
         const MatrixSystem& matrixSystem = *matrixSystemPtr;
         auto lock = matrixSystem.get_read_lock();
