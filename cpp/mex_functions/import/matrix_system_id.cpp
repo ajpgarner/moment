@@ -27,7 +27,7 @@ namespace Moment::mex {
         if (!PersistentStorageBase::check_signature(StorageManager::matrix_system_signature, this->key)) {
             std::stringstream errSS;
             errSS << this->param_name << " was not the key to a valid matrix system.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw_error(this->matlabEngine, errors::bad_signature, errSS.str());
         }
 
         return this->key;
@@ -36,10 +36,15 @@ namespace Moment::mex {
     std::shared_ptr<MatrixSystem> MatrixSystemId::operator()(StorageManager& manager) const {
         try {
             return manager.MatrixSystems.get(this->key);
-        } catch (Moment::errors::persistent_object_error& poe) {
+        } catch (Moment::errors::bad_signature_error& bse) {
             // Report error to MATLAB if matrix system does not exist
             std::stringstream errSS;
             errSS << this->param_name << " was not the key to a valid matrix system.";
+            throw_error(this->matlabEngine, errors::bad_signature, errSS.str());
+        } catch (Moment::errors::persistent_object_error& poe) {
+            // Report error to MATLAB if matrix system does not exist
+            std::stringstream errSS;
+            errSS << this->param_name << " was not the key to a valid matrix system: " << poe.what();
             throw_error(this->matlabEngine, errors::bad_param, errSS.str());
         }
     }
