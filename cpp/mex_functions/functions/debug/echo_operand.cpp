@@ -25,14 +25,14 @@ namespace Moment::mex::functions  {
         this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Get operand
-        const bool expect_symbols = this->flags.contains(u"symbolic");
-        this->operand.parse_input(this->inputs[1], expect_symbols);
+        //const bool expect_symbols = this->flags.contains(u"symbolic");
+        this->operand.parse_input(this->inputs[1]);
 
         // Parse to symbols (default: only parse to symbols if symbols supplied as input).
         if (this->flags.contains(u"to_symbols")) {
             this->parse_to_symbols = true;
         } else {
-            this->parse_to_symbols = expect_symbols;
+            this->parse_to_symbols = false;
         }
     }
 
@@ -86,7 +86,25 @@ namespace Moment::mex::functions  {
                     os << "[unexpected: " << static_cast<int>(operand.type) << "]";
                     break;
             }
-            os << ".\n";
+            os << " (input as: ";
+            switch (operand.format) {
+
+                case AlgebraicOperand::InputFormat::Unknown:
+                    os << "unknown";
+                    break;
+                case AlgebraicOperand::InputFormat::Number:
+                    os << "number";
+                    break;
+                case AlgebraicOperand::InputFormat::SymbolCell:
+                    os << "symbol cell";
+                    break;
+                case AlgebraicOperand::InputFormat::OperatorCell:
+                    os << "operator cell";
+                    break;
+                default:
+                    os << "[unexpected: " << static_cast<int>(operand.type) << "]";
+            }
+            os << ").\n";
         }
 
 

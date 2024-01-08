@@ -20,9 +20,13 @@ namespace Moment::mex::functions  {
 
     struct PlusParams : public SortedInputs {
     public:
+        /** Key to the matrix system. */
         MatrixSystemId matrix_system_key;
 
+        /** Left hand operand */
         AlgebraicOperand lhs;
+
+        /** Right hand operand */
         AlgebraicOperand rhs;
 
         enum class OutputMode {

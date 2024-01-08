@@ -17,7 +17,8 @@
 #include <sstream>
 
 namespace Moment::mex {
-    void AlgebraicOperand::parse_input(matlab::data::Array& input, const bool expect_symbol_cell) {
+
+    void AlgebraicOperand::parse_input(matlab::data::Array& input) {
         // Check type of LHS input
         switch (input.getType()) {
             case matlab::data::ArrayType::DOUBLE:
@@ -33,19 +34,7 @@ namespace Moment::mex {
                 this->parse_as_matrix_key(input);
                 return;
             case matlab::data::ArrayType::CELL:
-                // Empty input -> flag as such
-                if (input.isEmpty()) {
-                    this->type = InputType::EmptyObject;
-                    this->shape = std::vector<size_t>{0, 0};
-                    return;
-                }
-
-                // Otherwise, try and parse
-                if (expect_symbol_cell) {
-                    this->parse_as_symbol_cell(input);
-                } else {
-                    this->parse_as_operator_cell(input);
-                }
+                this->parse_cell(input);
                 return;
             default:
             case matlab::data::ArrayType::UNKNOWN: {
@@ -54,6 +43,167 @@ namespace Moment::mex {
                 throw_error(matlabEngine, errors::bad_param, ss.str());
             }
             return;
+        }
+    }
+
+
+    void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
+        this->type = InputType::MatrixID;
+        this->shape = std::vector<size_t>{0, 0};
+        this->raw.emplace<0>(read_as_uint64(matlabEngine, raw_input));
+    }
+
+    void AlgebraicOperand::parse_cell(const matlab::data::Array& raw_input) {
+        // Empty input -> flag as such; cannot infer anything more.
+        if (raw_input.isEmpty()) {
+            this->type = InputType::EmptyObject;
+            this->shape = std::vector<size_t>{0, 0};
+            return;
+        }
+
+        // Cast to cell array (MATLAB documentation indicates this makes a reference, not a copy).
+        const matlab::data::CellArray cell_input = raw_input;
+
+        // Iterate, until we can determine object type:
+        this->format = InputFormat::Unknown;
+        size_t outer_index = 0;
+        for (auto iter = cell_input.begin(); iter != cell_input.end(); ++iter) {
+            matlab::data::Array contained_object = *iter;
+            if ((contained_object.getType() != matlab::data::ArrayType::CELL)) {
+                std::stringstream errSS;
+                errSS << name << " element " << (outer_index+1) << " was not a cell array.";
+                throw_error(matlabEngine, errors::bad_param, errSS.str());
+            }
+
+            // Try to guess type from this object, if not yet determined.
+            if (this->format == InputFormat::Unknown) {
+                matlab::data::CellArray scalar_object = contained_object;
+                this->format = this->infer_format_from_scalar_object(scalar_object, outer_index);
+            }
+            ++outer_index;
+        }
+
+        // Note target type:
+        this->type = this->infer_type_from_valid_cell(cell_input);
+
+        // Now, parse based on format identified
+        switch (this->format) {
+            case InputFormat::Unknown:
+                // All scalar objects were empty, so can default to symbol cell create zero polynomials.
+                this->format = InputFormat::SymbolCell;
+                [[fallthrough]];
+            case InputFormat::SymbolCell:
+                this->parse_as_symbol_cell(cell_input);
+                break;
+            case InputFormat::OperatorCell:
+                this->parse_as_operator_cell(cell_input);
+                break;
+            default:
+            case InputFormat::Number:
+                throw_error(matlabEngine, errors::internal_error, "Bad deduced format.");
+        }
+    }
+
+    AlgebraicOperand::InputFormat
+    AlgebraicOperand::infer_format_from_scalar_object(const matlab::data::CellArray& input, size_t outer_index) const {
+        assert(!input.isEmpty());
+
+        // If scalar object is empty, cannot infer its type:
+        if (input.isEmpty()) {
+            return InputFormat::Unknown;
+        }
+
+        // Otherwise, try to determine type from contents:
+        matlab::data::Array leading_element = *input.begin();
+        if ((leading_element.getType() != matlab::data::ArrayType::CELL) || (leading_element.isEmpty())) {
+            std::stringstream errSS;
+            errSS << name << " element " << (outer_index+1)
+                  << ", sub-element 1 should be a non-empty cell array.";
+            throw_error(matlabEngine, errors::bad_param, errSS.str());
+        }
+        matlab::data::CellArray leading_as_cell = leading_element;
+
+        // Now, look at first element to see if an operator sequence or a symbol
+        switch (leading_as_cell.begin()->getType()) {
+            case matlab::data::ArrayType::INT64:
+                return InputFormat::SymbolCell;
+            case matlab::data::ArrayType::UINT64:
+                return InputFormat::OperatorCell;
+            default: {
+                std::stringstream errSS;
+                errSS << name << "{" << (outer_index+1) << "}{1}{1} must be either int64 or uint64.";
+                throw_error(matlabEngine, errors::bad_param, errSS.str());
+            }
+        }
+    }
+
+    AlgebraicOperand::InputType
+    AlgebraicOperand::infer_type_from_valid_cell(const matlab::data::CellArray& input) const {
+        const size_t expected_elements = input.getNumberOfElements();
+        const bool is_scalar = expected_elements == 1;
+        bool is_monomial = true; // Monomial until proved otherwise
+        size_t outer_index = 0;
+        for (auto object_iter = input.begin(); object_iter != input.end(); ++object_iter) {
+            if (object_iter->getType() != matlab::data::ArrayType::CELL) {
+                std::stringstream errSS;
+                errSS << name << " element " << (outer_index + 1)
+                      << " must be a cell array.";
+            }
+            matlab::data::CellArray object_as_cell = *object_iter;
+            if (object_as_cell.getNumberOfElements() != 1) {
+                is_monomial = false;
+            }
+            ++outer_index;
+        }
+
+        if (is_monomial) {
+            return is_scalar ? InputType::Monomial : InputType::MonomialArray;
+        } else {
+            return is_scalar ? InputType::Polynomial : InputType::PolynomialArray;
+        }
+
+    }
+
+    void AlgebraicOperand::parse_as_operator_cell(const matlab::data::CellArray& input) {
+
+        const size_t expected_elements = input.getNumberOfElements();
+
+        const auto dimensions = input.getDimensions();
+        this->shape.reserve(dimensions.size());
+        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
+
+        // Prepare raw polynomial object with data
+        this->raw.emplace<2>();
+        auto& raw_vec = this->raw_operator_cell_data();
+        raw_vec.reserve(expected_elements);
+
+        // Each elem is an op-seq polynomial:
+        for (const auto& element : input) {
+            raw_vec.emplace_back(this->matlabEngine, element, this->name);
+        }
+
+    }
+
+    void AlgebraicOperand::parse_as_symbol_cell(const matlab::data::CellArray& input) {
+
+        const size_t expected_elements = input.getNumberOfElements();
+        if (expected_elements == 0) {
+            throw_error(matlabEngine, errors::bad_param, "Operand was empty, but non-empty operand was expected.");
+        }
+
+        const auto dimensions = input.getDimensions();
+        this->shape.reserve(dimensions.size());
+        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
+
+        // Prepare Polynomial object with data
+        this->raw.emplace<1>();
+        auto& raw_vec = this->raw_symbol_cell_data();
+        raw_vec.reserve(expected_elements);
+
+        auto read_iter = input.begin();
+        while (read_iter != input.end()) {
+            raw_vec.emplace_back(read_raw_polynomial_data(matlabEngine, name, *read_iter));
+            ++read_iter;
         }
     }
 
@@ -68,116 +218,6 @@ namespace Moment::mex {
             case InputType::Monomial:
             case InputType::Polynomial:
                 return true;
-        }
-    }
-
-    void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
-        this->type = InputType::MatrixID;
-        this->shape = std::vector<size_t>{0, 0};
-        this->raw.emplace<0>(read_as_uint64(matlabEngine, raw_input));
-    }
-
-    void AlgebraicOperand::parse_as_symbol_cell(const matlab::data::CellArray& input) {
-        this->parse_as_symbolic_polynomial(input);
-    }
-
-    void AlgebraicOperand::parse_as_operator_cell(const matlab::data::CellArray& input) {
-        if (this->determine_if_polynomial_operator_cell(input)) {
-            this->parse_as_operator_polynomial(input);
-        } else {
-            this->parse_as_symbolic_polynomial(input);
-        }
-    }
-
-    bool AlgebraicOperand::determine_if_polynomial_operator_cell(const matlab::data::CellArray& cell_input) const {
-        // Not polynomial if completely empty
-        if (cell_input.isEmpty()) {
-            return false;
-        }
-
-        // Invalid if first element is not a cell array
-        const auto cell_input_iter = cell_input.begin();
-        if (cell_input_iter->getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial mode expects symbol cell input.");
-        }
-        matlab::data::CellArray first_elem_as_cell = *cell_input_iter;
-
-        // If first child element is empty, then it is a length 0 polynomial
-        if (first_elem_as_cell.isEmpty()) {
-            return true;
-        }
-
-        // Otherwise, if first child's child is a cell array, we have a polynomial
-        const auto first_child_iter = first_elem_as_cell.begin();
-        if (first_child_iter->getType() == matlab::data::ArrayType::CELL) {
-            return true;
-        }
-
-        // Otherwise, is (probably) a monomial
-        return false;
-    }
-
-    void AlgebraicOperand::parse_as_operator_monomial(const matlab::data::CellArray& input) {
-//        const size_t expected_elements = input.getNumberOfElements();
-//        this->type = expected_elements != 1 ? AlgebraicOperand::InputType::MonomialArray
-//                                            : AlgebraicOperand::InputType::Monomial;
-//        const auto dimensions = input.getDimensions();
-//        this->shape.reserve(dimensions.size());
-//        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
-//
-//        // Prepare object with data
-//        this->raw.emplace<2>();
-//        auto& raw_vec = this->raw_operator_cell_data();
-//        raw_vec.reserve(expected_elements);
-//
-//        for (const auto& element : input) {
-//
-//        }
-        // TODO: Implement
-        throw_error(matlabEngine, errors::internal_error, "Parse as operator monomial not implemented.");
-
-    }
-
-    void AlgebraicOperand::parse_as_operator_polynomial(const matlab::data::CellArray& input) {
-        const size_t expected_elements = input.getNumberOfElements();
-        this->type = expected_elements != 1 ? AlgebraicOperand::InputType::PolynomialArray
-                                            : AlgebraicOperand::InputType::Polynomial;
-
-        const auto dimensions = input.getDimensions();
-        this->shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
-
-        // Prepare object with data
-        this->raw.emplace<2>();
-        auto& raw_vec = this->raw_operator_cell_data();
-        raw_vec.reserve(expected_elements);
-
-        // Each elem is an op-seq polynomial:
-        for (const auto& element : input) {
-            raw_vec.emplace_back(this->matlabEngine, element, this->name);
-        }
-
-    }
-
-    void AlgebraicOperand::parse_as_symbolic_polynomial(const matlab::data::CellArray& cell_input) {
-        const size_t expected_elements = cell_input.getNumberOfElements();
-        if (expected_elements == 0) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial multiplication expects non-empty operand.");
-        }
-        this->type = expected_elements != 1 ? AlgebraicOperand::InputType::PolynomialArray
-                                            : AlgebraicOperand::InputType::Polynomial;
-        const auto dimensions = cell_input.getDimensions();
-        this->shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
-
-        this->raw.emplace<1>();
-        auto& raw_vec = this->raw_symbol_cell_data();
-        raw_vec.reserve(expected_elements);
-
-        auto read_iter = cell_input.begin();
-        while (read_iter != cell_input.end()) {
-            raw_vec.emplace_back(read_raw_polynomial_data(matlabEngine, name, *read_iter));
-            ++read_iter;
         }
     }
 

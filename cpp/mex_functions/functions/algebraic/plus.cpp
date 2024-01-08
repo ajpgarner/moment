@@ -286,6 +286,8 @@ namespace Moment::mex::functions {
         // Get right operand
         this->rhs.parse_input(this->inputs[2]);
 
+
+
         // How do we output?
         if (this->flags.contains(u"strings")) {
             this->output_mode = OutputMode::String;
@@ -345,9 +347,11 @@ namespace Moment::mex::functions {
                     case AlgebraicOperand::InputType::MatrixID:
                         add_matrix_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::Monomial:
                     case AlgebraicOperand::InputType::Polynomial:
                         add_one_matrix(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::MonomialArray:
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_many_matrix(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
                         break;
@@ -356,14 +360,17 @@ namespace Moment::mex::functions {
                         throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
+            case AlgebraicOperand::InputType::Monomial:
             case AlgebraicOperand::InputType::Polynomial:
                 switch (input.rhs.type) {
                     case AlgebraicOperand::InputType::MatrixID:
                         add_one_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::Monomial:
                     case AlgebraicOperand::InputType::Polynomial:
                         add_one_one(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::MonomialArray:
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_one_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
@@ -372,14 +379,17 @@ namespace Moment::mex::functions {
                         throw_error(this->matlabEngine, errors::internal_error, "Unknown RHS operand.");
                 }
                 break;
+            case AlgebraicOperand::InputType::MonomialArray:
             case AlgebraicOperand::InputType::PolynomialArray:
                 switch (input.rhs.type) {
                     case AlgebraicOperand::InputType::MatrixID:
                         add_many_matrix(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::Monomial:
                     case AlgebraicOperand::InputType::Polynomial:
                         add_one_many(matlabEngine, matrixSystem, output, input.rhs, input.lhs, input.output_mode);
                         break;
+                    case AlgebraicOperand::InputType::MonomialArray:
                     case AlgebraicOperand::InputType::PolynomialArray:
                         add_many_many(matlabEngine, matrixSystem, output, input.lhs, input.rhs, input.output_mode);
                         break;

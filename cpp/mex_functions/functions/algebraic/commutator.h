@@ -23,7 +23,10 @@ namespace Moment::mex::functions {
         /** True to calculate anticommutator, false for commutator */
         bool anticommute = false;
 
+        /** Left hand operand */
         AlgebraicOperand lhs;
+
+        /** Right hand operand */
         AlgebraicOperand rhs;
 
     public:

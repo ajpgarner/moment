@@ -25,7 +25,10 @@ namespace Moment::mex::functions  {
         /** Key to the matrix system. */
         MatrixSystemId matrix_system_key;
 
+        /** Left hand operand */
         AlgebraicOperand lhs;
+
+        /** Right hand operand */
         AlgebraicOperand rhs;
 
     public:

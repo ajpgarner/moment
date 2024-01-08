@@ -30,28 +30,48 @@ namespace Moment {
     namespace mex {
 
         /**
-         * Algebraic input
+         * Algebraic input.
+         * Can either be a matrix, a symbolic cell (i.e. Polynomial), or an operator cell (i.e. RawPolynomial).
+         *
+         * Input type is deduced from the format supplied to the operand:
+         * Matrix input is:
+         *      [uint64, scalar]
+         * Symbol cell input is:
+         *      { { { [int64, scalar: symbol], [(complex) double: factor], [logical: conjugated], (...) }, ...}
+         * Operator cell input is:
+         *      { { { [uint64: operator sequence], [(complex) double: factor] }, ...} ...}
          */
         struct AlgebraicOperand {
         public:
+            /** Associated MATLAB instance. */
             matlab::engine::MATLABEngine& matlabEngine;
 
             /** The label of the parameter */
             const std::string name = "Unknown operand";
 
-            /** What sort of input was the operand? */
-            enum class InputType {
+            /** Before parsing, what format was the input in? */
+            enum class InputFormat : unsigned char {
                 Unknown,
-                EmptyObject,
-                MatrixID,
-                Monomial,
-                MonomialArray,
-                Polynomial,
-                PolynomialArray
+                Number,
+                SymbolCell,
+                OperatorCell
+            } format = InputFormat::Unknown;
+
+            /** After parsing, what is the operand? */
+            enum class InputType : unsigned char {
+                Unknown = 0x00,
+                EmptyObject = 0x01,
+                MatrixID = 0x02,
+                Monomial = 0x04,
+                MonomialArray = 0x84,
+                Polynomial = 0x08,
+                PolynomialArray = 0x88
             } type = InputType::Unknown;
 
             /** Dimensions of the object */
             std::vector<size_t> shape;
+
+
 
         protected:
             /** The actual data (union) */
@@ -88,9 +108,8 @@ namespace Moment {
             /**
              * Read raw input.
              * @param input The input data to parse.
-             * @param expecting_symbols True if cell arrays are expected to be symbol cell (false for operator cell).
              */
-            void parse_input(matlab::data::Array& input, bool expecting_symbols = false);
+            void parse_input(matlab::data::Array& input);
 
             /** True if operand represents a single scalar object (cf. an array or tensor). */
             [[nodiscard]] bool is_scalar() const noexcept;
@@ -105,9 +124,18 @@ namespace Moment {
              */
             [[nodiscard]] const SymbolicMatrix& to_matrix(const MatrixSystem& system) const;
 
-
+            /**
+             * If input can be read as a single polynomial, instantiate it.
+             * @param system The matrix system the Polynomial is associated with
+             * @param assume_sorted True if input polynomial is in canonical order w.r.t. system polynomial factory.
+             */
             [[nodiscard]] const Polynomial to_polynomial(const MatrixSystem& system, bool assume_sorted = false);
 
+            /**
+             * If input was an array of polynomials, instantiate them.
+             * @param system The matrix system the Polynomial is associated with
+             * @param assume_sorted True if input polynomials are in canonical order w.r.t. system polynomial factory.
+             */
             [[nodiscard]] const std::vector<Polynomial>
             to_polynomial_array(const MatrixSystem& system, bool assume_sorted = false);
 
@@ -118,18 +146,17 @@ namespace Moment {
         private:
             void parse_as_matrix_key(const matlab::data::Array& input);
 
-            void parse_as_symbol_cell(const matlab::data::CellArray& input);
+            void parse_cell(const matlab::data::Array& input);
+
+            [[nodiscard]] InputFormat
+            infer_format_from_scalar_object(const matlab::data::CellArray& input, size_t outer_index) const;
+
+            [[nodiscard]] InputType
+            infer_type_from_valid_cell(const matlab::data::CellArray& input) const;
 
             void parse_as_operator_cell(const matlab::data::CellArray& input);
 
-            /** True if polynomial, false if monomial */
-            [[nodiscard]] bool determine_if_polynomial_operator_cell(const matlab::data::CellArray& input) const;
-
-            void parse_as_operator_monomial(const matlab::data::CellArray& input);
-
-            void parse_as_operator_polynomial(const matlab::data::CellArray& input);
-
-            void parse_as_symbolic_polynomial(const matlab::data::CellArray& input);
+            void parse_as_symbol_cell(const matlab::data::CellArray& input);
 
         };
     }

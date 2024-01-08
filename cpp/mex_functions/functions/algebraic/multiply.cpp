@@ -101,6 +101,7 @@ namespace Moment::mex::functions {
                     switch (input.rhs.type) {
                         case AlgebraicOperand::InputType::MatrixID:
                             throw_error(matlabEngine, errors::internal_error, "Matrix RHS not yet implemented.");
+                        case AlgebraicOperand::InputType::Monomial:
                         case AlgebraicOperand::InputType::Polynomial:
                             return matrix_by_polynomial(matlabEngine, input, matrixSystem);
                         default:
@@ -108,10 +109,12 @@ namespace Moment::mex::functions {
                             throw_error(matlabEngine, errors::bad_param, "Cannot multiply unknown RHS type.");
                     }
                     break;
+                case AlgebraicOperand::InputType::Monomial:
                 case AlgebraicOperand::InputType::Polynomial:
                     switch (input.rhs.type) {
                         case AlgebraicOperand::InputType::MatrixID:
                             return polynomial_by_matrix(matlabEngine, input, matrixSystem);
+                        case AlgebraicOperand::InputType::Monomial:
                         case AlgebraicOperand::InputType::Polynomial:
                             throw_error(matlabEngine, errors::internal_error, "Polynomial RHS not yet implemented.");
                             break;

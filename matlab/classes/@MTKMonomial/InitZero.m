@@ -21,7 +21,7 @@ function obj = InitZero(setting, dimensions)
 
     % Overwrite
     obj = MTKMonomial(setting, 'overwrite', dimensions);
-    obj.symbol_id = zeros(dimensions);
+    obj.symbol_id = int64(zeros(dimensions));
     if prod(dimensions) == 1
         obj.Operators = uint64.empty(1,0);
     else
