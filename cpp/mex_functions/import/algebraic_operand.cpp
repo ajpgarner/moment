@@ -64,6 +64,11 @@ namespace Moment::mex {
         // Cast to cell array (MATLAB documentation indicates this makes a reference, not a copy).
         const matlab::data::CellArray cell_input = raw_input;
 
+        // Copy object dimensions
+        const auto dimensions = cell_input.getDimensions();
+        this->shape.reserve(dimensions.size());
+        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
+
         // Iterate, until we can determine object type:
         this->format = InputFormat::Unknown;
         size_t outer_index = 0;
@@ -168,10 +173,6 @@ namespace Moment::mex {
 
         const size_t expected_elements = input.getNumberOfElements();
 
-        const auto dimensions = input.getDimensions();
-        this->shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
-
         // Prepare raw polynomial object with data
         this->raw.emplace<2>();
         auto& raw_vec = this->raw_operator_cell_data();
@@ -190,10 +191,6 @@ namespace Moment::mex {
         if (expected_elements == 0) {
             throw_error(matlabEngine, errors::bad_param, "Operand was empty, but non-empty operand was expected.");
         }
-
-        const auto dimensions = input.getDimensions();
-        this->shape.reserve(dimensions.size());
-        std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
 
         // Prepare Polynomial object with data
         this->raw.emplace<1>();
@@ -217,6 +214,20 @@ namespace Moment::mex {
                 return false;
             case InputType::Monomial:
             case InputType::Polynomial:
+                return true;
+        }
+    }
+
+    bool AlgebraicOperand::is_monomial() const noexcept {
+        switch (this->type) {
+            default:
+            case InputType::Unknown:
+            case InputType::MatrixID:
+            case InputType::Polynomial:
+            case InputType::PolynomialArray:
+                return false;
+            case InputType::Monomial:
+            case InputType::MonomialArray:
                 return true;
         }
     }

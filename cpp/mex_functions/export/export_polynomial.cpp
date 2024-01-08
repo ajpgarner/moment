@@ -287,4 +287,25 @@ namespace Moment::mex {
         return fms;
     }
 
+    FullMonomialSpecification
+    PolynomialExporter::monomial_sequence_cell_vector(std::span<const RawPolynomial> poly_list,
+                                                      const std::vector<size_t>& shape) const {
+        FullMonomialSpecification fms{this->factory, shape, false};
+
+        auto write_iter = fms.partial_write_begin();
+        FullMonomialSpecification::PartialWriteFunctor functor{this->factory, this->symbols};
+        for (const auto& poly : poly_list) {
+            assert(poly.size() <= 1);
+            if (poly.empty()) {
+                *write_iter = functor(Monomial{0, 0.0});
+            } else {
+                *write_iter = functor(poly[0].sequence, poly[0].weight);
+            }
+            ++write_iter;
+        }
+
+
+        return fms;
+    }
+
 }

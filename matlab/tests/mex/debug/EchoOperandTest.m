@@ -14,11 +14,66 @@ classdef EchoOperandTest < MTKTestBase
             requested = mtk('echo_operand', ref_id, 13);
             testCase.verifyEqual(requested, uint64(13));
         end
+      
+       function ReadIdOperatorCell(testCase)
+            ms = AlgebraicScenario(3);
+            id = ms.id();            
+            [echoed, is_m] = mtk('echo_operand', ms.System.RefId, ...
+                                 id.OperatorCell);
+            testCase.assertTrue(is_m);
+            re_mono = MTKMonomial.InitDirect(ms, echoed{:});
+            testCase.verifyEqual(id, re_mono);
+       end
+                
+       function ReadVectorIdOperatorCell(testCase)
+            ms = AlgebraicScenario(3);
+            id = ms.id(); 
+            vec = [id; 5*id];
+            [echoed, is_m] = mtk('echo_operand', ms.System.RefId, ...
+                                 vec.OperatorCell);
+            testCase.assertTrue(is_m);
+            re_mono = MTKMonomial.InitDirect(ms, echoed{:});
+            testCase.verifyEqual(vec, re_mono);
+        end
+        
+        
+        function ReadMonomialOperatorCell(testCase)
+            ms = AlgebraicScenario(3);
+            [x, ~, ~] = ms.getAll();
+            testCase.assertFalse(x.FoundAllSymbols);
+            [echoed, is_m] = mtk('echo_operand', ms.System.RefId, ...
+                                 x.OperatorCell);
+            testCase.assertTrue(is_m);
+            re_mono = MTKMonomial.InitDirect(ms, echoed{:});
+            testCase.verifyEqual(x, re_mono);
+        end
+        
+        function ReadMonomialOperatorCellVector(testCase)
+            ms = AlgebraicScenario(3);
+            [x, y, ~] = ms.getAll();
+            monovec = [x; y];
+            testCase.assertFalse(monovec.FoundAllSymbols);
+            [echoed, is_m] = mtk('echo_operand', ms.System.RefId, ...
+                                 monovec.OperatorCell);
+            testCase.assertTrue(is_m);
+            re_mono = MTKMonomial.InitDirect(ms, echoed{:});
+            testCase.verifyEqual(re_mono, monovec);
+        end
         
         function ReadPolynomialOperatorCell(testCase)
             ms = AlgebraicScenario(3);
             [x, y, z] = ms.getAll();
             poly = x + y + 2*z;
+            testCase.assertFalse(poly.FoundAllSymbols);
+            echoed = mtk('echo_operand', ms.System.RefId, poly.OperatorCell);
+            re_poly = MTKPolynomial.InitFromOperatorPolySpec(ms, echoed);
+            testCase.verifyEqual(poly, re_poly);
+        end
+       
+        function ReadPolynomialOperatorCell2(testCase)
+            ms = AlgebraicScenario(3);
+            [x, y, z] = ms.getAll();
+            poly = 3 + x + y + 2*z;
             testCase.assertFalse(poly.FoundAllSymbols);
             echoed = mtk('echo_operand', ms.System.RefId, poly.OperatorCell);
             re_poly = MTKPolynomial.InitFromOperatorPolySpec(ms, echoed);

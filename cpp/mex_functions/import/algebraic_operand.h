@@ -114,6 +114,9 @@ namespace Moment {
             /** True if operand represents a single scalar object (cf. an array or tensor). */
             [[nodiscard]] bool is_scalar() const noexcept;
 
+            /** True if every element of the operand is a monomial (cf. containing one or more polynomials). */
+            [[nodiscard]] bool is_monomial() const noexcept;
+
             /** True if operand is empty. */
             [[nodiscard]] inline bool is_empty() const noexcept {
                 return this->type == InputType::EmptyObject;

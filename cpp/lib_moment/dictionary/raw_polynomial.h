@@ -76,6 +76,13 @@ namespace Moment {
             data.emplace_back(std::move(seq), w);
         }
 
+        /**
+         * True if raw polynomial is empty (i.e. representing 0).
+         */
+        [[nodiscard]] inline bool empty() const noexcept {
+            return this->data.empty();
+        }
+
         [[nodiscard]] inline size_t size() const noexcept {
             return this->data.size();
         }

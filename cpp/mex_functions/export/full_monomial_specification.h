@@ -15,6 +15,7 @@
 
 #include "MatlabDataArray.hpp"
 
+#include <complex>
 #include <stdexcept>
 #include <vector>
 
@@ -137,7 +138,8 @@ namespace Moment::mex {
 
             [[nodiscard]] typename partial_iter_t::value_type operator()(const Monomial& element) const;
 
-            [[nodiscard]] typename partial_iter_t::value_type operator()(const OperatorSequence& sequence) const;
+            [[nodiscard]] typename partial_iter_t::value_type
+            operator()(const OperatorSequence& sequence, std::complex<double> weight = {1.0, 0.0}) const;
         };
 
 

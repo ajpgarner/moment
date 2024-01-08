@@ -152,6 +152,13 @@ namespace Moment::mex {
         [[nodiscard]] FullMonomialSpecification monomial_sequence_cell_vector(std::span<const Polynomial> poly_list,
                                                                               const std::vector<size_t>& shape,
                                                                               bool include_symbols = false) const;
+        /**
+        * Export vector of polynomials as a cell array full monomial specification.
+        * @param poly The list of polynomials to export. Each must be monomial (0 or 1 elements).
+        * @return Full monomial specification, as matlab array.
+        */
+        [[nodiscard]] FullMonomialSpecification monomial_sequence_cell_vector(std::span<const RawPolynomial> poly_list,
+                                                                              const std::vector<size_t>& shape) const;
 
     };
 }

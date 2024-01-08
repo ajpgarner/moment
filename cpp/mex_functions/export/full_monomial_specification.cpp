@@ -185,10 +185,12 @@ namespace Moment::mex {
     }
 
     FullMonomialSpecification::partial_iter_t::value_type
-    FullMonomialSpecification::PartialWriteFunctor::operator()(const OperatorSequence& sequence) const {
+    FullMonomialSpecification::PartialWriteFunctor::operator()(const OperatorSequence& sequence,
+                                                               std::complex<double> factor) const {
+        factor *= to_scalar(sequence.get_sign());
         return partial_iter_t::value_type {
             export_operator_sequence(this->factory, sequence, true),
-            sequence.negated() ? -1.0 : 1.0,
+            factor,
             sequence.hash()
         };
     }

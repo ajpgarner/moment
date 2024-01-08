@@ -1,5 +1,5 @@
 function makeOperatorCell(obj)
-%MAKEOPERATORCELL Create cell description of polynomial.
+%MAKEOPERATORCELL Create operator cell 'raw' description of polynomial.
     if obj.IsScalar
         obj.operator_cell = {makeOneOperatorCell(obj.Constituents)};
     else

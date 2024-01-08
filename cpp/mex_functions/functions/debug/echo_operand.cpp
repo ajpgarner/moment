@@ -41,7 +41,7 @@ namespace Moment::mex::functions  {
         this->min_inputs = 2;
         this->max_inputs = 2;
         this->min_outputs = 0;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
         this->flag_names.emplace(u"symbolic");
         this->flag_names.emplace(u"to_symbols");
     }
@@ -140,6 +140,27 @@ namespace Moment::mex::functions  {
             }
         }
 
+        void output_monomial(matlab::engine::MATLABEngine& engine,
+                                   IOArgumentRange& output, const EchoOperandParams& input,
+                                   const bool print_output, const MatrixSystem& system,
+                                   const RawPolynomial& raw_polynomial) {
+            if (output.size() >= 1) {
+                matlab::data::ArrayFactory factory;
+                PolynomialExporter pe{engine, factory, system.Context(), system.Symbols(),
+                                      system.polynomial_factory().zero_tolerance};
+                auto fps = pe.sequences(raw_polynomial);
+                output[0] = fps.move_to_cell(factory);
+            }
+
+            if (print_output) {
+                std::stringstream ss;
+                output_matrix_system_id(ss, input.matrix_system_key.value(), system);
+                output_operand_summary(ss, input.operand);
+                ss << "Monomial: " << raw_polynomial.to_string(system.Context()) << ".\n";
+                print_to_console(engine, ss.str());
+            }
+        }
+
         void output_raw_polynomial(matlab::engine::MATLABEngine& engine,
                                    IOArgumentRange& output, const EchoOperandParams& input,
                                    const bool print_output, const MatrixSystem& system,
@@ -188,6 +209,30 @@ namespace Moment::mex::functions  {
         }
 
 
+        void output_monomial_array(matlab::engine::MATLABEngine& engine,
+                                   IOArgumentRange& output, const EchoOperandParams& input,
+                                   const bool print_output, const MatrixSystem& system,
+                                   const std::span<const RawPolynomial> raw_polynomials) {
+
+            if (output.size() >= 1) {
+                matlab::data::ArrayFactory factory;
+                PolynomialExporter pe{engine, factory, system.Context(), system.Symbols(),
+                                      system.polynomial_factory().zero_tolerance};
+                auto fps = pe.monomial_sequence_cell_vector(raw_polynomials, input.operand.shape);
+                output[0] = fps.move_to_cell(factory);
+            }
+
+            if (print_output) {
+                std::stringstream ss;
+                output_matrix_system_id(ss, input.matrix_system_key.value(), system);
+                output_operand_summary(ss, input.operand);
+                for (const auto& raw_poly : raw_polynomials) {
+                    ss << raw_poly.to_string(system.Context()) << "\n";
+                }
+                print_to_console(engine, ss.str());
+            }
+        }
+
         void output_raw_polynomial_array(matlab::engine::MATLABEngine& engine,
                                    IOArgumentRange& output, const EchoOperandParams& input,
                                    const bool print_output, const MatrixSystem& system,
@@ -202,11 +247,12 @@ namespace Moment::mex::functions  {
 
             if (print_output) {
                 std::stringstream ss;
-                output_matrix_system_id(ss, input.matrix_system_key.value(), system);output_operand_summary(ss, input.operand);
-                print_to_console(engine, ss.str());
+                output_matrix_system_id(ss, input.matrix_system_key.value(), system);
+                output_operand_summary(ss, input.operand);
                 for (const auto& raw_poly : raw_polynomials) {
                     ss << raw_poly.to_string(system.Context()) << "\n";
                 }
+                print_to_console(engine, ss.str());
             }
         }
 
@@ -264,13 +310,18 @@ namespace Moment::mex::functions  {
 
         // Now, try and parse remaining cases:
         const bool is_scalar = input.operand.is_scalar();
+        const bool output_as_monomial = !input.parse_to_symbols && input.operand.is_monomial();
         if (is_scalar) {
             if (input.parse_to_symbols) {
                 auto parsed_poly = input.operand.to_polynomial(matrix_system);
                 output_full_polynomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_poly);
             } else {
                 auto parsed_raw_poly = input.operand.to_raw_polynomial(matrix_system);
-                output_raw_polynomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_raw_poly);
+                if (output_as_monomial) {
+                    output_monomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_raw_poly);
+                } else {
+                    output_raw_polynomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_raw_poly);
+                }
             }
         } else {
             if (input.parse_to_symbols) {
@@ -279,9 +330,20 @@ namespace Moment::mex::functions  {
                                              matrix_system, parsed_polys);
             } else {
                 auto parsed_raw_polys = input.operand.to_raw_polynomial_array(matrix_system);
-                output_raw_polynomial_array(this->matlabEngine, output, input, print_output,
-                                            matrix_system, parsed_raw_polys);
+                if (output_as_monomial) {
+                    output_monomial_array(this->matlabEngine, output, input, print_output,
+                                          matrix_system, parsed_raw_polys);
+                } else {
+                    output_raw_polynomial_array(this->matlabEngine, output, input, print_output,
+                                                matrix_system, parsed_raw_polys);
+                }
             }
+        }
+
+        // Write monomial status of output
+        if (output.size() >= 2) {
+            matlab::data::ArrayFactory factory;
+            output[1] = factory.createScalar<bool>(output_as_monomial);
         }
     }
 
