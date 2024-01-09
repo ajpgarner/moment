@@ -13,6 +13,10 @@
 #include "import/algebraic_operand.h"
 #include "import/matrix_system_id.h"
 
+namespace Moment::Pauli {
+    class PauliMatrixSystem;
+}
+
 namespace Moment::mex::functions {
 
     struct CommutatorParams : public SortedInputs {
@@ -29,8 +33,12 @@ namespace Moment::mex::functions {
         /** Right hand operand */
         AlgebraicOperand rhs;
 
+        /** Type of operation requested */
+        ProductType resolved_product_type = ProductType::Incompatible;
+
     public:
         explicit CommutatorParams(SortedInputs&& inputs);
+
     };
 
     class Commutator : public ParameterizedMTKFunction<CommutatorParams, MTKEntryPointID::Commutator> {

@@ -869,8 +869,8 @@ namespace Moment::Tests {
         const auto result = context.anticommutator(rpA, rpA);
         EXPECT_EQ(result.size(), 2);
         EXPECT_EQ(result[0].sequence, OperatorSequence::Identity(context));
-        EXPECT_EQ(result[0].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(result[0].weight, std::complex(4.0, 0.0));
         EXPECT_EQ(result[1].sequence, context.sigmaX(0));
-        EXPECT_EQ(result[1].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(result[1].weight, std::complex(4.0, 0.0));
     }
 }

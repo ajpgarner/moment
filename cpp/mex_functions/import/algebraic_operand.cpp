@@ -46,8 +46,7 @@ namespace Moment::mex {
         }
     }
 
-
-    void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
+        void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
         this->type = InputType::MatrixID;
         this->shape = std::vector<size_t>{0, 0};
         this->raw.emplace<0>(read_as_uint64(matlabEngine, raw_input));
@@ -371,6 +370,92 @@ namespace Moment::mex {
         }
 
         return output;
+    }
+
+
+    ProductType product_type(const AlgebraicOperand& lhs, const AlgebraicOperand& rhs) {
+        switch (lhs.type) {
+            // Not a case! Deliberate: this is an instruction to the compiler, not executable code...
+            using enum AlgebraicOperand::InputType;
+
+            // Matrix ->
+            case MatrixID:
+                switch (rhs.type) {
+                    // -> unknown
+                    case Unknown:
+                        return ProductType::Incompatible;
+                        // -> one
+                    case EmptyObject:
+                    case Monomial:
+                    case Polynomial:
+                        return ProductType::MatrixToOne;
+                        // -> matrix
+                    case MatrixID:
+                        return ProductType::Incompatible;
+                        // -> many
+                    case MonomialArray:
+                    case PolynomialArray:
+                        return ProductType::Incompatible;
+                }
+                break;
+
+                // One ->
+            case EmptyObject:
+            case Monomial:
+            case Polynomial:
+                switch (rhs.type) {
+                    // -> unknown
+                    case Unknown:
+                        return ProductType::Incompatible;
+                        // -> one
+                    case EmptyObject:
+                    case Monomial:
+                    case Polynomial:
+                        return ProductType::OneToOne;
+                        // -> matrix
+                    case MatrixID:
+                        return ProductType::OneToMatrix;
+                        // -> many
+                    case MonomialArray:
+                    case PolynomialArray:
+                        return ProductType::OneToMany;
+                }
+                break;
+
+                // Many ->
+            case PolynomialArray:
+            case MonomialArray:
+                switch (rhs.type) {
+                    // -> unknown
+                    case Unknown:
+                        return ProductType::Incompatible;
+                        // -> one
+                    case EmptyObject:
+                    case Monomial:
+                    case Polynomial:
+                        return ProductType::ManyToOne;
+                        // -> matrix
+                    case MatrixID:
+                        return ProductType::Incompatible;
+                        // -> many
+                    case MonomialArray:
+                    case PolynomialArray:
+                        if (!std::equal(lhs.shape.cbegin(), lhs.shape.cend(),
+                                       rhs.shape.cbegin(), rhs.shape.cend())) {
+                            return ProductType::MismatchedDimensions;
+                        }
+                        return ProductType::ManyToMany;
+                }
+                break;
+
+                // Unknown: cannot combine
+            default:
+            case Unknown:
+                return ProductType::Incompatible;
+        }
+
+        // Unreachable~
+        return ProductType::Incompatible;
     }
 
 }

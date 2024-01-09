@@ -103,7 +103,8 @@ classdef PauliScenario < MTKScenario
         function varargout = getAll(obj)
             % Call parent function not w/ 3 outputs
             if nargout ~= 3
-                varargout = getAll@MTKScenario(obj);
+                varargout = cell(1, nargout);
+                [varargout{:}] = getAll@MTKScenario(obj);
                 return;
             end
             

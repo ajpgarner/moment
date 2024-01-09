@@ -29,6 +29,19 @@ namespace Moment {
 
     namespace mex {
 
+        enum class ProductType {
+            /** Incompatible, or unknown, product */
+            Incompatible,
+            /** Many->many, with bad dimensions */
+            MismatchedDimensions,
+            OneToOne,
+            OneToMany,
+            OneToMatrix,
+            ManyToOne,
+            ManyToMany,
+            MatrixToOne
+        };
+
         /**
          * Algebraic input.
          * Can either be a matrix, a symbolic cell (i.e. Polynomial), or an operator cell (i.e. RawPolynomial).
@@ -145,6 +158,8 @@ namespace Moment {
             [[nodiscard]] const RawPolynomial to_raw_polynomial(const MatrixSystem& system);
 
             [[nodiscard]] const std::vector<RawPolynomial> to_raw_polynomial_array(const MatrixSystem& system);
+
+            friend ProductType product_type(const AlgebraicOperand& lhs, const AlgebraicOperand& rhs);
 
         private:
             void parse_as_matrix_key(const matlab::data::Array& input);
