@@ -104,4 +104,150 @@ namespace Moment::Tests {
     }
 
 
+    TEST(Operators_RawPolynomial, Condense_Empty) {
+        RawPolynomial raw_poly{};
+        ASSERT_TRUE(raw_poly.empty());
+        EXPECT_EQ(raw_poly.size(), 0);
+        raw_poly.condense();
+        ASSERT_TRUE(raw_poly.empty());
+        EXPECT_EQ(raw_poly.size(), 0);
+    }
+
+    TEST(Operators_RawPolynomial, Condense_Singlet) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        RawPolynomial raw_poly;
+        const OperatorSequence os_A{{0}, context};
+        raw_poly.emplace_back(os_A, {1.0, -1.0});
+        raw_poly.condense();
+
+        ASSERT_EQ(raw_poly.size(), 1);
+        EXPECT_EQ(raw_poly[0].sequence, os_A);
+        EXPECT_EQ(raw_poly[0].weight, std::complex(1.0, -1.0));
+    }
+
+    TEST(Operators_RawPolynomial, Condense_SingletZeroWeight) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        RawPolynomial raw_poly;
+        const OperatorSequence os_A{{0}, context};
+        raw_poly.emplace_back(os_A, {0.0, 0.0});
+        EXPECT_FALSE(raw_poly.empty());
+        raw_poly.condense();
+        EXPECT_TRUE(raw_poly.empty());
+        EXPECT_EQ(raw_poly.size(), 0);
+    }
+
+    TEST(Operators_RawPolynomial, Condense_SingletZeroSequence) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(context.zero(), {1.0, 0.0});
+        EXPECT_FALSE(raw_poly.empty());
+        raw_poly.condense();
+        EXPECT_TRUE(raw_poly.empty());
+        EXPECT_EQ(raw_poly.size(), 0);
+    }
+
+    TEST(Operators_RawPolynomial, Condense_Pair) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+        const OperatorSequence os_B{{1}, context};
+        ASSERT_NE(os_A.hash(), os_B.hash());
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(os_A, {2.0, 0.0});
+        raw_poly.emplace_back(os_B, {0.0, -3.0});
+        EXPECT_FALSE(raw_poly.empty());
+        raw_poly.condense();
+        ASSERT_EQ(raw_poly.size(), 2);
+        EXPECT_EQ(raw_poly[0].sequence, os_A);
+        EXPECT_EQ(raw_poly[0].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(raw_poly[1].sequence, os_B);
+        EXPECT_EQ(raw_poly[1].weight, std::complex(0.0, -3.0));
+    }
+
+    TEST(Operators_RawPolynomial, Condense_PairToSinglet) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(os_A, {2.0, 0.0});
+        raw_poly.emplace_back(os_A, {0.0, -3.0});
+        ASSERT_EQ(raw_poly.size(), 2);
+        raw_poly.condense();
+        ASSERT_EQ(raw_poly.size(), 1);
+        EXPECT_EQ(raw_poly[0].sequence, os_A);
+        EXPECT_EQ(raw_poly[0].weight, std::complex(2.0, -3.0));
+    }
+
+    TEST(Operators_RawPolynomial, Condense_PairToZero) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(os_A, {2.0, 0.0});
+        raw_poly.emplace_back(os_A, {-2.0, 0.0});
+        EXPECT_FALSE(raw_poly.empty());
+        raw_poly.condense();
+        EXPECT_TRUE(raw_poly.empty());
+        EXPECT_EQ(raw_poly.size(), 0);
+    }
+
+    TEST(Operators_RawPolynomial, Condense_ListFourToThree) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+        const OperatorSequence os_B{{1}, context};
+        const OperatorSequence os_C{{0, 1}, context};
+        ASSERT_NE(os_A.hash(), os_B.hash());
+        ASSERT_NE(os_A.hash(), os_C.hash());
+        ASSERT_NE(os_B.hash(), os_C.hash());
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(os_A, {2.0, 0.0});
+        raw_poly.emplace_back(os_B, {0.0, -3.0});
+        raw_poly.emplace_back(os_C, {1.0, 0.0});
+        raw_poly.emplace_back(os_B, {1.0, 0.0});
+        ASSERT_EQ(raw_poly.size(), 4);
+
+        raw_poly.condense();
+        ASSERT_EQ(raw_poly.size(), 3);
+        EXPECT_EQ(raw_poly[0].sequence, os_A);
+        EXPECT_EQ(raw_poly[0].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(raw_poly[1].sequence, os_B);
+        EXPECT_EQ(raw_poly[1].weight, std::complex(1.0, -3.0));
+        EXPECT_EQ(raw_poly[2].sequence, os_C);
+        EXPECT_EQ(raw_poly[2].weight, std::complex(1.0, 0.0));
+    }
+
+    TEST(Operators_RawPolynomial, Condense_ListFourToTwo) {
+        MatrixSystem system{std::make_unique<Context>(3)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+        const OperatorSequence os_B{{1}, context};
+        const OperatorSequence os_C{{0, 1}, context};
+        ASSERT_NE(os_A.hash(), os_B.hash());
+        ASSERT_NE(os_A.hash(), os_C.hash());
+        ASSERT_NE(os_B.hash(), os_C.hash());
+
+        RawPolynomial raw_poly;
+        raw_poly.emplace_back(os_A, {2.0, 0.0});
+        raw_poly.emplace_back(os_B, {0.0, -3.0});
+        raw_poly.emplace_back(os_C, {1.0, 0.0});
+        raw_poly.emplace_back(os_B, {0.0, 3.0});
+        ASSERT_EQ(raw_poly.size(), 4);
+
+        raw_poly.condense();
+        ASSERT_EQ(raw_poly.size(), 2);
+        EXPECT_EQ(raw_poly[0].sequence, os_A);
+        EXPECT_EQ(raw_poly[0].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(raw_poly[1].sequence, os_C);
+        EXPECT_EQ(raw_poly[1].weight, std::complex(1.0, 0.0));
+    }
+
+
 }

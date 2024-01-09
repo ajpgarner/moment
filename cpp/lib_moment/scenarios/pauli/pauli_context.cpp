@@ -333,6 +333,22 @@ namespace Moment::Pauli {
         return result;
     }
 
+    RawPolynomial PauliContext::commutator(const RawPolynomial& lhs, const RawPolynomial& rhs,
+                                           const double zero_tolerance) const {
+        return distributed_product(lhs, rhs,
+                                   [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
+                                       return this->commutator(lhs, rhs);
+                                   }, std::multiplies<std::complex<double>>{}, zero_tolerance);
+    }
+
+    RawPolynomial PauliContext::anticommutator(const RawPolynomial& lhs, const RawPolynomial& rhs,
+                                               const double zero_tolerance) const {
+        return distributed_product(lhs, rhs,
+                                   [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
+                                       return this->anticommutator(lhs, rhs);
+                                   }, std::multiplies<std::complex<double>>{}, zero_tolerance);
+    }
+
     OperatorSequence PauliContext::conjugate(const OperatorSequence &seq) const {
         return OperatorSequence{OperatorSequence::ConstructRawFlag{},
                                 seq.raw(), seq.hash(), *this, Moment::conjugate(seq.get_sign())};

@@ -74,4 +74,40 @@ namespace Moment {
                                                              SymbolTable& symbols) const {
         return factory.register_and_construct(symbols, *this);
     }
+
+    void RawPolynomial::condense(const double tolerance) {
+        // Special case: empty vector
+        if (this->empty()) {
+            return;
+        }
+
+        // Special case: one element vector
+        if (this->size() == 1) {
+            const auto& first = this->data.front();
+            if (first.sequence.zero() || approximately_zero(first.weight, tolerance)) {
+                this->data.clear();
+            }
+        }
+
+        // General case: insertion sort and combine into intermediate map
+        std::map<hash_t, RawPolynomialElement> intermediate;
+        for (auto& element : this->data) {
+            if (!element.sequence.zero()) {
+                auto [iter_where, did_insert] = intermediate.insert(std::make_pair(element.sequence.hash(), element));
+                if (!did_insert) {
+                    assert(element.sequence.get_sign() == SequenceSignType::Positive);
+                    iter_where->second.weight += element.weight;
+                }
+            }
+        }
+
+        // Move from intermediate map back into data, pruning zeros
+        this->data.clear(); // In practice, no need for reserve: container will only shrink!
+        for (auto& [key, element] : intermediate) {
+            if (!approximately_zero(element.weight, tolerance)) {
+                this->data.emplace_back(std::move(element));
+            }
+        }
+    }
+
 }

@@ -846,4 +846,31 @@ namespace Moment::Tests {
             }
         }
     }
+
+    TEST(Scenarios_Context, Commutator_Binomial) {
+        PauliContext context{1};
+        RawPolynomial rpA;
+        rpA.emplace_back(OperatorSequence::Identity(context), {1.0, 0.0});
+        rpA.emplace_back(context.sigmaX(0), {1.0, 0.0});
+        ASSERT_EQ(rpA.size(), 2);
+
+        const auto result = context.commutator(rpA, rpA);
+        EXPECT_EQ(result.size(), 0);
+        EXPECT_TRUE(result.empty());
+    }
+
+    TEST(Scenarios_Context, Anticommutator_Binomial) {
+        PauliContext context{1};
+        RawPolynomial rpA;
+        rpA.emplace_back(OperatorSequence::Identity(context), {1.0, 0.0});
+        rpA.emplace_back(context.sigmaX(0), {1.0, 0.0});
+        ASSERT_EQ(rpA.size(), 2);
+
+        const auto result = context.anticommutator(rpA, rpA);
+        EXPECT_EQ(result.size(), 2);
+        EXPECT_EQ(result[0].sequence, OperatorSequence::Identity(context));
+        EXPECT_EQ(result[0].weight, std::complex(2.0, 0.0));
+        EXPECT_EQ(result[1].sequence, context.sigmaX(0));
+        EXPECT_EQ(result[1].weight, std::complex(2.0, 0.0));
+    }
 }

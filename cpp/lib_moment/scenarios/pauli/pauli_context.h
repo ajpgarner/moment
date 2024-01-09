@@ -9,6 +9,8 @@
 
 #include "../context.h"
 
+#include "dictionary/raw_polynomial.h"
+
 #include <iosfwd>
 #include <stdexcept>
 
@@ -146,17 +148,37 @@ namespace Moment {
             [[nodiscard]] OperatorSequence
             multiply(const OperatorSequence &lhs, const OperatorSequence &rhs) const final;
 
+
+            [[nodiscard]] RawPolynomial
+            multiply(const RawPolynomial &lhs, const RawPolynomial &rhs, double zero_tolerance = 1.0) const;
+
             /**
              * 1/2 [lhs, rhs] = (lhs * rhs - rhs * lhs)
              * Result might be zero.
              */
-            [[nodiscard]] OperatorSequence commutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+            [[nodiscard]] OperatorSequence
+            commutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+
+            /**
+             * 1/2 [lhs, rhs] = (lhs * rhs - rhs * lhs)
+             * Result might be zero.
+             */
+            [[nodiscard]] RawPolynomial
+            commutator(const RawPolynomial &lhs, const RawPolynomial &rhs, double zero_tolerance = 1.0) const;
 
             /**
              * 1/2 {lhs, rhs} = 1/2 * (lhs * rhs + rhs * lhs)
              * Result might be zero.
              */
-            [[nodiscard]] OperatorSequence anticommutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+            [[nodiscard]] OperatorSequence
+            anticommutator(const OperatorSequence &lhs, const OperatorSequence &rhs) const;
+
+            /**
+             * 1/2 {lhs, rhs} = 1/2 * (lhs * rhs + rhs * lhs)
+             * Result might be zero.
+             */
+            [[nodiscard]] RawPolynomial
+            anticommutator(const RawPolynomial &lhs, const RawPolynomial &rhs, double zero_tolerance = 1.0) const;
 
 
             [[nodiscard]] OperatorSequence conjugate(const OperatorSequence &seq) const final;

@@ -19,10 +19,11 @@
 
 namespace Moment {
 
-    class SymbolTable;
+    class Dictionary;
     class OperatorSequence;
     class OperatorSequenceGenerator;
-    class Dictionary;
+    class RawPolynomial;
+    class SymbolTable;
 
     class Context {
     protected:
@@ -67,11 +68,21 @@ namespace Moment {
          virtual bool additional_simplification(sequence_storage_t& op_sequence, SequenceSignType& sign) const;
 
          /**
-          * Use context to multiply together two operator strings, and store result in LHS.
-          * @param lhs The left-hand-side of the multiplication (stores result also).
+          * Use context to multiply together two operator strings.
+          * @param lhs The left-hand-side of the multiplication.
           * @param rhs The right-hand-side of the multiplication.
           */
-         virtual OperatorSequence multiply(const OperatorSequence& lhs, const OperatorSequence& rhs) const;
+         [[nodiscard]] virtual OperatorSequence multiply(const OperatorSequence& lhs, const OperatorSequence& rhs) const;
+
+
+         /**
+          * Use context to multiply two raw polynomials.
+          * @param lhs The left-hand-side of the multiplication.
+          * @param rhs The right-hand-side of the multiplication.
+          * @param zero_tolerance The value to treat as zero.
+          */
+         [[nodiscard]] RawPolynomial multiply(const RawPolynomial& lhs, const RawPolynomial& rhs,
+                                              double zero_tolerance = 1.0) const;
 
          /**
           * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.

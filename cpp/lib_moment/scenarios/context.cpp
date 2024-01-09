@@ -5,8 +5,9 @@
  * @author Andrew J. P. Garner
  */
 #include "context.h"
-#include "dictionary/operator_sequence.h"
 #include "dictionary/dictionary.h"
+#include "dictionary/operator_sequence.h"
+#include "dictionary/raw_polynomial.h"
 
 #include "symbolic/symbol_table.h"
 
@@ -46,6 +47,12 @@ namespace Moment {
 
         // Construct operator sequence (including simplification and hashing)
         return OperatorSequence{make_data(), *this, lhs.get_sign() * rhs.get_sign()};
+    }
+
+    RawPolynomial Context::multiply(const RawPolynomial& lhs, const RawPolynomial& rhs, double zero_tolerance) const {
+        return distributed_product(lhs, rhs, [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
+                                       return this->multiply(lhs, rhs);
+                                   }, std::multiplies<std::complex<double>>{}, zero_tolerance);
     }
 
     OperatorSequence Context::zero() const {

@@ -53,7 +53,10 @@ namespace Moment {
         }
 
         RawPolynomialElement(const RawPolynomialElement& rhs) = default;
-        RawPolynomialElement(RawPolynomialElement&& rhs) = default;
+        RawPolynomialElement(RawPolynomialElement&& rhs) noexcept = default;
+        RawPolynomialElement& operator=(const RawPolynomialElement& rhs) = default;
+        RawPolynomialElement& operator=(RawPolynomialElement&& rhs) noexcept = default;
+
     };
 
     class RawPolynomial {
@@ -99,6 +102,9 @@ namespace Moment {
             return this->data[index];
         }
 
+        /** Sorts (into ascending OS hash) and reduces RawPolynomial, trimming zeros as necessary */
+        void condense(double tolerance = 1.0);
+
         /**
          * True if all entries are effectively scalar multiples of the identity.
          */
@@ -117,6 +123,34 @@ namespace Moment {
          */
         [[nodiscard]] Polynomial to_polynomial_register_symbols(const PolynomialFactory& factory,
                                                                 SymbolTable& symbols) const;
+
+
+        /**
+         * Combine two raw polynomials according to a distributed operation.
+         * @tparam op_functor_t The operation to apply to the operator sequences.
+         * @tparam weight_functor_t The operation to apply to the element weights (typically multiplication).
+         * @param lhs The LHS polynomial.
+         * @param rhs The RHS polynomial.
+         * @param op_functor The functor for combining operator sequences.
+         * @param weight_functor The functor for combining weights.
+         * @param tolerance The tolerance under which a weight will be considered as zero.
+         * @return A new combined Polynomial
+         */
+        template<typename op_functor_t, typename weight_functor_t>
+        friend RawPolynomial distributed_product(const RawPolynomial& lhs, const RawPolynomial& rhs,
+                                           const op_functor_t& op_functor,
+                                           const weight_functor_t& weight_functor,
+                                           double tolerance = 1.0) {
+            RawPolynomial output;
+            for (const auto& lhs_elem : lhs) {
+                for (const auto& rhs_elem : rhs) {
+                    output.emplace_back(op_functor(lhs_elem.sequence, rhs_elem.sequence),
+                                        weight_functor(lhs_elem.weight, rhs_elem.weight));
+                }
+            }
+            output.condense(tolerance);
+            return output;
+        }
 
     };
 }
