@@ -192,33 +192,7 @@ namespace Moment {
         this->complex_basis = !this->imaginary_basis_elements.empty();
     }
 
-    std::unique_ptr<PolynomialMatrix>
-    PolynomialMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
-                          Multithreading::MultiThreadPolicy policy) const {
-        if (rhs.is_monomial()) {
-            return this->add(dynamic_cast<const MonomialMatrix&>(rhs), poly_factory, policy);
-        } else {
-            return this->add(dynamic_cast<const PolynomialMatrix&>(rhs), poly_factory, policy);
-        }
-    }
 
-    std::unique_ptr<PolynomialMatrix>
-    PolynomialMatrix::add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
-                          Multithreading::MultiThreadPolicy policy) const {
-        return do_addition(*this, rhs, this->context, this->symbol_table, poly_factory, policy);
-    }
-
-    std::unique_ptr<PolynomialMatrix>
-    PolynomialMatrix::add(const PolynomialMatrix& rhs, const PolynomialFactory& poly_factory,
-                          Multithreading::MultiThreadPolicy policy) const {
-        return do_addition(*this, rhs, this->context, this->symbol_table, poly_factory, policy);
-    }
-
-    std::unique_ptr<PolynomialMatrix>
-    PolynomialMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
-                          Multithreading::MultiThreadPolicy policy) const {
-        throw errors::cannot_add_exception{"PolynomialMatrix::add Polynomial RHS not implemented."};
-    }
 
 
 }

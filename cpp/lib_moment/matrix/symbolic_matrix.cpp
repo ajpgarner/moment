@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "symbolic_matrix.h"
+#include "composite_matrix.h"
 
 #include "matrix_system/matrix_system.h"
 #include "operator_matrix/operator_matrix.h"
@@ -208,7 +209,22 @@ namespace Moment {
     std::unique_ptr<PolynomialMatrix>
     SymbolicMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
                         Multithreading::MultiThreadPolicy policy) const {
-        throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
+
+        // First, check we can add...
+        if (this->dimension != rhs.Dimension()) {
+            throw errors::cannot_add_exception{"Cannot add matrices with mismatched dimensions."};
+        }
+
+        // Register as constituents, and make a composite polynomial matrix
+        CompositeMatrix::ConstituentInfo constituent_data;
+        constituent_data.matrix_dimension = this->dimension;
+        constituent_data.elements.emplace_back(this, std::complex<double>(1.0, 0.0));
+        constituent_data.elements.emplace_back(&rhs, std::complex<double>(1.0, 0.0));
+
+        return std::make_unique<CompositeMatrix>(this->context, this->symbol_table,
+                                                 poly_factory, std::move(constituent_data));
+
+
     }
 
     std::unique_ptr<PolynomialMatrix> SymbolicMatrix::add(const Monomial& rhs,

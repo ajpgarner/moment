@@ -21,40 +21,6 @@
 
 namespace Moment {
 
-
-    std::unique_ptr<PolynomialMatrix>
-    MonomialMatrix::add(const SymbolicMatrix& raw_rhs, const PolynomialFactory& poly_factory,
-                        Multithreading::MultiThreadPolicy policy) const {
-        // If not mono-mono, prefer specialized function
-        if (!raw_rhs.is_monomial()) {
-            assert(dynamic_cast<PolynomialMatrix const * >(&raw_rhs) != nullptr);
-            // Addition is commutative, so can call other function's implementation.
-            return raw_rhs.add(*this, poly_factory, policy);
-        }
-
-        // First, check we can add...
-        if (this->dimension != raw_rhs.Dimension()) {
-            throw errors::cannot_add_exception{"Cannot add matrices with mismatched dimensions."};
-        }
-
-
-        // Cast to monomial
-        const auto * rhs_ptr = dynamic_cast<const MonomialMatrix*>(&raw_rhs);
-        assert(rhs_ptr != nullptr);
-
-        // Register as constituents, and make a composite polynomial matrix
-        CompositeMatrix::ConstituentInfo constitutent_data;
-        constitutent_data.matrix_dimension = this->dimension;
-        constitutent_data.elements.emplace_back(this, std::complex<double>(1.0, 0.0));
-        constitutent_data.elements.emplace_back(rhs_ptr, std::complex<double>(1.0, 0.0));
-
-        return std::make_unique<CompositeMatrix>(this->context, this->symbol_table, // Non-const reference here is fine:
-                                                                                    // addition will not add symbols...!
-                                                 poly_factory, std::move(constitutent_data));
-    }
-
-
-
     std::unique_ptr<PolynomialMatrix> MonomialMatrix::add(const Monomial& rhs, const PolynomialFactory& poly_factory,
                                                           Multithreading::MultiThreadPolicy policy) const {
         // Special case: add zero

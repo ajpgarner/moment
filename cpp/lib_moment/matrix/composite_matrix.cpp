@@ -70,7 +70,7 @@ namespace Moment {
                 assert(matrixPtr);
                 if (dimension != matrixPtr->Dimension()) {
                     throw std::logic_error{
-                            "All constituent parts of composite  matrix should be same size!"};
+                            "All constituent parts of composite matrix should be same size!"};
                 }
 
                 if (matrixPtr->is_monomial()) {

@@ -125,8 +125,7 @@ namespace Moment {
                       const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const override;
 
-        std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
-                                              Multithreading::MultiThreadPolicy policy) const override;
+        using SymbolicMatrix::add;
 
         std::unique_ptr<PolynomialMatrix> add(const Monomial& rhs, const PolynomialFactory& poly_factory,
                                               Multithreading::MultiThreadPolicy policy) const override;

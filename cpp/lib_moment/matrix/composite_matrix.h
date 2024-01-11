@@ -106,6 +106,8 @@ namespace Moment {
                 return true;
             }
 
+
+
         };
 
     protected:
@@ -120,7 +122,6 @@ namespace Moment {
         [[nodiscard]] const ConstituentInfo& Constituents() const noexcept {
             return this->constituents;
         }
-
 
     protected:
         /**

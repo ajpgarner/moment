@@ -14,6 +14,7 @@ add_library(lib_moment
         matrix/monomial_matrix_arithmetic.cpp
         matrix/monomial_matrix_basis.cpp
         matrix/polynomial_matrix.cpp
+        matrix/polynomial_matrix_arithmetic.cpp
         matrix/polynomial_matrix_basis.cpp
         matrix/operator_matrix/is_hermitian.cpp
         matrix/operator_matrix/operator_matrix.cpp
