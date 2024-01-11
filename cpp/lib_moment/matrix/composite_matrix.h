@@ -112,7 +112,7 @@ namespace Moment {
         ConstituentInfo constituents;
 
     public:
-        /** Constructor for non-empty polynomial localizing matrix. */
+        /** Constructor for non-empty composite polynomial matrices. */
         CompositeMatrix(const Context& context, SymbolTable& symbols,
                         const PolynomialFactory& factory, ConstituentInfo&& constituents);
 

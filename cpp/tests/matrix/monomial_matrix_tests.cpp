@@ -20,6 +20,7 @@ namespace Moment::Tests {
     TEST(Matrix_MonomialMatrix, PreMultiply) {
         Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
+        const auto& factory = system.polynomial_factory();
         auto& symbols = system.Symbols();
 
         auto I = OperatorSequence{context};
@@ -56,7 +57,7 @@ namespace Moment::Tests {
         std::set<symbol_name_t> symbol_set{0, 1, sX, sY, sZ};
         ASSERT_EQ(symbol_set.size(), 5);
 
-        auto zMM_ptr = mmRaw.pre_multiply(Monomial{sZ, 1.0}, symbols, Multithreading::MultiThreadPolicy::Never);
+        auto zMM_ptr = mmRaw.pre_multiply(Monomial{sZ, 1.0}, factory, symbols, Multithreading::MultiThreadPolicy::Never);
         ASSERT_TRUE(zMM_ptr);
         ASSERT_TRUE(zMM_ptr->is_monomial());
         const auto& zMM = dynamic_cast<MonomialMatrix&>(*zMM_ptr);
@@ -79,6 +80,7 @@ namespace Moment::Tests {
     TEST(Matrix_MonomialMatrix, PostMultiply) {
         Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
+        const auto& factory = system.polynomial_factory();
         auto& symbols = system.Symbols();
 
         auto I = OperatorSequence{context};
@@ -115,7 +117,7 @@ namespace Moment::Tests {
         std::set<symbol_name_t> symbol_set{0, 1, sX, sY, sZ};
         ASSERT_EQ(symbol_set.size(), 5);
 
-        auto MMz_ptr = mmRaw.post_multiply(Monomial{sZ, 1.0}, symbols, Multithreading::MultiThreadPolicy::Never);
+        auto MMz_ptr = mmRaw.post_multiply(Monomial{sZ, 1.0}, factory, symbols, Multithreading::MultiThreadPolicy::Never);
         ASSERT_TRUE(MMz_ptr);
         ASSERT_TRUE(MMz_ptr->is_monomial());
         const auto& MMz = dynamic_cast<MonomialMatrix&>(*MMz_ptr);

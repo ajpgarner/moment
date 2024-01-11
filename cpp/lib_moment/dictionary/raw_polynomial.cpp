@@ -75,6 +75,14 @@ namespace Moment {
         return factory.register_and_construct(symbols, *this);
     }
 
+    RawPolynomial RawPolynomial::add(const RawPolynomial& lhs, const RawPolynomial& rhs, double tolerance) {
+        RawPolynomial output{lhs};
+        output.data.reserve(lhs.size() + rhs.size());
+        std::copy(rhs.data.cbegin(), rhs.data.cend(), std::back_inserter(output.data));
+        output.condense(tolerance);
+        return output;
+    }
+
     void RawPolynomial::condense(const double tolerance) {
         // Special case: empty vector
         if (this->empty()) {

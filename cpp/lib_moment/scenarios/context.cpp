@@ -50,9 +50,10 @@ namespace Moment {
     }
 
     RawPolynomial Context::multiply(const RawPolynomial& lhs, const RawPolynomial& rhs, double zero_tolerance) const {
-        return distributed_product(lhs, rhs, [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
-                                       return this->multiply(lhs, rhs);
-                                   }, std::multiplies<std::complex<double>>{}, zero_tolerance);
+        return RawPolynomial::distributed_product(lhs, rhs,
+                                                  [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
+                                                    return this->multiply(lhs, rhs);
+                                                  }, std::multiplies<std::complex<double>>{}, zero_tolerance);
     }
 
     OperatorSequence Context::zero() const {

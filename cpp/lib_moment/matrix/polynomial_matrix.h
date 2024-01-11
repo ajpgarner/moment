@@ -85,6 +85,36 @@ namespace Moment {
          */
         void renumerate_bases(const SymbolTable& symbols,  double zero_tolerance) final;
 
+
+        using SymbolicMatrix::pre_multiply;
+
+        using SymbolicMatrix::post_multiply;
+
+        std::unique_ptr<SymbolicMatrix> pre_multiply(const OperatorSequence& lhs, std::complex<double> weight,
+                                                     const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                                                     Multithreading::MultiThreadPolicy policy) const override {
+            throw errors::cannot_multiply_exception{"PolynomialMatrix::pre_multiply not implemented."};
+        }
+
+        std::unique_ptr<SymbolicMatrix> post_multiply(const OperatorSequence& rhs, std::complex<double> weight,
+                                                      const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                                                      Multithreading::MultiThreadPolicy policy) const override {
+            throw errors::cannot_multiply_exception{"PolynomialMatrix::post_multiply not implemented."};
+        }
+
+        std::unique_ptr<SymbolicMatrix> pre_multiply(const RawPolynomial& lhs,
+                                                     const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                                                     Multithreading::MultiThreadPolicy policy) const override {
+            throw errors::cannot_multiply_exception{"PolynomialMatrix::pre_multiply not implemented."};
+        }
+
+        std::unique_ptr<SymbolicMatrix> post_multiply(const RawPolynomial& rhs,
+                                                      const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                                                      Multithreading::MultiThreadPolicy policy) const override {
+            throw errors::cannot_multiply_exception{"PolynomialMatrix::post_multiply not implemented."};
+        }
+
+
         std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
                                               Multithreading::MultiThreadPolicy policy) const override;
 

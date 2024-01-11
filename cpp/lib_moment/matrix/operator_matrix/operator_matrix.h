@@ -143,8 +143,24 @@ namespace Moment {
                      Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         /**
+         * Create a new operator matrix per element of raw polynomial, by pre-multiplying.
+         * This will ignore factors!
+         */
+        [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
+        pre_multiply(const RawPolynomial& lhs,
+                     Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
+         * Create a new operator matrix per element of raw polynomial, by post-multiplying.
+         * This will ignore factors!
+         */
+        [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
+        post_multiply(const RawPolynomial& rhs,
+                      Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
          * Create a new operator matrix per element of polynomial, by pre-multiplying.
-         * This ignores factors!
+         * This will ignore factors!
          */
         [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
         pre_multiply(const Polynomial& lhs, const SymbolTable& symbols,
@@ -152,7 +168,7 @@ namespace Moment {
 
         /**
          * Create a new operator matrix per element of polynomial, by post-multiplying.
-         * This ignores factors!
+         * This will ignore factors!
          */
         [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
         post_multiply(const Polynomial& rhs, const SymbolTable& symbols,

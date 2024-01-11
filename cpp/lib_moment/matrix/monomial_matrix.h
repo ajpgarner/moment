@@ -17,6 +17,7 @@
 
 namespace Moment {
 
+    class OperatorSequence;
     class OperatorMatrix;
     class SymbolTable;
 
@@ -99,32 +100,29 @@ namespace Moment {
             return this->sym_exp_matrix->raw();
         }
 
-        /**
-         * Pre-multiply by a Monomial.
-         */
+        using SymbolicMatrix::pre_multiply;
+
+        using SymbolicMatrix::post_multiply;
+
+
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        pre_multiply(const Monomial& lhs, SymbolTable& symbol_table,
+        pre_multiply(const OperatorSequence& lhs, std::complex<double> weight,
+                     const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                      Multithreading::MultiThreadPolicy policy) const override;
 
-        /**
-         * Post-multiply by a Monomial.
-         */
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        post_multiply(const Monomial& rhs, SymbolTable& symbol_table,
+        post_multiply(const OperatorSequence& lhs, std::complex<double> weight,
+                      const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const override;
 
-        /**
-         * Pre-multiply by a Polynomial.
-         */
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        pre_multiply(const Polynomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+        pre_multiply(const RawPolynomial& lhs,
+                     const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                      Multithreading::MultiThreadPolicy policy) const override;
 
-        /**
-         * Post-multiply by a Polynomial.
-         */
         [[nodiscard]] std::unique_ptr<SymbolicMatrix>
-        post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+        post_multiply(const RawPolynomial& rhs,
+                      const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const override;
 
         std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
@@ -145,30 +143,29 @@ namespace Moment {
 
     protected:
 
-        /**
-         * Create dense basis.
-         */
         [[nodiscard]] DenseBasisInfo::MakeStorageType create_dense_basis() const override;
 
-        /**
-         * Create sparse basis.
-         */
         [[nodiscard]] SparseBasisInfo::MakeStorageType create_sparse_basis() const override;
 
-        /**
-         * Create dense complex basis.
-         */
         [[nodiscard]] DenseComplexBasisInfo::MakeStorageType create_dense_complex_basis() const override;
 
-        /**
-         * Create sparse basis.
-         */
         [[nodiscard]] SparseComplexBasisInfo::MakeStorageType create_sparse_complex_basis() const override;
 
         /**
          * Look up basis elements in matrix
          */
         void identify_symbols_and_basis_indices();
+
+    public:
+       /**
+        * Constructs a matrix of all zeros.
+        * @param context The context, for the (zero) operator sequences, if the context defines operators.
+        * @param symbol_table The associated symbol table.
+        * @param dimension The dimension of the matrix.
+        * @return Owning pointer to a newly constructed monomial matrix.
+        */
+        static std::unique_ptr<MonomialMatrix>
+        zero_matrix(const Context& context, SymbolTable& symbol_table, size_t dimension);
 
     };
 

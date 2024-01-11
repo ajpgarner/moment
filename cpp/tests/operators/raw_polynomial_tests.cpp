@@ -249,5 +249,31 @@ namespace Moment::Tests {
         EXPECT_EQ(raw_poly[1].weight, std::complex(1.0, 0.0));
     }
 
+    TEST(Operators_RawPolynomial, Add) {
+        MatrixSystem system{std::make_unique<Context>(2)};
+        const auto& context = system.Context();
+        const OperatorSequence os_A{{0}, context};
+        const OperatorSequence os_B{{1}, context};
+        ASSERT_NE(os_A.hash(), os_B.hash());
+
+        RawPolynomial raw_poly_A;
+        raw_poly_A.emplace_back(os_A, {1.0, 0.0});
+        raw_poly_A.emplace_back(os_B, {-1.0, 0.0});
+
+        RawPolynomial raw_poly_B;
+        raw_poly_A.emplace_back(os_A, {2.0, 0.0});
+        raw_poly_A.emplace_back(OperatorSequence::Identity(context), {0.0, -3.0});
+
+        const auto added_poly = RawPolynomial::add(raw_poly_A, raw_poly_B);
+        ASSERT_EQ(added_poly.size(), 3);
+
+        EXPECT_EQ(added_poly[0].sequence, OperatorSequence::Identity(context));
+        EXPECT_EQ(added_poly[0].weight, std::complex(0.0, -3.0));
+        EXPECT_EQ(added_poly[1].sequence, os_A);
+        EXPECT_EQ(added_poly[1].weight, std::complex(3.0, 0.0));
+        EXPECT_EQ(added_poly[2].sequence, os_B);
+        EXPECT_EQ(added_poly[2].weight, std::complex(-1.0, 0.0));
+    }
+
 
 }

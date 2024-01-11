@@ -335,7 +335,7 @@ namespace Moment::Pauli {
 
     RawPolynomial PauliContext::commutator(const RawPolynomial& lhs, const RawPolynomial& rhs,
                                            const double zero_tolerance) const {
-        return distributed_product(lhs, rhs,
+        return RawPolynomial::distributed_product(lhs, rhs,
                                    [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
                                        return this->commutator(lhs, rhs);
                                    }, [](const auto& lhs, const auto&rhs) { return lhs * rhs * 2.0;},
@@ -344,7 +344,7 @@ namespace Moment::Pauli {
 
     RawPolynomial PauliContext::anticommutator(const RawPolynomial& lhs, const RawPolynomial& rhs,
                                                const double zero_tolerance) const {
-        return distributed_product(lhs, rhs,
+        return RawPolynomial::distributed_product(lhs, rhs,
                                    [this](const auto& lhs, const auto& rhs) -> OperatorSequence {
                                        return this->anticommutator(lhs, rhs);
                                    }, [](const auto& lhs, const auto&rhs) { return lhs * rhs * 2.0;},

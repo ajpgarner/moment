@@ -28,10 +28,12 @@ namespace Moment {
     class Context;
     struct Monomial;
     class OperatorMatrix;
+    class OperatorSequence;
     class Polynomial;
     class PolynomialFactory;
     class PolynomialMatrix;
     class SymbolTable;
+    class RawPolynomial;
 
     namespace errors {
         /**
@@ -204,32 +206,111 @@ namespace Moment {
         virtual void renumerate_bases(const SymbolTable& symbols, double zero_tolerance) = 0;
 
         /**
-         * Create a new matrix by pre-multiplying this one by a Monomial.
+         * Throws an error if this matrix cannot be multiplied for any reason.
+         * @throws cannot_multiply_exception if some property of the matrix would prevent successful multiplication.
+         */
+        virtual void throw_error_if_cannot_multiply() const;
+
+        /**
+         * Create a new matrix by pre-multiplying this one by a weighted operator sequence.
+         * @param lhs The operator sequence pre-factor.
+         * @param weight A uniform weight to multiply the matrix by.
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
          */
         [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
-        pre_multiply(const Monomial& lhs, SymbolTable& symbol_table,
+        pre_multiply(const OperatorSequence& lhs, std::complex<double> weight,
+                     const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by post-multiplying this one by a weighted operator sequence.
+         * @param rhs The operator sequence post-factor.
+         * @param weight A uniform weight to multiply the matrix by.
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        post_multiply(const OperatorSequence& rhs, std::complex<double> weight,
+                      const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by pre-multiplying this one by a RawPolynomial.
+         * @param rhs The raw polynomial pre-factor.
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const RawPolynomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                     Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by post-multiplying this one by a RawPolynomial.
+         * @param rhs The raw polynomial post-factor.
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
+         */
+        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        post_multiply(const RawPolynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
+                      Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a new matrix by pre-multiplying this one by a Monomial.
+         * @param lhs The monomial prefactor
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
+         */
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        pre_multiply(const Monomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                      Multithreading::MultiThreadPolicy policy) const;
 
         /**
          * Create a new matrix by post-multiplying this one by a Monomial.
+         * @param rhs The monomial post-factor
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
          */
-        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
-        post_multiply(const Monomial& rhs,  SymbolTable& symbol_table,
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
+        post_multiply(const Monomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const;
 
         /**
          * Create a new matrix by pre-multiplying this one by a Polynomial.
+         * @param lhs The monomial pre-factor
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
          */
-        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         pre_multiply(const Polynomial& lhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                      Multithreading::MultiThreadPolicy policy) const;
 
         /**
          * Create a new matrix by post-multiplying this one by a Polynomial.
+         * @param rhs The monomial post-factor
+         * @param poly_factory Parameters for creating symbolic polynomials.
+         * @param symbol_table Mutable symbol table: will register any new symbols after multiplication.
+         * @param policy Attempt to multithread the multiplication?
+         * @return Owning pointer to newly created matrix.
          */
-        [[nodiscard]] virtual std::unique_ptr<SymbolicMatrix>
+        [[nodiscard]] std::unique_ptr<SymbolicMatrix>
         post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const;
+
 
         /**
          * Create a new matrix by adding a matrix this one.
@@ -244,8 +325,6 @@ namespace Moment {
         [[nodiscard]] virtual std::unique_ptr<PolynomialMatrix>
         add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
             Multithreading::MultiThreadPolicy policy) const;
-
-
 
     protected:
         /**

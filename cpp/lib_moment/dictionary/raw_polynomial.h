@@ -124,6 +124,10 @@ namespace Moment {
         [[nodiscard]] Polynomial to_polynomial_register_symbols(const PolynomialFactory& factory,
                                                                 SymbolTable& symbols) const;
 
+        /**
+         * Combine two raw polynomials additively (will sort).
+         */
+        static RawPolynomial add(const RawPolynomial& lhs, const RawPolynomial& rhs, double tolerance = 1.0);
 
         /**
          * Combine two raw polynomials according to a distributed operation.
@@ -137,7 +141,7 @@ namespace Moment {
          * @return A new combined Polynomial
          */
         template<typename op_functor_t, typename weight_functor_t>
-        friend RawPolynomial distributed_product(const RawPolynomial& lhs, const RawPolynomial& rhs,
+        static RawPolynomial distributed_product(const RawPolynomial& lhs, const RawPolynomial& rhs,
                                            const op_functor_t& op_functor,
                                            const weight_functor_t& weight_functor,
                                            double tolerance = 1.0) {
@@ -153,4 +157,5 @@ namespace Moment {
         }
 
     };
+
 }

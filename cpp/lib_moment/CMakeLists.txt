@@ -11,6 +11,7 @@ add_library(lib_moment
         matrix/composite_matrix.cpp
         matrix/matrix_basis.cpp
         matrix/monomial_matrix.cpp
+        matrix/monomial_matrix_arithmetic.cpp
         matrix/monomial_matrix_basis.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_basis.cpp
