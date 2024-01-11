@@ -70,10 +70,21 @@ namespace Moment {
 
         virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;
 
+        /**
+         * Efficiently combine LHS and RHS to make a polynomial with 0, 1 or 2 elements.
+         */
         [[nodiscard]] Polynomial sum(const Monomial& lhs, const Monomial& rhs) const;
 
+        /**
+         * Adds a monomial to an (already ordered) Polynomial
+         * * @complexity O(N+1)
+         */
         [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Monomial& rhs) const;
 
+        /**
+         * Adds to (already sorted) Polynomials to make a new Polynomial.
+         * @complexity O(N1+N2)
+         */
         [[nodiscard]] Polynomial sum(const Polynomial& lhs, const Polynomial& rhs) const;
 
         [[nodiscard]] inline bool is_hermitian(const Polynomial& poly) const {

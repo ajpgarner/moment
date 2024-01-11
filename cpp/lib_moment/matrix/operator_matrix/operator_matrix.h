@@ -68,12 +68,9 @@ namespace Moment {
         };
 
 
-    protected:
+    private:
         /** Matrix, as operator sequences */
         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_matrix;
-
-        /** Matrix, as hashes */
-        std::unique_ptr<SquareMatrix<uint64_t>> hash_matrix;
 
     public:
         const Context& context;
@@ -173,6 +170,12 @@ namespace Moment {
         [[nodiscard]] std::vector<std::unique_ptr<OperatorMatrix>>
         post_multiply(const Polynomial& rhs, const SymbolTable& symbols,
                       Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
+         * Creates a copy of this matrix
+         */
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
+        clone(Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         friend class SymbolicMatrix;
         friend class MonomialMatrix;

@@ -42,6 +42,29 @@ namespace Moment {
         }
     }
 
+
+    std::unique_ptr<SymbolicMatrix> SymbolicMatrix::clone(Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_clone_exception{"Generic SymbolicMatrix cannot be cloned."};
+    }
+
+    void SymbolicMatrix::copy_properties_onto_clone(SymbolicMatrix& clone) const {
+        // Basic properties must already match
+        assert(&clone.context == &this->context);
+        assert(&clone.symbol_table == &this->symbol_table);
+
+        // Copy resolved matrix properties
+        clone.dimension = this->dimension;
+        clone.hermitian = this->hermitian;
+        clone.complex_coefficients = this->complex_coefficients;
+        clone.complex_basis = this->complex_basis;
+        clone.description = this->description;
+        clone.included_symbols = this->included_symbols;
+        clone.real_basis_elements = this->real_basis_elements;
+        clone.imaginary_basis_elements = this->imaginary_basis_elements;
+        clone.basis_key = this->basis_key;
+    }
+
+
     std::unique_ptr<SymbolicMatrix>
     SymbolicMatrix::pre_multiply(const OperatorSequence& sequence, std::complex<double> weight,
                                  const PolynomialFactory& poly_factory,
@@ -80,6 +103,8 @@ namespace Moment {
                 "Pre-multiplication by raw polynomial not defined for generic SymbolicMatrix."
         };
     }
+
+
 
     namespace {
         template<bool premultiply>
@@ -186,7 +211,15 @@ namespace Moment {
         throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
     }
 
-    std::unique_ptr<PolynomialMatrix> SymbolicMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
+    std::unique_ptr<PolynomialMatrix> SymbolicMatrix::add(const Monomial& rhs,
+                                                          const PolynomialFactory& poly_factory,
+                                                          Multithreading::MultiThreadPolicy policy) const {
+        throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
+    }
+
+
+    std::unique_ptr<PolynomialMatrix> SymbolicMatrix::add(const Polynomial& rhs,
+                                                          const PolynomialFactory& poly_factory,
                                                           Multithreading::MultiThreadPolicy policy) const {
         throw errors::cannot_add_exception{"Addition not defined for generic SymbolicMatrix."};
     }

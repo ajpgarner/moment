@@ -37,6 +37,15 @@ namespace Moment {
 
     namespace errors {
         /**
+         * Exception to throw if cloning is not possible for some reason.
+         */
+        class cannot_clone_exception : public std::logic_error {
+        public:
+            explicit cannot_clone_exception(const std::string& what)
+                    : std::logic_error{what} { }
+        };
+
+        /**
          * Exception to throw if multiplication is not possible for some reason.
          */
         class cannot_multiply_exception : public std::logic_error {
@@ -311,7 +320,6 @@ namespace Moment {
         post_multiply(const Polynomial& rhs, const PolynomialFactory& poly_factory, SymbolTable& symbol_table,
                       Multithreading::MultiThreadPolicy policy) const;
 
-
         /**
          * Create a new matrix by adding a matrix this one.
          */
@@ -320,11 +328,27 @@ namespace Moment {
             Multithreading::MultiThreadPolicy policy) const;
 
         /**
+         * Create a new matrix by adding a monomial to this one.
+         */
+        [[nodiscard]] virtual std::unique_ptr<PolynomialMatrix>
+        add(const Monomial& rhs, const PolynomialFactory& poly_factory,
+            Multithreading::MultiThreadPolicy policy) const;
+
+        /**
          * Create a new matrix by adding a polynomial to this one.
          */
         [[nodiscard]] virtual std::unique_ptr<PolynomialMatrix>
         add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
             Multithreading::MultiThreadPolicy policy) const;
+
+        /**
+         * Create a copy of this matrix.
+         * In general, this is expensive and should be avoided.
+         */
+        virtual std::unique_ptr<SymbolicMatrix> clone(Multithreading::MultiThreadPolicy policy) const;
+
+    protected:
+        void copy_properties_onto_clone(SymbolicMatrix& clone) const;
 
     protected:
         /**

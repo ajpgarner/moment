@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
+#include "composite_matrix.h"
 #include "monomial_matrix.h"
 #include "polynomial_matrix.h"
 
@@ -22,33 +23,88 @@ namespace Moment {
 
 
     std::unique_ptr<PolynomialMatrix>
-    MonomialMatrix::add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
+    MonomialMatrix::add(const SymbolicMatrix& raw_rhs, const PolynomialFactory& poly_factory,
                         Multithreading::MultiThreadPolicy policy) const {
-        if (rhs.is_monomial()) {
-            return this->add(dynamic_cast<const MonomialMatrix&>(rhs), poly_factory, policy);
-        } else {
-            const auto& poly_rhs = dynamic_cast<const PolynomialMatrix&>(rhs);
-            return poly_rhs.add(*this, poly_factory, policy);
+        // If not mono-mono, prefer specialized function
+        if (!raw_rhs.is_monomial()) {
+            assert(dynamic_cast<PolynomialMatrix const * >(&raw_rhs) != nullptr);
+            // Addition is commutative, so can call other function's implementation.
+            return raw_rhs.add(*this, poly_factory, policy);
         }
-    }
 
-    std::unique_ptr<PolynomialMatrix>
-    MonomialMatrix::add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
-                        Multithreading::MultiThreadPolicy policy) const {
-        if (this->dimension != rhs.dimension) {
+        // First, check we can add...
+        if (this->dimension != raw_rhs.Dimension()) {
             throw errors::cannot_add_exception{"Cannot add matrices with mismatched dimensions."};
         }
 
-        std::array<const MonomialMatrix*, 2> summand_ptrs{this, &rhs};
-        return std::make_unique<PolynomialMatrix>(this->context, poly_factory, this->symbol_table, summand_ptrs);
+
+        // Cast to monomial
+        const auto * rhs_ptr = dynamic_cast<const MonomialMatrix*>(&raw_rhs);
+        assert(rhs_ptr != nullptr);
+
+        // Register as constituents, and make a composite polynomial matrix
+        CompositeMatrix::ConstituentInfo constitutent_data;
+        constitutent_data.matrix_dimension = this->dimension;
+        constitutent_data.elements.emplace_back(this, std::complex<double>(1.0, 0.0));
+        constitutent_data.elements.emplace_back(rhs_ptr, std::complex<double>(1.0, 0.0));
+
+        return std::make_unique<CompositeMatrix>(this->context, this->symbol_table, // Non-const reference here is fine:
+                                                                                    // addition will not add symbols...!
+                                                 poly_factory, std::move(constitutent_data));
     }
+
+
+
+    std::unique_ptr<PolynomialMatrix> MonomialMatrix::add(const Monomial& rhs, const PolynomialFactory& poly_factory,
+                                                          Multithreading::MultiThreadPolicy policy) const {
+        // Special case: add zero
+        if ((rhs.id == 0) || (approximately_zero(rhs.factor, poly_factory.zero_tolerance))) {
+            return std::make_unique<CompositeMatrix>(this->context, this->symbol_table, poly_factory,
+                 CompositeMatrix::ConstituentInfo{*this, std::complex<double>(1.0, 0.0)});
+        }
+
+        // Otherwise, construct a polynomial matrix from this matrix
+
+        // General case: add a polynomial
+        std::vector<Polynomial> output_polynomials;
+        output_polynomials.reserve(this->dimension * this->dimension);
+        for (auto matrix_elem : *this->sym_exp_matrix) {
+            output_polynomials.emplace_back(poly_factory.sum(matrix_elem, rhs));
+        }
+        auto output_poly_sm = std::make_unique<SquareMatrix<Polynomial>>(this->dimension, std::move(output_polynomials));
+
+        // Construct new polynomial matrix
+        return std::make_unique<PolynomialMatrix>(this->context, this->symbol_table, poly_factory.zero_tolerance,
+                                                  std::move(output_poly_sm));
+    }
+
 
     std::unique_ptr<PolynomialMatrix> MonomialMatrix::add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
                                                           Multithreading::MultiThreadPolicy policy) const {
-        throw errors::cannot_add_exception{"MonomialMatrix::add Polynomial RHS not implemented."};
+
+        // NB: Here, adding zero will effectively promote the matrix to a singular CompositeMatrix
+        if (rhs.empty()) {
+            return std::make_unique<CompositeMatrix>(this->context, this->symbol_table, poly_factory,
+                CompositeMatrix::ConstituentInfo{*this, std::complex<double>(1.0, 0.0)});
+        }
+
+        // Special case: add monomial
+        if (rhs.is_monomial() && !rhs.empty()) {
+            return this->add(rhs.back(), poly_factory, policy);
+        }
+
+        // General case: add a polynomial
+        std::vector<Polynomial> output_polynomials;
+        output_polynomials.reserve(this->dimension * this->dimension);
+        for (auto matrix_elem : *this->sym_exp_matrix) {
+            output_polynomials.emplace_back(poly_factory.sum(rhs, matrix_elem));
+        }
+        auto output_poly_sm = std::make_unique<SquareMatrix<Polynomial>>(this->dimension, std::move(output_polynomials));
+
+        // Construct new polynomial matrix
+        return std::make_unique<PolynomialMatrix>(this->context, this->symbol_table, poly_factory.zero_tolerance,
+                                                  std::move(output_poly_sm));
     }
-
-
 
     namespace {
         /** Implementation of monomial multiplication */

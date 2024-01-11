@@ -113,16 +113,84 @@ namespace Moment {
     }
 
     Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Monomial& rhs) const {
-        // TODO: Efficient addition assuming LHS is sorted
-        Polynomial output{lhs};
-        this->append(output, Polynomial(rhs, this->zero_tolerance)); // <- virtual call.
+        Polynomial output;
+        output.data.reserve(lhs.size()+1);
+
+        auto copy_iter = lhs.begin();
+        const auto copy_iter_end = lhs.end();
+
+        while ((copy_iter != copy_iter_end) && this->less(*copy_iter, rhs)) {
+            output.data.emplace_back(*copy_iter);
+            ++copy_iter;
+        }
+
+        // Special case: mono is just appended to polynomial.
+        if (copy_iter == copy_iter_end) {
+            output.data.emplace_back(rhs);
+            return output;
+        }
+
+        // Otherwise, check if monomial is same ID and conjugation
+        if (copy_iter->id == rhs.id && copy_iter->conjugated == rhs.conjugated) {
+            auto sum_factor = copy_iter->factor + rhs.factor;
+            if (!approximately_zero(sum_factor, this->zero_tolerance)) {
+                output.data.emplace_back(rhs.id, sum_factor, rhs.conjugated);
+            }
+            ++copy_iter;
+        } else {
+            // Otherwise can just directly splice in RHS
+            output.data.emplace_back(rhs);
+        }
+
+        // Copy remaining part of polynomial
+        while ((copy_iter != copy_iter_end)) {
+            output.data.emplace_back(*copy_iter);
+            ++copy_iter;
+        }
         return output;
     }
 
     Polynomial PolynomialFactory::sum(const Polynomial& lhs, const Polynomial& rhs) const {
-        // TODO: Efficient addition assuming LHS and RHS are sorted
-        Polynomial output{lhs};
-        this->append(output, rhs); // <- virtual call.
+
+        Polynomial output;
+        output.data.reserve(lhs.size() + rhs.size());
+
+        auto lhs_iter = lhs.begin();
+        const auto lhs_iter_end = lhs.end();
+        auto rhs_iter = rhs.begin();
+        const auto rhs_iter_end = rhs.end();
+
+        // Combine ordered
+        while ((lhs_iter != lhs_iter_end) && (rhs_iter != rhs_iter_end)) {
+            if (this->less(*lhs_iter, *rhs_iter)) { // Add element from LHS
+                output.data.emplace_back(*lhs_iter);
+                ++lhs_iter;
+            } else if (this->less(*rhs_iter, *lhs_iter)) { // Add element from RHS
+                output.data.emplace_back(*rhs_iter);
+                ++rhs_iter;
+            } else { // Combine sides
+                auto sum_factor = lhs_iter->factor + rhs_iter->factor;
+                if (!approximately_zero(sum_factor, this->zero_tolerance)) {
+                    output.data.emplace_back(lhs_iter->id, sum_factor, lhs_iter->conjugated);
+                }
+                ++lhs_iter;
+                ++rhs_iter;
+            }
+        }
+
+        // Add remaining elements from LHS, if any
+        while (lhs_iter != lhs_iter_end) {
+            output.data.emplace_back(*lhs_iter);
+            ++lhs_iter;
+        }
+
+        // Add remaining elements from RHS, if any.
+        // (If previous loop executed more than once, this will not execute at all!)
+        while (rhs_iter != rhs_iter_end) {
+            output.data.emplace_back(*rhs_iter);
+            ++rhs_iter;
+        }
+
         return output;
     }
 

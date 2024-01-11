@@ -83,6 +83,17 @@ namespace Moment {
 
     OperatorMatrix::~OperatorMatrix() noexcept = default;
 
+    std::unique_ptr<OperatorMatrix> OperatorMatrix::clone(Multithreading::MultiThreadPolicy policy) const {
+        const size_t dimension = this->Dimension();
+
+        std::vector<OperatorSequence> cloned_data;
+        cloned_data.reserve(dimension * dimension);
+        std::copy(this->op_seq_matrix->begin(), this->op_seq_matrix->end(), std::back_inserter(cloned_data));
+
+        return std::make_unique<OperatorMatrix>(this->context,
+                        std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(cloned_data)));
+    }
+
     const OSGPair& OperatorMatrix::generators() const {
         throw std::runtime_error{"Generic OperatorMatrix does not have any attached generators."};
     }

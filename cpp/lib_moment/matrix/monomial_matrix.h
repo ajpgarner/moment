@@ -128,8 +128,8 @@ namespace Moment {
         std::unique_ptr<PolynomialMatrix> add(const SymbolicMatrix& rhs, const PolynomialFactory& poly_factory,
                                               Multithreading::MultiThreadPolicy policy) const override;
 
-        std::unique_ptr<PolynomialMatrix> add(const MonomialMatrix& rhs, const PolynomialFactory& poly_factory,
-                                              Multithreading::MultiThreadPolicy policy) const;
+        std::unique_ptr<PolynomialMatrix> add(const Monomial& rhs, const PolynomialFactory& poly_factory,
+                                              Multithreading::MultiThreadPolicy policy) const override;
 
         std::unique_ptr<PolynomialMatrix> add(const Polynomial& rhs, const PolynomialFactory& poly_factory,
                                               Multithreading::MultiThreadPolicy policy) const override;
@@ -166,6 +166,8 @@ namespace Moment {
         */
         static std::unique_ptr<MonomialMatrix>
         zero_matrix(const Context& context, SymbolTable& symbol_table, size_t dimension);
+
+        std::unique_ptr<SymbolicMatrix> clone(Multithreading::MultiThreadPolicy policy) const override;
 
     };
 

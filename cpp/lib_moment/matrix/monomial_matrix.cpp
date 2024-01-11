@@ -316,6 +316,7 @@ namespace Moment {
         : SymbolicMatrix{context, symbols, symbolMatrix ? symbolMatrix->dimension : 0},
           SymbolMatrix{*this}, sym_exp_matrix{std::move(symbolMatrix)}, global_prefactor{factor}
         {
+            // Sanity check
             if (!sym_exp_matrix) {
                 throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};
             }
@@ -335,9 +336,16 @@ namespace Moment {
             : MonomialMatrix{op_mat_ptr->context, symbols, 1.0, std::move(sym_mat_ptr),
                              op_mat_ptr->is_hermitian(), 1.0} {
 
+        // Sanity check
+        if (!sym_exp_matrix) {
+            throw std::runtime_error{"Symbol pointer passed to MonomialMatrix constructor was nullptr."};
+        }
+
         // Register operator matrix with this monomial matrix
         this->op_mat = std::move(op_mat_ptr);
-        this->op_mat->set_properties(*this);
+        if (this->op_mat) {
+            this->op_mat->set_properties(*this);
+        }
     }
 
 
@@ -448,6 +456,29 @@ namespace Moment {
         return std::make_unique<MonomialMatrix>(context, symbol_table,
                                                 1.0, // <- valid, as everything is already zero
                                                 std::move(symbolic_data), true);
+    }
+
+    std::unique_ptr<SymbolicMatrix> MonomialMatrix::clone(Multithreading::MultiThreadPolicy policy) const {
+        // Copy symbol data
+        std::vector<Monomial> cloned_symbol_data;
+        cloned_symbol_data.reserve(this->dimension * this->dimension);
+        std::copy(this->sym_exp_matrix->begin(), this->sym_exp_matrix->end(), std::back_inserter(cloned_symbol_data));
+        auto cloned_symbol_matrix =  std::make_unique<SquareMatrix<Monomial>>(this->dimension,
+                                                                              std::move(cloned_symbol_data));
+
+        // Make copy of the matrix
+        std::unique_ptr<MonomialMatrix> copied_matrix =
+                std::make_unique<MonomialMatrix>(symbol_table,
+                                                this->has_operator_matrix() ? this->operator_matrix().clone(policy)
+                                                                            : nullptr,
+                                                 std::move(cloned_symbol_matrix));
+
+        // Copy other matrix properties:
+        this->copy_properties_onto_clone(*copied_matrix);
+        copied_matrix->global_prefactor = this->global_prefactor;
+
+
+        return copied_matrix;
     }
 
 
