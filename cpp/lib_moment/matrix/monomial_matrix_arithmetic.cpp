@@ -51,22 +51,25 @@ namespace Moment {
 
 
     namespace {
+        /** Implementation of monomial multiplication */
         template<bool premultiply>
-        inline std::unique_ptr<MonomialMatrix>
+        std::unique_ptr<MonomialMatrix>
         do_raw_monomial_multiply(const OperatorSequence& op_sequence, std::complex<double> mono_factor,
                                  const MonomialMatrix& matrix,
                                  const PolynomialFactory& poly_factory, SymbolTable& symbol_registry,
                                  const Multithreading::MultiThreadPolicy policy) {
 
-            // Get operator matrix
-            if (!matrix.has_operator_matrix()) [[unlikely]] {
-                throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
+            // Special case, zero operator sequence:
+            if (op_sequence.zero()) {
+                return MonomialMatrix::zero_matrix(matrix.context, symbol_registry, matrix.Dimension());
             }
-            if (matrix.context.can_have_aliases()) [[unlikely]] {
-                throw errors::cannot_multiply_exception{
-                        "Currently, multiplication will give unexpected results if aliases (i.e. symmetries) are present."
-                };
-            }
+
+            // General case.
+            // First, ensure matrix can be multiplied
+            matrix.throw_error_if_cannot_multiply();
+
+            // Prefactor multiplication
+            const auto new_factor = matrix.global_factor() * mono_factor;
 
             // Do multiplication
             std::unique_ptr<OperatorMatrix> multiplied_op_ptr;
@@ -76,32 +79,45 @@ namespace Moment {
                 multiplied_op_ptr = matrix.operator_matrix().post_multiply(op_sequence, policy);
             }
 
-            // Prefactor multiplication
-            const auto new_factor = matrix.global_factor() * mono_factor;
-
             // Do creation
             return std::make_unique<MonomialMatrix>(symbol_registry, std::move(multiplied_op_ptr), new_factor);
         }
+    }
 
+    std::unique_ptr<SymbolicMatrix>
+    MonomialMatrix::pre_multiply(const OperatorSequence &lhs, std::complex<double> weight,
+                                 const PolynomialFactory& poly_factory, SymbolTable &symbol_table,
+                                 Multithreading::MultiThreadPolicy policy) const {
+        return do_raw_monomial_multiply<true>(lhs, weight, *this, poly_factory, symbol_table, policy);
+    }
+
+    std::unique_ptr<SymbolicMatrix>
+    MonomialMatrix::post_multiply(const OperatorSequence &rhs, std::complex<double> weight,
+                                  const PolynomialFactory& poly_factory, SymbolTable &symbol_table,
+                                  Multithreading::MultiThreadPolicy policy) const {
+        return do_raw_monomial_multiply<false>(rhs, weight, *this, poly_factory, symbol_table, policy);
+    }
+
+    namespace {
+        /** Implementation of polynomial multiplication */
         template<bool premultiply>
-        inline std::unique_ptr<SymbolicMatrix>
+        std::unique_ptr<SymbolicMatrix>
         do_raw_polynomial_multiply(const RawPolynomial &poly, const MonomialMatrix &matrix,
                                    const PolynomialFactory& poly_factory, SymbolTable& symbol_registry,
                                    const Multithreading::MultiThreadPolicy policy) {
-            // TODO: Special case: zero
-            // TODO: Special case: identity
-            // TODO: Special case: monomial
-
-
-            // Get operator matrix
-            if (!matrix.has_operator_matrix()) {
-                throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
+            // Special case: zero
+            if (poly.empty()) {
+                return MonomialMatrix::zero_matrix(matrix.context, symbol_registry, matrix.Dimension());
             }
-            if (matrix.context.can_have_aliases()) {
-                throw errors::cannot_multiply_exception{
-                        "Currently, multiplication will give unexpected results if aliases (i.e. symmetries) are present."
-                };
+
+            // Special case: monomial
+            if (1 == poly.size()) {
+                return do_raw_monomial_multiply<premultiply>(poly[0].sequence, poly[0].weight, matrix,
+                                                             poly_factory, symbol_registry, policy);
             }
+
+            // Otherwise, proceed to general case
+            matrix.throw_error_if_cannot_multiply();
 
             // Do multiplication of operator matrices
             const size_t poly_size = poly.size();
@@ -131,19 +147,6 @@ namespace Moment {
         }
     }
 
-    std::unique_ptr<SymbolicMatrix>
-    MonomialMatrix::pre_multiply(const OperatorSequence &lhs, std::complex<double> weight,
-                                 const PolynomialFactory& poly_factory, SymbolTable &symbol_table,
-                                 Multithreading::MultiThreadPolicy policy) const {
-        return do_raw_monomial_multiply<true>(lhs, weight, *this, poly_factory, symbol_table, policy);
-    }
-
-    std::unique_ptr<SymbolicMatrix>
-    MonomialMatrix::post_multiply(const OperatorSequence &rhs, std::complex<double> weight,
-                                  const PolynomialFactory& poly_factory, SymbolTable &symbol_table,
-                                  Multithreading::MultiThreadPolicy policy) const {
-        return do_raw_monomial_multiply<false>(rhs, weight, *this, poly_factory, symbol_table, policy);
-    }
 
     std::unique_ptr<SymbolicMatrix>
     MonomialMatrix::pre_multiply(const RawPolynomial &lhs,
