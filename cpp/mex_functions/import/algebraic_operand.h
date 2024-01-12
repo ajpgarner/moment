@@ -15,6 +15,7 @@
 
 #include "MatlabDataArray.hpp"
 
+#include <iosfwd>
 #include <variant>
 #include <vector>
 
@@ -28,19 +29,6 @@ namespace Moment {
     class SymbolicMatrix;
 
     namespace mex {
-
-        enum class ProductType {
-            /** Incompatible, or unknown, product */
-            Incompatible,
-            /** Many->many, with bad dimensions */
-            MismatchedDimensions,
-            OneToOne,
-            OneToMany,
-            OneToMatrix,
-            ManyToOne,
-            ManyToMany,
-            MatrixToOne
-        };
 
         /**
          * Algebraic input.
@@ -159,8 +147,6 @@ namespace Moment {
 
             [[nodiscard]] const std::vector<RawPolynomial> to_raw_polynomial_array(const MatrixSystem& system);
 
-            friend ProductType product_type(const AlgebraicOperand& lhs, const AlgebraicOperand& rhs);
-
         private:
             void parse_as_matrix_key(const matlab::data::Array& input);
 
@@ -176,6 +162,9 @@ namespace Moment {
 
             void parse_as_symbol_cell(const matlab::data::CellArray& input);
 
+        public:
+            /** Debug info on operand */
+            friend std::ostream& operator<<(std::ostream&, const AlgebraicOperand& operand);
         };
     }
 }

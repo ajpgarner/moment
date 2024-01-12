@@ -53,61 +53,6 @@ namespace Moment::mex::functions  {
                << system.system_type_name() << ".\n";
         }
 
-        inline void output_operand_summary(std::ostream& os, const AlgebraicOperand& operand) {
-            if (operand.is_scalar()) {
-                os << "Scalar";
-            } else if (operand.shape.empty()) {
-                os << "Empty";
-            } else {
-                bool once = false;
-                for (const auto dim : operand.shape) {
-                    if (once) {
-                        os << " x ";
-                    }
-                    os << dim;
-                    once = true;
-                }
-            }
-            os << " ";
-
-            switch (operand.type) {
-                case AlgebraicOperand::InputType::Monomial:
-                case AlgebraicOperand::InputType::MonomialArray:
-                    os << "monomial";
-                    break;
-                case AlgebraicOperand::InputType::Polynomial:
-                case AlgebraicOperand::InputType::PolynomialArray:
-                    os << "polynomial";
-                    break;
-                case AlgebraicOperand::InputType::EmptyObject:
-                    os << "operand";
-                    break;
-                default:
-                    os << "[unexpected: " << static_cast<int>(operand.type) << "]";
-                    break;
-            }
-            os << " (input as: ";
-            switch (operand.format) {
-
-                case AlgebraicOperand::InputFormat::Unknown:
-                    os << "unknown";
-                    break;
-                case AlgebraicOperand::InputFormat::Number:
-                    os << "number";
-                    break;
-                case AlgebraicOperand::InputFormat::SymbolCell:
-                    os << "symbol cell";
-                    break;
-                case AlgebraicOperand::InputFormat::OperatorCell:
-                    os << "operator cell";
-                    break;
-                default:
-                    os << "[unexpected: " << static_cast<int>(operand.type) << "]";
-            }
-            os << ").\n";
-        }
-
-
         void output_empty(matlab::engine::MATLABEngine& engine,
                           IOArgumentRange& output, const EchoOperandParams& input,
                           const bool print_output, const MatrixSystem& system) {
@@ -155,7 +100,7 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 ss << "Monomial: " << raw_polynomial.to_string(system.Context()) << ".\n";
                 print_to_console(engine, ss.str());
             }
@@ -178,7 +123,7 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 ss << "Raw polynomial: " << raw_polynomial.to_string(system.Context()) << ".\n";
                 print_to_console(engine, ss.str());
             }
@@ -202,7 +147,7 @@ namespace Moment::mex::functions  {
                 std::stringstream ss;
                 ContextualOS cSS{ss, system.Context(), system.Symbols()};
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 cSS << "Symbolic polynomial: " << polynomial << ".\n";
                 print_to_console(engine, ss.str());
             }
@@ -225,7 +170,7 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 for (const auto& raw_poly : raw_polynomials) {
                     ss << raw_poly.to_string(system.Context()) << "\n";
                 }
@@ -248,7 +193,7 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 for (const auto& raw_poly : raw_polynomials) {
                     ss << raw_poly.to_string(system.Context()) << "\n";
                 }
@@ -270,7 +215,7 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 output_matrix_system_id(ss, input.matrix_system_key.value(), system);
-                output_operand_summary(ss, input.operand);
+                ss << input.operand;
                 print_to_console(engine, ss.str());
                 ContextualOS cSS{ss, system.Context(), system.Symbols()};
                 for (const auto& poly : polynomials) {

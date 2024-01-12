@@ -1,4 +1,4 @@
-%% Example: cvx_inflation_triangle.m
+%% Example: yalmip_inflation_triangle.m
 % Test triangle scenario of three binary observables, each pair-wise linked 
 % by a source, with total probability distribution P(000) = P(111) = 1/2.
 %   
@@ -43,10 +43,10 @@ diagnostics = optimize(constraints);
 %% Print result
 if diagnostics.problem == 0
  	feasible = true;
-    fprintf("Feasible.\n");
+    fprintf("Feasible (incorrect answer).\n");
 elseif diagnostics.problem == 1
     feasible = false;
-    fprintf("Infeasible.\n");
+    fprintf("Infeasible (correct answer).\n");
 else
     disp(diagnostics);
     error("Could not ascertain feasibility.");

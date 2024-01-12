@@ -640,10 +640,9 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'algebraic', 'minus'})
         testCase.verifyTrue(isa(x_y , 'MTKPolynomial'));
 
         alt_y = x - x_y;
-        testCase.assertTrue(isa(alt_y , 'MTKPolynomial'));
-
-        testCase.verifyEqual(alt_y.Constituents(1).Operators, y.Operators);
-        testCase.verifyEqual(alt_y.Constituents(1).Coefficient, -y.Coefficient);            
+        testCase.assertTrue(isa(alt_y , 'MTKMonomial'));
+        testCase.verifyEqual(alt_y.Operators, y.Operators);
+        testCase.verifyEqual(alt_y.Coefficient, complex(-y.Coefficient));
     end
 
     function minus_poly_poly(testCase)

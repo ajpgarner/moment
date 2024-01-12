@@ -7,45 +7,36 @@
 
 #pragma once
 
-#include "../../mtk_function.h"
-
-#include "integer_types.h"
-#include "import/algebraic_operand.h"
-#include "import/matrix_system_id.h"
+#include "binary_operation.h"
 
 namespace Moment::Pauli {
-    class PauliMatrixSystem;
+    class PauliContext;
 }
 
 namespace Moment::mex::functions {
 
-    struct CommutatorParams : public SortedInputs {
+    struct CommutatorParams : public BinaryOperationParams {
     public:
-        /** Key to the matrix system. */
-        MatrixSystemId matrix_system_key;
-
         /** True to calculate anticommutator, false for commutator */
         bool anticommute = false;
 
-        /** Left hand operand */
-        AlgebraicOperand lhs;
-
-        /** Right hand operand */
-        AlgebraicOperand rhs;
-
-        /** Type of operation requested */
-        ProductType resolved_product_type = ProductType::Incompatible;
-
     public:
         explicit CommutatorParams(SortedInputs&& inputs);
-
     };
 
-    class Commutator : public ParameterizedMTKFunction<CommutatorParams, MTKEntryPointID::Commutator> {
+    class Commutator : public BinaryOperation<CommutatorParams, MTKEntryPointID::Commutator> {
+    private:
+        Pauli::PauliContext const * pauli_context_ptr = nullptr;
+        bool anticommute = false;
+
     public:
-        explicit Commutator(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
+        explicit Commutator(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : BinaryOperation<CommutatorParams, MTKEntryPointID::Commutator>{matlabEngine, storage} { }
 
     protected:
-        void operator()(IOArgumentRange output, CommutatorParams &input) override;
+        void additional_setup(CommutatorParams& input) final;
+
+        RawPolynomial one_to_one(const RawPolynomial& lhs, const RawPolynomial& rhs) final;
+
     };
 }

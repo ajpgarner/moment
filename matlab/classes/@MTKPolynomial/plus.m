@@ -34,67 +34,28 @@ function val = plus(lhs, rhs)
     % Check objects are from same scenario
     this.checkSameScenario(other);
     
-    % Do we have symbolic representation for accelerated addition?
-    if ~this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols && other.FoundAllSymbols
-        result_cell = mtk('plus', 'sequences', ...
-                          this.Scenario.System.RefId, ...
-                          this.SymbolCell, other.SymbolCell);
-        val = MTKPolynomial.InitFromOperatorPolySpec(this.Scenario, ...
-                                                     result_cell);
-        return;
-    end
-
-    % Handle Monomial append case
-    if isa(other, 'MTKMonomial')
-        if this.IsScalar
-            if other.IsScalar
-                val = MTKPolynomial(this.Scenario, ...
-                                [this.Constituents; other]);
-            else
-                other = other.split();                        
-                val = MTKPolynomial(this.Scenario, ...
-                    cellfun(@(x) [this.Constituents; x], other,...
-                            'UniformOutput', false));
-            end
-        else
-            if other.IsScalar
-               val = MTKPolynomial(this.Scenario, ...
-                    cellfun(@(x) [x; other], ...
-                        this.Constituents, 'UniformOutput', false));
-            else
-                other = other.split();
-                val = MTKPolynomial(this.Scenario, ...
-                    cellfun(@(x, y) [x; y], ...
-                        this.Constituents, other, ...
-                        'UniformOutput', false));
-            end                    
-        end                
-        return
-    end
-
-    % Handle Polynomial append case
-    assert(isa(other, 'MTKPolynomial'));
-    if this.IsScalar
-        if other.IsScalar
-            val = MTKPolynomial(this.Scenario, ...
-                            [this.Constituents; ...
-                             other.Constituents]);
-        else
-            val = MTKPolynomial(this.Scenario, ...
-                cellfun(@(x) [this.Constituents; x], ...
-                        other.Constituents, ...
-                        'UniformOutput', false));
-        end
+    % Get 'LHS' cell:
+    if this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols 
+        this_cell = this.SymbolCell;
     else
-        if other.IsScalar
-           val = MTKPolynomial(this.Scenario, ...
-                cellfun(@(x) [x; other.Constituents], ...
-                    this.Constituents, 'UniformOutput', false));
-        else
-            val = MTKPolynomial(this.Scenario, ...
-                cellfun(@(x, y) [x; y], ...
-                    this.Constituents, other.Constituents, ...
-                    'UniformOutput', false));
-        end
-    end            
+        this_cell = this.OperatorCell;
+    end
+    
+    % Get 'RHS' cell
+    if this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
+        other_cell = other.SymbolCell;
+    else
+        other_cell = other.OperatorCell;
+    end
+    
+    [result_cell, is_monomial] = mtk('plus', this.Scenario.System.RefId,...
+                                     this_cell, other_cell);
+
+    if is_monomial
+        val = MTKMonomial.InitAllInfo(this.Scenario, result_cell{:});
+    else
+        val = MTKPolynomial.InitFromOperatorPolySpec(...
+                                this.Scenario, result_cell);
+    end
+        
 end

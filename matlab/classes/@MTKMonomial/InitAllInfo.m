@@ -13,6 +13,12 @@ function obj = InitAllInfo(setting, operators, coefs, hashes, ...
         return;
     end
     
+    % If symbolic information not provided, partial init...
+    if nargin <= 4
+        obj = MTKMonomial.InitDirect(setting, operators, coefs, hashes);
+        return
+    end
+    
     % Is alias info provided?
     if nargin < 9
         is_aliased = false(size(coefs));

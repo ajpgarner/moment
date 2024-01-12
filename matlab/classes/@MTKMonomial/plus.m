@@ -24,6 +24,7 @@
 %
 % See also: ALGEBRAIC.POLYNOMIAL.PLUS
 %
+
     % Add a scalar by a built-in type?
     if ~isa(lhs, 'MTKMonomial')
         this = rhs;
@@ -56,86 +57,27 @@
         this.checkSameScenario(other);
     end
     
-    % Do we have symbolic representation for accelerated addition?
-    if ~this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols && other.FoundAllSymbols
-        [result_cell, is_monomial] = ...
-            mtk('plus', 'sequences', this.Scenario.System.RefId, ...
-                this.SymbolCell, other.SymbolCell);
-        if is_monomial
-            val = MTKMonomial.InitAllInfo(this.Scenario, result_cell{:});
-        else
-            val = MTKPolynomial.InitFromOperatorPolySpec(this.Scenario, ...
-                                                         result_cell);
-        end
-        return;
+    % Get 'LHS' cell:
+    if this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols 
+        this_cell = this.SymbolCell;
+    else
+        this_cell = this.OperatorCell;
     end
+    
+    % Get 'RHS' cell
+    if this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
+        other_cell = other.SymbolCell;
+    else
+        other_cell = other.OperatorCell;
+    end
+    
+    [result_cell, is_monomial] = mtk('plus', this.Scenario.System.RefId,...
+                                     this_cell, other_cell);
 
-    % Handle remaining cases
-    if this.IsScalar && other.IsScalar
-        if isequal(this.Operators, other.Operators)
-            coef = this.Scenario.Prune(this.Coefficient ...
-                                        + other.Coefficient);
-            if coef ~= 0
-                val = MTKMonomial(this.Scenario, this.Operators, coef);
-            else
-                val = MTKMonomial(this.Scenario, [], 0);
-            end
-        else
-            val = MTKPolynomial(this.Scenario, [this;other]);
-        end
-    elseif this.IsScalar % And other is not a scalar.
-        if all(cellfun(@(x) isequal(this.Operators, x), other.Operators))
-            [coef, mask] = this.Scenario.Prune(this.Coefficient...
-                                             + other.Coefficient);
-            if any(mask(:))
-               new_ops = other.Operators;
-               new_ops{mask} = [];
-               val = MTKMonomial(this.Scenario, new_ops, coef); 
-            else
-               val = MTKMonomial(this.Scenario, other.Operators, coef);
-            end
-        else
-            mono_cells = other.split();
-            mono_cells = cellfun(@(x) [this; x], mono_cells, ...
-                               'UniformOutput', false);
-            val = MTKPolynomial(this.Scenario, mono_cells);                    
-        end
-    elseif other.IsScalar % And this is not a scalar.
-        if all(cellfun(@(x) isequal(x, this.Operators), this.Operators))
-            [coef, mask] = this.Scenario.Prune(this.Coefficient...
-                                             + other.Coefficient);
-            if any(mask(:))
-                new_ops = this.Operators;
-                [new_ops{mask}] = deal([]);
-                val = MTKMonomial(this.Scenario, new_ops, coef);
-            else
-                val = MTKMonomial(this.Scenario, this.Operators, coef);
-            end
-        else 
-            mono_cells = this.split();
-            mono_cells = cellfun(@(x) [x; other], mono_cells, ...
-                               'UniformOutput', false);
-            val = MTKPolynomial(this.Scenario, mono_cells);
-        end
-    else % Nothing is scalar
-        if all(cellfun(@(x, y) isequal(x, y), ...
-                this.Operators, other.Operators))
-            [coef, mask] = this.Scenario.Prune(this.Coefficient ...
-                                              + other.Coefficient);
-            if any(mask(:))
-                new_ops = this.Operators;
-                [new_ops{mask}] = deal([]);
-                val = MTKMonomial(this.Scenario, new_ops, coef);
-            else
-                val = MTKMonomial(this.Scenario, this.Operators, coef);
-            end
-        else                    
-            mono_this = this.split();
-            mono_other = other.split();
-            mono_cells = cellfun(@(x, y) [x; y], ...
-                                mono_this, mono_other, ...
-                                'UniformOutput', false);
-            val = MTKPolynomial(this.Scenario, mono_cells);
-        end
+    if is_monomial
+        val = MTKMonomial.InitAllInfo(this.Scenario, result_cell{:});
+    else
+        val = MTKPolynomial.InitFromOperatorPolySpec(...
+                                this.Scenario, result_cell);
     end
 end

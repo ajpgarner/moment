@@ -2,7 +2,8 @@
 % ORDERANDMERGE Sort monomials, and combine repeated elements.
 
     assert(isa(monomials, 'MTKMonomial'));
-    assert(monomials.IsScalar || monomials.IsColVector);
+    assert(monomials.IsScalar || monomials.IsColVector, ...
+           "Monomial constituents must be supplied as a column vector.");
     
     % Trivial case: empty
     if numel(monomials) == 0

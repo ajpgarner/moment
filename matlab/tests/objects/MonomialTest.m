@@ -1062,7 +1062,8 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
         x_plus_x = x + x;
         testCase.verifyTrue(isa(x_plus_x, 'MTKMonomial'));
         testCase.verifyEqual(x_plus_x.Operators, x.Operators);
-        testCase.verifyEqual(x_plus_x.Coefficient, 2 * x.Coefficient);
+        testCase.verifyEqual(x_plus_x.Coefficient, ...
+                             complex(2 * x.Coefficient));
     end
 
 

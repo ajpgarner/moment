@@ -64,6 +64,7 @@ matlab_add_mex(NAME moment_mex
             functions/transform_matrix.cpp
             functions/transform_symbols.cpp
             functions/word_list.cpp
+            functions/algebraic/binary_operation.cpp
             functions/algebraic/commutator.cpp
             functions/algebraic/conjugate.cpp
             functions/algebraic/multiply.cpp

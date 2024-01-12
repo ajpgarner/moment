@@ -14,6 +14,7 @@
 #include "utilities/reporting.h"
 #include "utilities/read_as_scalar.h"
 
+#include <ostream>
 #include <sstream>
 
 namespace Moment::mex {
@@ -46,7 +47,7 @@ namespace Moment::mex {
         }
     }
 
-        void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
+    void AlgebraicOperand::parse_as_matrix_key(const matlab::data::Array& raw_input) {
         this->type = InputType::MatrixID;
         this->shape = std::vector<size_t>{0, 0};
         this->raw.emplace<0>(read_as_uint64(matlabEngine, raw_input));
@@ -372,90 +373,66 @@ namespace Moment::mex {
         return output;
     }
 
+    std::ostream& operator<<(std::ostream& os, const AlgebraicOperand& operand) {
 
-    ProductType product_type(const AlgebraicOperand& lhs, const AlgebraicOperand& rhs) {
-        switch (lhs.type) {
-            // Not a case! Deliberate: this is an instruction to the compiler, not executable code...
-            using enum AlgebraicOperand::InputType;
-
-            // Matrix ->
-            case MatrixID:
-                switch (rhs.type) {
-                    // -> unknown
-                    case Unknown:
-                        return ProductType::Incompatible;
-                        // -> one
-                    case EmptyObject:
-                    case Monomial:
-                    case Polynomial:
-                        return ProductType::MatrixToOne;
-                        // -> matrix
-                    case MatrixID:
-                        return ProductType::Incompatible;
-                        // -> many
-                    case MonomialArray:
-                    case PolynomialArray:
-                        return ProductType::Incompatible;
+        auto dim_format = [&os](const std::vector<size_t>& shape) {
+            bool once = false;
+            for (const auto dim : shape) {
+                if (once) {
+                    os << " x ";
                 }
-                break;
+                os << dim;
+                once = true;
+            }
+        };
 
-                // One ->
-            case EmptyObject:
-            case Monomial:
-            case Polynomial:
-                switch (rhs.type) {
-                    // -> unknown
-                    case Unknown:
-                        return ProductType::Incompatible;
-                        // -> one
-                    case EmptyObject:
-                    case Monomial:
-                    case Polynomial:
-                        return ProductType::OneToOne;
-                        // -> matrix
-                    case MatrixID:
-                        return ProductType::OneToMatrix;
-                        // -> many
-                    case MonomialArray:
-                    case PolynomialArray:
-                        return ProductType::OneToMany;
-                }
-                break;
-
-                // Many ->
-            case PolynomialArray:
-            case MonomialArray:
-                switch (rhs.type) {
-                    // -> unknown
-                    case Unknown:
-                        return ProductType::Incompatible;
-                        // -> one
-                    case EmptyObject:
-                    case Monomial:
-                    case Polynomial:
-                        return ProductType::ManyToOne;
-                        // -> matrix
-                    case MatrixID:
-                        return ProductType::Incompatible;
-                        // -> many
-                    case MonomialArray:
-                    case PolynomialArray:
-                        if (!std::equal(lhs.shape.cbegin(), lhs.shape.cend(),
-                                       rhs.shape.cbegin(), rhs.shape.cend())) {
-                            return ProductType::MismatchedDimensions;
-                        }
-                        return ProductType::ManyToMany;
-                }
-                break;
-
-                // Unknown: cannot combine
+        switch (operand.type) {
             default:
-            case Unknown:
-                return ProductType::Incompatible;
+            case AlgebraicOperand::InputType::Unknown:
+                os << "[Unknown: " << static_cast<int>(operand.type) << "]";
+                return os; // done!
+            case AlgebraicOperand::InputType::EmptyObject:
+                os << "Empty algebraic operand.";
+                return os; // done!
+            case AlgebraicOperand::InputType::MatrixID:
+                os << "Matrix, index " << operand.matrix_key();
+                break;
+            case AlgebraicOperand::InputType::Monomial:
+                os << "Scalar monomial";
+                break; //
+            case AlgebraicOperand::InputType::Polynomial:
+                os << "Scalar polynomial";
+                break;
+            case AlgebraicOperand::InputType::MonomialArray:
+                dim_format(operand.shape);
+                os << " monomial";
+                break;
+            case AlgebraicOperand::InputType::PolynomialArray:
+                dim_format(operand.shape);
+                os << " polynomial";
+                break;
         }
 
-        // Unreachable~
-        return ProductType::Incompatible;
+        os << " (input as: ";
+        switch (operand.format) {
+            case AlgebraicOperand::InputFormat::Unknown:
+                os << "unknown";
+                break;
+            case AlgebraicOperand::InputFormat::Number:
+                os << "number";
+                break;
+            case AlgebraicOperand::InputFormat::SymbolCell:
+                os << "symbol cell";
+                break;
+            case AlgebraicOperand::InputFormat::OperatorCell:
+                os << "operator cell";
+                break;
+            default:
+                os << "[unexpected: " << static_cast<int>(operand.type) << "]";
+        }
+        os << ")";
+        return os;
     }
+
 
 }

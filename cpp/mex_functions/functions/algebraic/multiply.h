@@ -5,13 +5,7 @@
  * @author Andrew J. P. Garner
  */
 
-
-#include "../../mtk_function.h"
-
-#include "integer_types.h"
-
-#include "import/algebraic_operand.h"
-#include "import/matrix_system_id.h"
+#include "binary_operation.h"
 
 namespace Moment {
     class Context;
@@ -20,34 +14,28 @@ namespace Moment {
 
 namespace Moment::mex::functions  {
 
-    struct MultiplyParams : public SortedInputs {
-    public:
-        /** Key to the matrix system. */
-        MatrixSystemId matrix_system_key;
-
-        /** Left hand operand */
-        AlgebraicOperand lhs;
-
-        /** Right hand operand */
-        AlgebraicOperand rhs;
-
+    struct MultiplyParams final : public BinaryOperationParams {
     public:
         explicit MultiplyParams(SortedInputs&& inputs);
-
-        enum class OutputMode {
-            Unknown,
-            MatrixIndex,
-            String,
-            SymbolCell,
-            SequencesWithSymbolInfo
-        } output_mode = OutputMode::MatrixIndex;
     };
 
-    class Multiply : public ParameterizedMTKFunction<MultiplyParams, MTKEntryPointID::Multiply> {
+    class Multiply : public BinaryOperation<MultiplyParams, MTKEntryPointID::Multiply> {
     public:
-        explicit Multiply(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
+        explicit Multiply(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
+            : BinaryOperation<MultiplyParams, MTKEntryPointID::Multiply>{matlabEngine, storage} {
+
+        }
 
     protected:
-        void operator()(IOArgumentRange output, MultiplyParams &input) override;
+        RawPolynomial one_to_one(const RawPolynomial& lhs, const RawPolynomial& rhs) final;
+
+        std::pair<ptrdiff_t, const SymbolicMatrix&>
+        one_to_matrix(const MaintainsMutex::WriteLock& write_lock, const RawPolynomial& lhs,
+                      const SymbolicMatrix& rhs) override;
+
+        std::pair<ptrdiff_t, const SymbolicMatrix&>
+        matrix_to_one(const MaintainsMutex::WriteLock& write_lock, const SymbolicMatrix& lhs,
+                      const RawPolynomial& rhs) override;
+
     };
 }
