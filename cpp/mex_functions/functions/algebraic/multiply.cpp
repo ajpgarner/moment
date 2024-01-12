@@ -29,10 +29,12 @@ namespace Moment::mex::functions {
             case ProductType::OneToMany:
             case ProductType::ManyToOne:
             case ProductType::ManyToMany:
+            case ProductType::OneToMatrix:
+            case ProductType::MatrixToOne:
                 break;
             default:
                 throw_error(this->matlabEngine, errors::bad_param,
-                            "Currently, multiply is only supported for array inputs.");
+                            "Currently, multiply is only supported for array inputs, or scalar/matrix products");
         }
     }
 
@@ -62,7 +64,7 @@ namespace Moment::mex::functions {
                 if constexpr (premultiply) {
                     return the_matrix.pre_multiply(the_poly, factory, symbols, mt_policy);
                 } else {
-                    return the_matrix.pre_multiply(the_poly, factory, symbols, mt_policy);
+                    return the_matrix.post_multiply(the_poly, factory, symbols, mt_policy);
                 }
             }();
 

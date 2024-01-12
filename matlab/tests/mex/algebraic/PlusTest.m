@@ -106,7 +106,7 @@ classdef PlusTest < MTKTestBase
            [x, ~, ~] = scenario.getAll();
            
            [id, dim, is_mono, is_herm] = ...
-               mtk('plus', ref_id, mm.Index, x.OperatorCell);
+               mtk('plus', ref_id, x.OperatorCell, mm.Index);
            testCase.verifyEqual(id, int64(1))
            testCase.verifyEqual(dim, uint64(4));
            testCase.verifyFalse(is_mono);
@@ -122,7 +122,7 @@ classdef PlusTest < MTKTestBase
            [x, ~, ~] = scenario.getAll();
            
            [id, dim, is_mono, is_herm] = ...
-               mtk('plus', ref_id, x.OperatorCell, mm.Index);
+               mtk('plus', ref_id, mm.Index, x.OperatorCell);
            testCase.verifyEqual(id, int64(1))
            testCase.verifyEqual(dim, uint64(4));
            testCase.verifyFalse(is_mono);
