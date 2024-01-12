@@ -1281,7 +1281,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'times'})
         xy = x .* y;
         testCase.assertTrue(isa(xy, 'MTKMonomial'));
         testCase.verifyEqual(xy.Operators, xy_direct.Operators);
-        testCase.verifyEqual(xy.Coefficient, xy_direct.Coefficient);
+        testCase.verifyEqual(xy.Coefficient, complex(xy_direct.Coefficient));
     end
 
     function times_mono_mono_same(testCase)
@@ -1292,7 +1292,7 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'times'})
         xx = x .* x;
         testCase.assertTrue(isa(xx, 'MTKMonomial'));
         testCase.verifyEqual(xx.Operators, xx_direct.Operators);
-        testCase.verifyEqual(xx.Coefficient, xx_direct.Coefficient);
+        testCase.verifyEqual(xx.Coefficient, complex(xx_direct.Coefficient));
     end
 
 

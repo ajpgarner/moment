@@ -135,7 +135,7 @@ classdef MultiplyTest < MTKTestBase
                                  {uint64([1 2]); uint64([2 3])});
             testCase.verifyEqual(res_poly.Coefficient, complex([1.0; 1.0]));   
         end
-        
+                
         function ScalarMatrix(testCase)
             scenario = AlgebraicScenario(3);
             ref_id = scenario.System.RefId;
@@ -152,7 +152,6 @@ classdef MultiplyTest < MTKTestBase
             ss = mtk('operator_matrix', 'sequence_string', ref_id, id);
             testCase.verifyEqual(ss(3,1), "<X1;X2>");
         end
-        
         
         function MatrixScalar(testCase)
             scenario = AlgebraicScenario(3);

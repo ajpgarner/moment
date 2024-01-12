@@ -1,37 +1,33 @@
 function val = times(lhs, rhs)
 % TIMES Element-wise multiplication .*
     [this, other, this_on_lhs] = mapThis(lhs, rhs);
+         
+    % Rescale?
+    if (isnumeric(other) && numel(other) == 1)
+        val = rescaleMatrix(this, other);
+        return;
+    end
     
     % Test if accelerated multiplication is possible    
     if isa(other, 'MTKPolynomial') || isa(other, 'MTKMonomial')
-        assert(other.Scenario == this.Scenario, ...
-               "Settings must match to multiply objects.");
+        this.checkSameScenario(other.Scenario);
+        assert(other.IsScalar, ...
+            "Currently, operator matrices can only be multiplied by scalar objects");
+        
+        if (this_on_lhs)
+            [res_id, res_dim, res_mono, res_herm] = ...
+                mtk('multiply', obj.Scenario.System.RefId, ...
+                                obj.Index, other.OperatorCell);
+        else
+            [res_id, res_dim, res_mono, res_herm] = ...
+                mtk('multiply', obj.Scenario.System.RefId, ...
+                                other.OperatorCell, obj.Index);
+        end
 
-        if this.IsMonomial && other.FoundAllSymbols
-           if this_on_lhs
-               [res_id, res_dim, res_mono, res_herm] = ...
-                   mtk('multiply', this.Scenario.System.RefId, ...
-                       this.Index, other.SymbolCell);
-           else
-               [res_id, res_dim, res_mono, res_herm] = ...
-                   mtk('multiply', this.Scenario.System.RefId, ...
-                       other.SymbolCell, this.Index);
-           end
-           val = MTKOpMatrix(this.Scenario, res_id, ...
-                             res_dim, res_mono, res_herm);
-           return
-        end    
-    end
-    
-    % Rescale?
-    if (isnumeric(lhs) && numel(lhs) == 1)
-        val = rescaleMatrix(rhs, lhs);
-        return;
-    elseif (isnumeric(rhs) && numel(rhs) == 1)
-        val = rescaleMatrix(lhs, rhs);
+        val = MTKOpMatrix(obj.Scenario, res_id, res_dim, res_mono, res_herm);    
         return;
     end
-    
-    % Cast to mono/poly
+       
+    % Cast to mono/poly and try again ... probably won't work
     val = degradeAndCall(lhs, rhs, @times);
 end

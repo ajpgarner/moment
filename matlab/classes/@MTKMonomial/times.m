@@ -7,7 +7,7 @@ function val = times(lhs, rhs)
         other = lhs;
         if ~isnumeric(other)
             error(['Pre-multiplication _*_ should only be ',...
-                'invoked when LHS is a built-in type.']);
+                'invoked when LHS is a built-in numeric type.']);
         end
     else
         this = lhs;
@@ -30,7 +30,8 @@ function val = times(lhs, rhs)
         return;
     end
     
-    % Handle case when other value is numeric
+    % Handle case special case when other value is numeric
+    %  (At some point: this should also be subsumed into mtk `multiply`.)
     if isnumeric(other)
         [new_coefs, prune_mask] = this.Scenario.Prune(this.Coefficient .* other);
         if this.IsScalar
@@ -57,31 +58,16 @@ function val = times(lhs, rhs)
         end
         return;
     end
-
+    
     assert(isa(other,'MTKMonomial'));
+    assert(this.Scenario.DefinesOperators, ...
+        "Monomial multiplication is only defined for scenarios that define operators.");
+    
+    % Accelerated multiply
+    [result, is_mono] = mtk('multiply', this.Scenario.System.RefId, ...
+                            lhs.OperatorCell, rhs.OperatorCell);
+    assert(is_mono, ...
+        "Result of monomial-monomial multiplication was unexpectedly polynomial.");
 
-    % Handle various cases of Monomial with Monomial:
-    [join_coefs, prune_mask] = ...
-        lhs.Scenario.Prune(lhs.Coefficient .* rhs.Coefficient);
-
-    if lhs.IsScalar && rhs.IsScalar
-        if join_coefs ~= 0
-            new_ops = [lhs.Operators, rhs.Operators];
-        else
-            new_ops = [];
-        end
-    elseif lhs.IsScalar
-        new_ops = cellfun(@(x) [lhs.Operators, x], rhs.Operators, ...
-            'UniformOutput', false);
-        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
-    elseif rhs.IsScalar
-        new_ops = cellfun(@(x) [x, rhs.Operators], lhs.Operators, ...
-            'UniformOutput', false);
-        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
-    else
-        new_ops = cellfun(@(x, y) [x, y], ...
-            lhs.Operators, rhs.Operators, 'UniformOutput', false);
-        new_ops = MTKUtil.cell_mask(new_ops, prune_mask, []);
-    end
-    val = MTKMonomial(this.Scenario, new_ops, join_coefs);
+    val = MTKMonomial.InitAllInfo(this.Scenario, result{:});
 end
