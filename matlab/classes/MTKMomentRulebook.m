@@ -6,6 +6,7 @@ classdef MTKMomentRulebook < handle
 properties(GetAccess = public, SetAccess = protected)
     Scenario % Associated scenario.
     Id       % ID of the rulebook within the matrix system.
+    Label    % String description of rulebook.
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
@@ -17,17 +18,17 @@ end
 properties(Access=private)
     cache_symbol_cell
     cache_polys
-    cache_strs;
+    cache_strs;   
     has_symbol_cell = false;
     has_polys = false;
     has_strs = false;
+    label_optional = false;
 end
 
 properties(Constant, Access = private)
     err_locked = ['No more changes to this rulebook are possible, ',...
                   'because it has already been applied to a matrix.'];
 end
-    
 
 %% Constructor
 methods
@@ -50,17 +51,29 @@ methods
         if ~isempty(label) && (label ~= "")
             rb_args{end+1} = "label";
             rb_args{end+1} = label;
+            obj.Label = label;
+            query_for_label = false;
+        else
+            query_for_label = true;
         end
         
         % Create rulebook with no rules
         obj.Id = mtk('create_moment_rules', rb_args{:}, ...
                              scenario.System.RefId, {});
+
+        % If we did not specify a label, return the system's provided label
+        if query_for_label
+            obj.Label = mtk('moment_rules', ...
+                            scenario.System.RefId, obj.Id, 'info');
+        end
+        
         obj.invalidate_cached_rules();
+        
         
         % Add any initial rules...
         for i = 1:numel(varargin)
             obj.Add(varargin{i});
-        end        
+        end
     end
 end
 
@@ -148,7 +161,11 @@ methods
     %
     
         % Parse inputs
-        assert((nargin >= 2) && isa(new_rules, 'MTKPolynomial'));
+        assert((nargin >= 2) && (isa(new_rules, 'MTKPolynomial') ...
+                                 || isa(new_rules, 'MTKMonomial')), ...
+             "Input must be a MTKMonomial or MTKPolynomial");
+         
+        % Do we register new symbols from rules? 
         if nargin < 3
             new_symbols = false;
         end
@@ -242,7 +259,7 @@ methods
     
         if nargin == 2
             cell_input = varargin{1};
-        elseif narargin == 3
+        elseif nargin == 3
             % Parse inputs:
             symbol_ids = reshape(uint64(varargin{1}), [], 1);
             values = reshape(double(varargin{2}), [], 1);        
@@ -259,7 +276,6 @@ methods
         else
             error("AddScalarSubstitutionList requires one or two arguments.");
         end
-            
 
         % Call rulebook
         rule_id = mtk('create_moment_rules', 'input', 'list', ...
@@ -287,6 +303,5 @@ methods
               class(target));        
     end
 end
-    
+
 end
-    

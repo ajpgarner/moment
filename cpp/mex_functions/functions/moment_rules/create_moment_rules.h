@@ -13,6 +13,7 @@
 #include "import/matrix_system_id.h"
 #include "import/read_polynomial.h"
 
+#include <iosfwd>
 #include <map>
 #include <memory>
 
@@ -62,6 +63,9 @@ namespace Moment::mex::functions {
             /** Polynomials, expressed as operator sequences. */
             FromOperatorSequences
         } input_mode = InputMode::SubstitutionList;
+
+        /** Debug print for InputMode */
+        friend std::ostream& operator<<(std::ostream& os, InputMode mode);
 
         /** Direct substitutions, if specified. */
         std::map<symbol_name_t, std::complex<double>> sub_list;

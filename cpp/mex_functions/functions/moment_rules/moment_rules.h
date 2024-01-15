@@ -48,6 +48,8 @@ namespace Moment::mex::functions {
             RewriteMatrix,
             /** List rules as sparse matrix that can act on conformant (a \oplus b) vector to equal zero. */
             HomogenousMatrix,
+            /** Return name of rulebook and number of elements */
+            RulebookInfo
         } output_mode = OutputMode::String;
 
         /** Constructor */

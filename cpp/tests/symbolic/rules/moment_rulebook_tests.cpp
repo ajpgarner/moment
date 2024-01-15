@@ -462,6 +462,48 @@ namespace Moment::Tests {
         compare_symbol_matrices(output_as_pm, ref_pm);
     }
 
+    TEST_F(Symbolic_MomentRulebook, Complete_ListOfOne) {
+        // Prepare rulebook
+        MomentRulebook book{this->get_system()};
+        const auto& factory = book.factory;
+
+        MomentRulebook::raw_complex_map_t complex_map;
+        complex_map.emplace(std::make_pair(5, std::complex(1.0, 2.0))); // <ab> = 1+2i
+        book.add_raw_rules(complex_map);
+        EXPECT_EQ(book.raw_rule_size(), 1);
+
+        EXPECT_EQ(&book.symbols, &this->get_symbols());
+        EXPECT_TRUE(book.empty());
+        EXPECT_EQ(book.size(), 0);
+        EXPECT_EQ(book.begin(), book.end());
+
+        book.complete();
+
+        assert_matching_rules(book, {MomentRule{5, Polynomial::Scalar(std::complex(1.0, 2.0))}});
+    }
+
+    TEST_F(Symbolic_MomentRulebook, Complete_FromList) {
+        // Prepare rulebook
+        MomentRulebook book{this->get_system()};
+        const auto& factory = book.factory;
+
+        MomentRulebook::raw_complex_map_t complex_map;
+        complex_map.emplace(std::make_pair(2, std::complex(3.0, 0.0))); // <a> = 2
+        complex_map.emplace(std::make_pair(5, std::complex(1.0, 2.0))); // <ab> = 1+2i
+        book.add_raw_rules(complex_map);
+        EXPECT_EQ(book.raw_rule_size(), 2);
+
+        EXPECT_EQ(&book.symbols, &this->get_symbols());
+        EXPECT_TRUE(book.empty());
+        EXPECT_EQ(book.size(), 0);
+        EXPECT_EQ(book.begin(), book.end());
+
+        book.complete();
+
+        assert_matching_rules(book, {MomentRule{2, Polynomial::Scalar(3.0)},
+                                     MomentRule{5, Polynomial::Scalar(std::complex(1.0, 2.0))}});
+    }
+
     TEST_F(Symbolic_MomentRulebook, Complete_Ato0_Bto0) {
         // Prepare rulebook
         MomentRulebook book{this->get_system()};
@@ -481,7 +523,6 @@ namespace Moment::Tests {
 
         assert_matching_rules(book, {MomentRule{2, Polynomial()},
                                      MomentRule{3, Polynomial()}});
-
     }
 
     TEST_F(Symbolic_MomentRulebook, Complete_Ato0_BtoA) {

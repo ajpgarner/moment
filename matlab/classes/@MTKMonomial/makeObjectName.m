@@ -58,7 +58,7 @@ function val = makeOneName(obj, opers, coef)
                 val = sprintf("%gi", imag(coef));
             end
         else
-            val = sprintf("g+%gi", real(coef), imag(coef));
+            val = sprintf("%g+%gi", real(coef), imag(coef));
         end        
     end
 end

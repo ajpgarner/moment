@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
         if (this->inputs.size() >= 3) {
             try {
                 switch (read_choice("Output mode",
-                                    {"strings", "symbols", "polynomials", "rewrite", "homogenous"},
+                                    {"strings", "symbols", "polynomials", "rewrite", "homogenous", "info"},
                                     this->inputs[2])) {
                     case 0:
                         this->output_mode = OutputMode::String;
@@ -54,11 +54,14 @@ namespace Moment::mex::functions {
                     case 4:
                         this->output_mode = OutputMode::HomogenousMatrix;
                         break;
+                    case 5:
+                        this->output_mode = OutputMode::RulebookInfo;
+                        break;
                 }
             } catch (const Moment::mex::errors::invalid_choice& ice) {
                 throw_error(this->matlabEngine, errors::bad_param, ice.what());
             }
-        }
+        } // otherwise, will have default value of output_mode, as specified in header file.
     }
 
 
@@ -68,10 +71,17 @@ namespace Moment::mex::functions {
         this->max_inputs = 3;
 
         this->min_outputs = 1;
-        this->max_outputs = 1;
+        this->max_outputs = 2;
     }
 
     void MomentRules::operator()(IOArgumentRange output, MomentRulesParams &input) {
+
+        // Validate output count
+        if ((output.size() > 1) && (input.output_mode != MomentRulesParams::OutputMode::RulebookInfo)) {
+            throw_error(this->matlabEngine, errors::too_many_outputs,
+                        "Only the 'info' output mode produces two outputs.");
+        }
+
         // Get stored matrix system
         auto msPtr = input.matrix_system_key(this->storageManager);
         auto& system = *msPtr;
@@ -128,6 +138,12 @@ namespace Moment::mex::functions {
                 break;
             case MomentRulesParams::OutputMode::HomogenousMatrix:
                 output[0] = msrExporter.as_homogenous_matrix(rulebook);
+                break;
+            case MomentRulesParams::OutputMode::RulebookInfo:
+                output[0] = factory.createScalar(rulebook.name());
+                if (output.size() >= 2) {
+                    output[1] = factory.createScalar<uint64_t>(rulebook.size());
+                }
                 break;
             default:
                 throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode!");

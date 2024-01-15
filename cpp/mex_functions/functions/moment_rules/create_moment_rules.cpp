@@ -258,17 +258,45 @@ namespace Moment::mex::functions {
         this->flag_names.emplace(u"complete_only");
     }
 
+    std::ostream& operator<<(std::ostream& os, CreateMomentRulesParams::InputMode mode) {
+        switch (mode) {
+            default:
+            case CreateMomentRulesParams::InputMode::Unknown:
+                os << "[Unknown: " << static_cast<uint64_t>(mode) << "]";
+                break;
+            case CreateMomentRulesParams::InputMode::InformationOnly:
+                os << "InformationOnly";
+                break;
+            case CreateMomentRulesParams::InputMode::SubstitutionList:
+                os << "SubstitutionList";
+                break;
+            case CreateMomentRulesParams::InputMode::FromSymbolIds:
+                os << "FromSymbolIds";
+                break;
+            case CreateMomentRulesParams::InputMode::FromOperatorSequences:
+                os << "FromOperatorSequences";
+                break;
+        }
+        return os;
+    }
+
     void CreateMomentRules::operator()(IOArgumentRange output, CreateMomentRulesParams &input) {
         // Get stored moment matrix
         auto msPtr = input.matrix_system_key(this->storageManager);
         auto& system = *msPtr;
+
+        // Extra info, if in debug mode
+        if (this->debug) {
+            std::stringstream infoSS;
+            infoSS << "Supplied rules as " << input.input_mode << "\n";
+            print_to_console(this->matlabEngine, infoSS.str());
+        }
 
         // Create rule-book with new rules
         std::unique_ptr<MomentRulebook> rulebookPtr;
         if (!input.info_only_mode()) {
             rulebookPtr = this->create_rulebook(system, input);
         }
-
 
         // Add or merge rulebooks
         auto [rb_id, rulebook] = [&]() -> std::pair<size_t, const MomentRulebook&> {
@@ -357,6 +385,14 @@ namespace Moment::mex::functions {
             }
             ++idx;
         }
+
+        if (this->debug) {
+            std::stringstream ss;
+            ss << "CreateMomentRules::create_rulebook_from_sublist"
+               << " parsed " << input.sub_list.size() << " rules.\n";
+            print_to_console(this->matlabEngine, ss.str());
+        }
+
         // Make empty rulebook
         auto output = std::make_unique<MomentRulebook>(system, input.infer_from_factors);
         if (!input.human_readable_name.empty()) {

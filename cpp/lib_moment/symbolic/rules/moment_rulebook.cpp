@@ -71,10 +71,11 @@ namespace Moment {
 
         this->raw_rules.reserve(this->raw_rules.size() + raw.size());
         for (auto [id, value] : raw) {
+
             if (approximately_zero(value)) {
                 this->raw_rules.emplace_back(Monomial{id});
             } else {
-                this->raw_rules.emplace_back(Polynomial{Monomial{id, 1.0}, Monomial{1, -value}});
+                this->raw_rules.emplace_back(this->factory({Monomial{id, 1.0}, Monomial{1, -value}}));
             }
         }
     }

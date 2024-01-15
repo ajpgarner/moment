@@ -162,6 +162,11 @@ namespace Moment {
         void add_raw_rule(Polynomial&& raw);
 
         /**
+         * Number of pending 'raw' rules
+         */
+        [[nodiscard]] inline size_t raw_rule_size() const noexcept { return this->raw_rules.size(); }
+
+        /**
          * Try to add an oriented rule directly.
          * @returns True if rule added, false if collision.
          */
