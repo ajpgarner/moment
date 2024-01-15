@@ -585,6 +585,69 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'algebraic', 'plus'})
         testCase.assertEqual(partB_z.Operators, z.Operators);
         testCase.assertEqual(partB_z.Coefficient, z.Coefficient);
     end
+    
+    function plus_poly_poly_complex_overlap(testCase)
+        setting = AlgebraicScenario(3);
+        [x, y, z] = setting.getAll();
+
+        x_y = 1 + x + y*1i;
+        y_z = 1 + y*(-1i) + z;
+        expected = 2 + x + z;
+        actual = x_y + y_z;            
+        testCase.verifyEqual(actual, expected);        
+    end
+    
+    
+    function plus_poly_poly_complex_overlap2(testCase)
+        setting = AlgebraicScenario(["X1", "Y1", "Z1", "X2", "Y2", "Z2"]);
+        [X1, Y1, Z1, X2, Y2, Z2] = setting.getAll();
+        lhs = (0.25 * Y2) + (0.25i * X1 * Z2) - (0.25i * Z1 * X2);
+        rhs = (-0.25 * Y2) + (0.25i * X1 * Z2) - (0.25i * Z1 * X2);
+        testCase.assertEqual(numel(lhs.Constituents), 3);
+        testCase.assertEqual(numel(rhs.Constituents), 3);
+        
+        actual = lhs + rhs;
+        expected = (0.5i * X1 * Z2) - (0.5i * Z1 * X2);
+        testCase.verifyEqual(actual, expected);
+        
+    end
+    
+    function plus_poly_poly_array(testCase)
+        setting = AlgebraicScenario(2);
+        [x, y] = setting.getAll();
+        lhs = [1 + x; 1 + y];
+        rhs = [y; -x];
+        actual = lhs + rhs;
+        expected = [1 + x + y; 1 - x + y];
+        testCase.verifyEqual(actual, expected);
+    end
+    
+    function plus_poly_poly_array_complex(testCase)
+        setting = AlgebraicScenario(2);
+        [x, y] = setting.getAll();
+        lhs = [1 + 0.5i*x; ...
+               1 + y];
+        rhs = [-0.5i*x + y; ...
+               MTKPolynomial(-0.5i*x)];
+        actual = lhs + rhs;
+        expected = [1 + y; 1 - 0.5i*x + y];
+        testCase.verifyEqual(actual, expected);
+    end
+    
+    function plus_poly_poly_array_complex2(testCase)
+        setting = AlgebraicScenario(["X1", "Y1", "Z1", "X2", "Y2", "Z2"]);
+        [X1, Y1, Z1, X2, Y2, Z2] = setting.getAll();
+        lhs_top = (0.25 * Y2) + (0.25i * X1 * Z2) - (0.25i * Z1 * X2);
+        rhs_top = (-0.25 * Y2) + (0.25i * X1 * Z2) - (0.25i * Z1 * X2);
+        
+        lhs = [lhs_top; X1+Y1];
+        rhs = [rhs_top; X1+Z2];
+        
+        actual = lhs + rhs;
+        expected = [(0.5i * X1 * Z2) - (0.5i * Z1 * X2);
+                    2*X1 + Y1 + Z2];
+        testCase.verifyEqual(actual, expected);
+    end  
 end  
 
 %% Subtraction (minus)
@@ -728,8 +791,21 @@ methods(Test, TestTags={'MTKPolynomial', 'MTKObject', 'algebraic', 'minus'})
 
         testCase.assertTrue(as_zero.IsZero);
         testCase.verifyEqual(as_zero.Scenario, setting);
-
     end
+    
+        
+    function minus_poly_poly_complex_overlap(testCase)
+        setting = AlgebraicScenario(["X1", "Y1", "Z1", "X2", "Y2", "Z2"]);
+        [X1, ~, Z1, X2, Y2, Z2] = setting.getAll();
+        lhs = (0.25 * Y2) + (0.25i * X1 * Z2) - (0.25i * Z1 * X2);
+        rhs = (0.25 * Y2) - (0.25i * X1 * Z2) + (0.25i * Z1 * X2);
+        testCase.assertEqual(numel(lhs.Constituents), 3);
+        testCase.assertEqual(numel(rhs.Constituents), 3);
+        
+        actual = lhs - rhs;
+        expected = (0.5i * X1 * Z2) - (0.5i * Z1 * X2);
+        testCase.verifyEqual(actual, expected);        
+    end   
 end
 
 %% Elementwise multiplication (times)

@@ -1092,6 +1092,53 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
         testCase.assertEqual(partB_xy.Operators, xy.Operators);
         testCase.assertEqual(partB_xy.Coefficient, xy.Coefficient);
     end
+    
+    function plus_mono_mono_complex(testCase)
+        setting = AlgebraicScenario(2);
+        
+        lhs = MTKMonomial(setting, uint64(1), 0.5i);
+        rhs = MTKMonomial(setting, uint64(2), 0.5i);
+        
+        result = lhs + rhs;
+        testCase.verifyTrue(isa(result, 'MTKPolynomial'));
+        testCase.assertEqual(length(result.Constituents), 2);
+        part_lhs = result.Constituents(1);
+        part_rhs = result.Constituents(2);
+        testCase.assertEqual(part_lhs.Operators, lhs.Operators);
+        testCase.assertEqual(part_lhs.Coefficient, lhs.Coefficient);
+        
+        testCase.assertEqual(part_rhs.Operators, rhs.Operators);
+        testCase.assertEqual(part_rhs.Coefficient, rhs.Coefficient);
+    end
+    
+    
+    function plus_mono_mono_complex_combine(testCase)
+        setting = AlgebraicScenario(2);
+        
+        lhs = MTKMonomial(setting, uint64(1), 0.5i);
+        rhs = MTKMonomial(setting, uint64(1), 1.5i);
+        
+        result = lhs + rhs;
+        testCase.verifyTrue(isa(result, 'MTKMonomial'));
+        
+        testCase.assertEqual(result.Operators, lhs.Operators);
+        testCase.assertEqual(result.Coefficient, lhs.Coefficient + rhs.Coefficient);        
+    end
+    
+    
+    function plus_mono_mono_complex_combine_to_zero(testCase)
+        setting = AlgebraicScenario(2);
+        
+        lhs = MTKMonomial(setting, uint64(1), 0.5i);
+        rhs = MTKMonomial(setting, uint64(1), -0.5i);
+        
+        result = lhs + rhs;
+        testCase.verifyTrue(isa(result, 'MTKMonomial'));
+        
+        testCase.verifyTrue(result.IsZero);
+        testCase.assertEqual(result.Operators, uint64.empty(1,0));
+        testCase.assertEqual(result.Coefficient, complex(0));
+    end
 
     function plus_vector_number(testCase)
         setting = AlgebraicScenario(2);
@@ -1123,6 +1170,32 @@ methods(Test, TestTags={'MTKMonomial', 'MTKObject', 'algebraic', 'plus'})
 
         xp_prime = rhs + x;
         testCase.verifyTrue(isequal(xp, xp_prime));
+    end
+    
+    function plus_wordlist_conj(testCase)
+        setting = AlgebraicScenario(['x', 'y']);
+        wl = setting.WordList(2); % 1; x; y; xx; xy; yx; yy
+        wl_conj = conj(wl);
+        testCase.assertEqual(size(wl), [7 1]);
+        testCase.assertEqual(size(wl_conj), [7 1]);
+        result = wl + wl_conj;
+        testCase.assertEqual(size(result), [7 1]);
+        
+        % Check result
+        testCase.verifyEqual(result.Constituents{1}.Operators, ...
+                             uint64.empty(1,0));
+        testCase.verifyEqual(result.Constituents{2}.Operators, ...
+                             uint64([1]));
+        testCase.verifyEqual(result.Constituents{3}.Operators, ...
+                             uint64([2]));
+        testCase.verifyEqual(result.Constituents{4}.Operators, ...
+                             uint64([1 1]));
+        testCase.verifyEqual(result.Constituents{5}.Operators, ...
+                             {uint64([1 2]); uint64([2 1])});
+        testCase.verifyEqual(result.Constituents{6}.Operators, ...
+                             {uint64([1 2]); uint64([2 1])});
+        testCase.verifyEqual(result.Constituents{7}.Operators, ...
+                             uint64([2 2]));
     end
 end
 

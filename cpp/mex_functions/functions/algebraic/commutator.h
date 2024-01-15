@@ -30,8 +30,7 @@ namespace Moment::mex::functions {
         bool anticommute = false;
 
     public:
-        explicit Commutator(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage)
-            : BinaryOperation<CommutatorParams, MTKEntryPointID::Commutator>{matlabEngine, storage} { }
+        explicit Commutator(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);
 
     protected:
         void additional_setup(CommutatorParams& input) final;

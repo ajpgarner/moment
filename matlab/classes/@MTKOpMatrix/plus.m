@@ -13,8 +13,7 @@ function val = plus(lhs, rhs)
         % Otherwise invoke matrix-matrix plus functionality       
         lhs.checkSameScenario(rhs);
         [index, dim, mono, herm] = ...
-            mtk('plus', 'index', lhs.Scenario.System.RefId, ...
-                lhs.Index, rhs.Index);
+            mtk('plus', lhs.Scenario.System.RefId, lhs.Index, rhs.Index);
             
             
         val = MTKOpMatrix(lhs.Scenario, index, dim, mono, herm);
@@ -40,7 +39,7 @@ function val = plus(lhs, rhs)
            "Cannot add object of type %s to MTKOpMatrix", class(other));
     
     % Get cell representation of other object
-    if this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
+    if ~this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
         other_cell = other.SymbolCell;
     elseif this.Scenario.DefinesOperators
         other_cell = other.OperatorCell;

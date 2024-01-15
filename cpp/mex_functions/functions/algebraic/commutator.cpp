@@ -61,4 +61,11 @@ namespace Moment::mex::functions {
             return this->pauli_context_ptr->commutator(lhs, rhs);
         }
     }
+
+    Commutator::Commutator(matlab::engine::MATLABEngine& matlabEngine, StorageManager& storage)
+            : BinaryOperation<CommutatorParams, MTKEntryPointID::Commutator>{matlabEngine, storage} {
+        this->flag_names.emplace(u"commute");
+        this->flag_names.emplace(u"anticommute");
+        this->mutex_params.add_mutex(u"commute", u"anticommute");
+    }
 }

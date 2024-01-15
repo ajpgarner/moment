@@ -35,14 +35,14 @@ function val = plus(lhs, rhs)
     this.checkSameScenario(other);
     
     % Get 'LHS' cell:
-    if this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols 
+    if ~this.Scenario.PermitsSymbolAliases && this.FoundAllSymbols 
         this_cell = this.SymbolCell;
     else
         this_cell = this.OperatorCell;
     end
     
     % Get 'RHS' cell
-    if this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
+    if ~this.Scenario.PermitsSymbolAliases && other.FoundAllSymbols
         other_cell = other.SymbolCell;
     else
         other_cell = other.OperatorCell;
