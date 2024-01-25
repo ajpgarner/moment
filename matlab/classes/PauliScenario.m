@@ -182,6 +182,31 @@ classdef PauliScenario < MTKScenario
             val = MTKMonomial(obj, site*3, 1.0);
         end
         
+        function val = sigma(obj, site, mat_index)
+        % SIGMA Get Pauli operator at specified site with specific index
+        % SYNTAX:
+        % 1.  s = sigma([site], [0, 1, 2 or 3])
+        %
+        % PARAMS:
+        %      site - The qubit number
+        % mat_index - 0 for identity, 1 for X, 2 for Y, 3 for Z.
+        %
+            
+            assert(nargin==3 && (1 <= site) && (site <= obj.QubitCount),...
+                    "Must specify qubit number and Pauli operator index.");
+            
+            % If sigma_0, return identity operator.
+            if mat_index == 0
+                val = obj.id;
+                return;
+            end
+            
+            % Otherwise, switch between 1, 2 & 3
+            assert(mat_index >= 1 && mat_index <= 3, ...
+                   "Matrix index should be 0=ID, 1=X, 2=Y or 3=Z.");
+            val = MTKMonomial(obj, uint64((site-1)*3 + mat_index), 1.0);
+        end
+        
         function val = symmetrize(obj, thing)
         % SYMMETRIZE Apply lattice/chain symmetries to polynomial
         %            

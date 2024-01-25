@@ -20,6 +20,11 @@
     if nargout ~= obj.OperatorCount
         if ~obj.IsHermitian && nargout == 2*obj.OperatorCount
             export_conjugates = true;                    
+        elseif nargout == 1
+            % Create single output monomial 
+            varargout = cell(1, 1);
+            varargout{1} = MTKMonomial(obj, num2cell(1:obj.OperatorCount)');
+            return;            
         else
             if obj.IsHermitian
                 error("getAll() expects %d outputs.",...
@@ -32,7 +37,7 @@
 
     end
 
-    % Export as varargout cell
+    % Distribute output as varargout cell
     varargout = cell(1, nargout);
     if export_conjugates
         for index = 1:(2*obj.OperatorCount)
