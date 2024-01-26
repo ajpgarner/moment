@@ -1,5 +1,5 @@
 function varargout = yalmipVars(obj,export_type)
-%YALMIPVARS (Forward) Get yalmip sdpvars
+%YALMIPVARS (Forward) Create yalmip sdpvars
 %
 % Syntax 
 %   1. real = scenario.yalmipVars();
