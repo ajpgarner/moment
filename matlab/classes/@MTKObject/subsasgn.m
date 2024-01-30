@@ -4,7 +4,7 @@
     % Check if read only
     if obj.read_only
         % Check not an assignment to read-only
-        if (s.type == '.') && strcmp(s.subs,"ReadOnly") && val == true 
+        if isequal(s.type, '.') && strcmp(s.subs,"ReadOnly") && val == true 
             return;
         end        
         error("Cannot assign to read-only object.");
