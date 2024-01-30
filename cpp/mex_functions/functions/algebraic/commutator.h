@@ -28,6 +28,7 @@ namespace Moment::mex::functions {
     private:
         Pauli::PauliContext const * pauli_context_ptr = nullptr;
         bool anticommute = false;
+        double tolerance = 1.0;
 
     public:
         explicit Commutator(matlab::engine::MATLABEngine &matlabEngine, StorageManager& storage);

@@ -83,6 +83,18 @@ namespace Moment {
         return output;
     }
 
+    RawPolynomial RawPolynomial::subtract(const RawPolynomial& lhs, const RawPolynomial& rhs, double tolerance) {
+        RawPolynomial output{lhs};
+        output.data.reserve(lhs.size() + rhs.size());
+        std::transform(rhs.data.cbegin(), rhs.data.cend(), std::back_inserter(output.data),
+                       [](auto monomial) -> RawPolynomialElement {
+            monomial.weight *= -1.0;
+            return monomial;
+        });
+        output.condense(tolerance);
+        return output;
+    }
+
     void RawPolynomial::condense(const double tolerance) {
         // Special case: empty vector
         if (this->empty()) {

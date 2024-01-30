@@ -47,18 +47,32 @@ namespace Moment::mex::functions {
         if (const auto * pms_ptr = dynamic_cast<const Pauli::PauliMatrixSystem*>(this->ms_ptr); pms_ptr != nullptr) {
             this->pauli_context_ptr = &pms_ptr->pauliContext;
         } else {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "Currently (anti)commutators are only supported for the Pauli scenario.");
+            this->pauli_context_ptr = nullptr;
         }
         this->anticommute = input.anticommute;
+        this->tolerance = this->ms_ptr->polynomial_factory().zero_tolerance;
     }
 
     RawPolynomial Commutator::one_to_one(const RawPolynomial& lhs, const RawPolynomial& rhs) {
         assert(this->pauli_context_ptr != nullptr);
-        if (this->anticommute) {
-            return this->pauli_context_ptr->anticommutator(lhs, rhs);
+        // Whole architecture relies on branch prediction...
+        //  in theory could refactor if statements outside of loops.
+
+        if (this->pauli_context_ptr) {
+            if (this->anticommute) {
+                return this->pauli_context_ptr->anticommutator(lhs, rhs, this->tolerance);
+            } else {
+                return this->pauli_context_ptr->commutator(lhs, rhs, this->tolerance);
+            }
         } else {
-            return this->pauli_context_ptr->commutator(lhs, rhs);
+            const auto lr = this->context_ptr->multiply(lhs, rhs, 0.5*this->tolerance);
+            auto rl = this->context_ptr->multiply(rhs, lhs, 0.5*this->tolerance);
+
+            if (this->anticommute) {
+                return RawPolynomial::add(lr, rl, this->tolerance);
+            } else {
+                return RawPolynomial::subtract(lr, rl, this->tolerance);
+            }
         }
     }
 

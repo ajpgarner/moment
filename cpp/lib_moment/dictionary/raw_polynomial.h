@@ -130,6 +130,11 @@ namespace Moment {
         static RawPolynomial add(const RawPolynomial& lhs, const RawPolynomial& rhs, double tolerance = 1.0);
 
         /**
+         * Combine two raw polynomials subtractively (will sort).
+         */
+        static RawPolynomial subtract(const RawPolynomial& lhs, const RawPolynomial& rhs, double tolerance = 1.0);
+
+        /**
          * Combine two raw polynomials according to a distributed operation.
          * @tparam op_functor_t The operation to apply to the operator sequences.
          * @tparam weight_functor_t The operation to apply to the element weights (typically multiplication).
