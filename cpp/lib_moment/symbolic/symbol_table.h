@@ -171,7 +171,7 @@ namespace Moment {
 
         /**
          * Add symbol to table, if not already present by OperatorSequence
-         * @param build_unique Symbols to be potentially merge
+         * @param build_unique Symbols to be potentially merged.
          * @return The ID of the (possibly new) symbol.
          */
         symbol_name_t merge_in(OperatorSequence&& sequence);

@@ -70,6 +70,13 @@ namespace Moment {
 
         virtual void append(Polynomial& lhs, const Polynomial& rhs) const = 0;
 
+        /** Copies polynomial up to scaling factor */
+        [[nodiscard]] inline Polynomial scale(const Polynomial& lhs, std::complex<double> factor) const {
+            Polynomial copy{lhs};
+            copy.scale(factor, this->zero_tolerance);
+            return copy;
+        }
+
         /**
          * Efficiently combine LHS and RHS to make a polynomial with 0, 1 or 2 elements.
          */

@@ -316,11 +316,11 @@ namespace Moment::mex {
         RawPolynomial scalar_raw_poly(const Context& context,
                                       std::complex<double> the_val, double zero_tolerance) noexcept {
             if (!approximately_zero(the_val, zero_tolerance)) {
-                return RawPolynomial{};
-            } else {
                 RawPolynomial output;
                 output.emplace_back(OperatorSequence::Identity(context), the_val);
                 return output;
+            } else {
+                return RawPolynomial{};
             }
         }
     }

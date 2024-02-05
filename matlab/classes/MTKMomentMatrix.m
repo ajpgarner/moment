@@ -51,7 +51,7 @@ classdef (InferiorClasses={?MTKMonomial,?MTKPolynomial}) ...
         end
         
         function val = getWord(obj)
-            val = MTKMonomial.InitValue(1.0); % I
+            val = MTKMonomial.InitValue(obj.Scenario, 1.0); % I
         end
         
         function val = rescaleMatrix(obj, scale)

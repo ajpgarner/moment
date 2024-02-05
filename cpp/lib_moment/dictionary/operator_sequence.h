@@ -8,6 +8,7 @@
 
 #include "integer_types.h"
 #include "hashed_sequence.h"
+#include "hermitian_type.h"
 
 #include <iosfwd>
 #include <iterator>
@@ -20,7 +21,7 @@ namespace Moment {
     class ContextualOS;
 
     /**
-     * Represents a sequence of Hermitian operators, in canonical order with all known simplifications applied.
+     * Represents a sequence of operators, in canonical order with all known simplifications applied.
      * In particular, can be seen as a HashedSequence attached to a Context.
      */
     class OperatorSequence : public HashedSequence {
@@ -147,6 +148,11 @@ namespace Moment {
         * @param rhs The operator sequence to take as the end of the new sequence.
         */
         friend OperatorSequence operator* (const OperatorSequence& lhs, const OperatorSequence& rhs);
+
+        /**
+         * Calculates if element is (anti-)Hermitian, by comparing to its conjugate.
+         */
+        [[nodiscard]] HermitianType hermitian_type() const;
 
         /**
          * Construct sequence equal to algebraic zero.

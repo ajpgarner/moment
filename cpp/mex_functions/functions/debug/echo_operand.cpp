@@ -273,6 +273,15 @@ namespace Moment::mex::functions  {
             if (print_output) {
                 std::stringstream ss;
                 ss << operand;
+
+                if (operand.type == AlgebraicOperand::InputType::RealNumber) {
+                    double value = operand.raw_scalar();
+                    ss << ": " << value << "\n";
+                } else {
+                    std::complex<double> value = operand.raw_complex_scalar();
+                    ss << ": " << value.real() << " + " << value.imag() << "i\n";
+                }
+
                 print_to_console(engine, ss.str());
             }
 
@@ -294,7 +303,18 @@ namespace Moment::mex::functions  {
                                   const AlgebraicOperand& operand, const bool print_output) {
             if (print_output) {
                 std::stringstream ss;
-                ss << operand;
+                ss << operand << ":\n";
+                if (operand.type == AlgebraicOperand::InputType::RealNumberArray) {
+                    const auto& matrix = operand.raw_numeric_array();
+                    for (auto iter = matrix.data(); iter < matrix.data() + matrix.size(); ++iter) {
+                        ss << " " << *iter << "\n";
+                    }
+                } else {
+                    const auto& matrix = operand.raw_complex_numeric_array();
+                    for (auto iter = matrix.data(); iter < matrix.data() + matrix.size(); ++iter) {
+                        ss << " " << iter->real() << " + " << iter->imag() << "i\n";
+                    }
+                }
                 print_to_console(engine, ss.str());
             }
 

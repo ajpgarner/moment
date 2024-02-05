@@ -229,4 +229,34 @@ namespace Moment::Tests {
         ASSERT_EQ(conjA.size(), 0);
         EXPECT_FALSE(conjA.zero());
     }
+
+    TEST(Operators_OperatorSequence, HermitianType) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{2};
+
+        EXPECT_EQ(OperatorSequence::Zero(context).hermitian_type(), HermitianType::Zero);
+
+        EXPECT_EQ(OperatorSequence::Identity(context).hermitian_type(), HermitianType::Hermitian);
+
+        OperatorSequence herm_seq_A{{0, 0}, context};
+        EXPECT_EQ(herm_seq_A.hermitian_type(), HermitianType::Hermitian);
+
+        OperatorSequence herm_seq_B{{0, 1, 0}, context};
+        EXPECT_EQ(herm_seq_B.hermitian_type(), HermitianType::Hermitian);
+
+        EXPECT_EQ(OperatorSequence::Identity(context, SequenceSignType::Imaginary).hermitian_type(),
+                  HermitianType::AntiHermitian);
+
+        OperatorSequence antiherm_seq_A{{0, 0}, context, SequenceSignType::Imaginary};
+        EXPECT_EQ(antiherm_seq_A.hermitian_type(), HermitianType::AntiHermitian);
+
+        OperatorSequence antiherm_seq_B{{0, 1, 0}, context, SequenceSignType::Imaginary};
+        EXPECT_EQ(antiherm_seq_B.hermitian_type(), HermitianType::AntiHermitian);
+
+        OperatorSequence not_herm_A{{0, 1}, context, SequenceSignType::Positive};
+        EXPECT_EQ(not_herm_A.hermitian_type(), HermitianType::NotHermitian);
+
+        OperatorSequence not_herm_B{{0, 1, 1}, context, SequenceSignType::Imaginary};
+        EXPECT_EQ(not_herm_B.hermitian_type(), HermitianType::NotHermitian);
+    }
 }

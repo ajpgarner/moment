@@ -15,9 +15,6 @@
 #include "matrix/monomial_matrix.h"
 #include "matrix/polynomial_matrix.h"
 
-//#include "matrix/operator_matrix/operator_matrix.h"
-//#include "export/export_operator_matrix.h"
-//#include "export/export_polynomial.h"
 
 #include <cassert>
 

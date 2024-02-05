@@ -64,6 +64,29 @@ namespace Moment {
         return this->context->conjugate(*this);
     }
 
+    HermitianType OperatorSequence::hermitian_type() const {
+        if (this->empty()) {
+            // Special case zero:
+            if (this->zero()) {
+                return HermitianType::Zero;
+            }
+
+            // Factor of identity; so as Hermitian as its sign...
+            return is_imaginary(this->sign) ? HermitianType::AntiHermitian : HermitianType::Hermitian;
+        }
+
+        // Otherwise, calculate conjugate and compare...
+        const auto conjugate = this->context->conjugate(*this);
+        const auto csm = this->compare_same_negation(*this, conjugate);
+        if (1 == csm) {
+            return HermitianType::Hermitian;
+        } else if (-1 == csm) {
+            return HermitianType::AntiHermitian;
+        } else {
+            return HermitianType::NotHermitian;
+        }
+    }
+
     OperatorSequence &OperatorSequence::operator*=(const OperatorSequence &rhs) {
         *this = context->multiply(*this, rhs);
         return *this;
