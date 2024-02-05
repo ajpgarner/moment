@@ -40,6 +40,7 @@
 *.mexw64
 
 # C++ intermediate/output directories
+CMakeSettings.json
 /.idea
 /.vs
 /build*
