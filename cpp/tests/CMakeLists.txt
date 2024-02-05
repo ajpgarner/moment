@@ -10,6 +10,7 @@ add_executable(moment_tests
         matrix/operator_matrix_tests.cpp
         matrix/polynomial_localizing_matrix_tests.cpp
         matrix/polynomial_matrix_tests.cpp
+        matrix/value_matrix_tests.cpp
         multithreading/extended_matrix_tests.cpp
         multithreading/localizing_matrix_tests.cpp
         multithreading/moment_matrix_tests.cpp
@@ -85,6 +86,7 @@ add_executable(moment_tests
         utilities/alphabetic_namer_tests.cpp
         utilities/combination_tests.cpp
         utilities/dynamic_bitset_tests.cpp
+        utilities/eigen_utils_tests.cpp
         utilities/first_intersection_tests.cpp
         utilities/float_utils_tests.cpp
         utilities/index_tree_tests.cpp

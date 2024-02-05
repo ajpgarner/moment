@@ -16,10 +16,11 @@ add_library(lib_moment
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_arithmetic.cpp
         matrix/polynomial_matrix_basis.cpp
-        matrix/operator_matrix/is_hermitian.cpp
-        matrix/operator_matrix/operator_matrix.cpp
         matrix/substituted_matrix.cpp
         matrix/symbolic_matrix.cpp
+        matrix/value_matrix.cpp
+        matrix/operator_matrix/is_hermitian.cpp
+        matrix/operator_matrix/operator_matrix.cpp
         matrix_system/indices/localizing_matrix_index.cpp
         matrix_system/indices/moment_matrix_index.cpp
         matrix_system/matrix_system.cpp
@@ -108,6 +109,7 @@ add_library(lib_moment
         tensor/index_flattener.cpp
         tensor/tensor_errors.cpp
         utilities/alphabetic_namer.cpp
+        utilities/eigen_utils.cpp
         utilities/format_factor.cpp
         utilities/kronecker_power.cpp
         utilities/persistent_storage.cpp

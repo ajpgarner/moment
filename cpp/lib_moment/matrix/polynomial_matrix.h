@@ -40,8 +40,8 @@ namespace Moment {
             /**
              * Convenience method, provide access to element in matrix.
              */
-            inline const auto& operator()(const size_t col, const size_t row) const noexcept(!debug_mode) {
-                return (*(matrix.sym_exp_matrix))(SquareMatrix<Polynomial>::Index{col, row});
+            inline const auto& operator()(const size_t row, const size_t col) const noexcept(!debug_mode) {
+                return (*(matrix.sym_exp_matrix))(SquareMatrix<Polynomial>::Index{row, col});
             }
 
             /**
