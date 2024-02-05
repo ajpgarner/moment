@@ -63,6 +63,8 @@ namespace Moment::mex::functions {
                     case EmptyObject:
                     case Monomial:
                     case Polynomial:
+                    case RealNumber:
+                    case ComplexNumber:
                         return ProductType::MatrixToOne;
                         // -> matrix
                     case MatrixID:
@@ -70,14 +72,18 @@ namespace Moment::mex::functions {
                         // -> many
                     case MonomialArray:
                     case PolynomialArray:
+                    case RealNumberArray:
+                    case ComplexNumberArray:
                         return ProductType::Incompatible;
                 }
                 break;
 
-                // One ->
+            // One ->
             case EmptyObject:
             case Monomial:
             case Polynomial:
+            case RealNumber:
+            case ComplexNumber:
                 switch (rhs.type) {
                     // -> unknown
                     case Unknown:
@@ -86,6 +92,8 @@ namespace Moment::mex::functions {
                     case EmptyObject:
                     case Monomial:
                     case Polynomial:
+                    case RealNumber:
+                    case ComplexNumber:
                         return ProductType::OneToOne;
                         // -> matrix
                     case MatrixID:
@@ -93,13 +101,17 @@ namespace Moment::mex::functions {
                         // -> many
                     case MonomialArray:
                     case PolynomialArray:
+                    case RealNumberArray:
+                    case ComplexNumberArray:
                         return ProductType::OneToMany;
                 }
                 break;
 
-                // Many ->
+            // Many ->
             case PolynomialArray:
             case MonomialArray:
+            case RealNumberArray:
+            case ComplexNumberArray:
                 switch (rhs.type) {
                     // -> unknown
                     case Unknown:
@@ -108,6 +120,8 @@ namespace Moment::mex::functions {
                     case EmptyObject:
                     case Monomial:
                     case Polynomial:
+                    case RealNumber:
+                    case ComplexNumber:
                         return ProductType::ManyToOne;
                         // -> matrix
                     case MatrixID:
@@ -115,6 +129,8 @@ namespace Moment::mex::functions {
                         // -> many
                     case MonomialArray:
                     case PolynomialArray:
+                    case RealNumberArray:
+                    case ComplexNumberArray:
                         if (!std::equal(lhs.shape.cbegin(), lhs.shape.cend(),
                                         rhs.shape.cbegin(), rhs.shape.cend())) {
                             return ProductType::MismatchedDimensions;

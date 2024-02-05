@@ -44,6 +44,7 @@
 #include "functions/operator_matrix/moment_matrix.h"
 #include "functions/operator_matrix/operator_matrix.h"
 #include "functions/operator_matrix/substituted_matrix.h"
+#include "functions/operator_matrix/value_matrix.h"
 #include "functions/operator_rules/complete.h"
 #include "functions/operator_rules/operator_rules.h"
 #include "functions/probability/collins_gisin.h"
@@ -105,6 +106,7 @@ namespace Moment::mex::functions {
             output.emplace("symbol_table",              MTKEntryPointID::SymbolTable);
             output.emplace("transform_matrix",          MTKEntryPointID::TransformMatrix);
             output.emplace("transform_symbols",         MTKEntryPointID::TransformSymbols);
+            output.emplace("value_matrix",              MTKEntryPointID::ValueMatrix);
             output.emplace("version",                   MTKEntryPointID::Version);
             output.emplace("word_list",                 MTKEntryPointID::WordList);
             return output;
@@ -274,6 +276,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::TransformSymbols:
                 the_function = std::make_unique<functions::TransformSymbols>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::ValueMatrix:
+                the_function = std::make_unique<functions::ValueMatrix>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::Version:
                 the_function = std::make_unique<functions::Version>(engine, storageManager);

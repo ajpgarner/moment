@@ -66,36 +66,56 @@ namespace Moment {
 
     /** Construct precomputed monomial matrix without operator matrix. */
     ValueMatrix::ValueMatrix(const Context& context, SymbolTable& symbols,
-                             double zero_tolerance, const Eigen::MatrixXd& data)
+                             double zero_tolerance, const Eigen::MatrixXd& data,
+                             std::optional<std::string> input_description)
          : MonomialMatrix{context, symbols, zero_tolerance,
                           to_monomial_matrix(data, zero_tolerance), is_hermitian(data, zero_tolerance)} {
-        this->description = "Real Value Matrix";
+        if (input_description.has_value()) {
+            this->description = input_description.value();
+        } else {
+            this->description = "Real Value Matrix";
+        }
 
     }
 
     /** Construct precomputed monomial matrix without operator matrix. */
     ValueMatrix::ValueMatrix(const Context& context, SymbolTable& symbols,
-                             double zero_tolerance, const Eigen::MatrixXcd& data)
+                             double zero_tolerance, const Eigen::MatrixXcd& data,
+                             std::optional<std::string> input_description)
         : MonomialMatrix{context, symbols, zero_tolerance,
                          to_monomial_matrix(data, zero_tolerance), is_hermitian(data, zero_tolerance)} {
-        this->description = "Complex Value Matrix";
+        if (input_description.has_value()) {
+            this->description = input_description.value();
+        } else {
+            this->description = "Complex Value Matrix";
+        }
     }
 
     /** Construct precomputed monomial matrix without operator matrix. */
     ValueMatrix::ValueMatrix(const Context& context, SymbolTable& symbols,
-                             double zero_tolerance, Eigen::SparseMatrix<double>& data)
+                             double zero_tolerance, Eigen::SparseMatrix<double>& data,
+                             std::optional<std::string> input_description)
             : MonomialMatrix{context, symbols, zero_tolerance,
                              to_monomial_matrix(data), is_hermitian(data, zero_tolerance)} {
-        this->description = "Real Value Matrix";
+        if (input_description.has_value()) {
+            this->description = input_description.value();
+        } else {
+            this->description = "Real Value Matrix";
+        }
     }
 
     /** Construct precomputed monomial matrix without operator matrix. */
     ValueMatrix::ValueMatrix(const Context& context, SymbolTable& symbols,
-                             double zero_tolerance, Eigen::SparseMatrix<std::complex<double>>& data)
+                             double zero_tolerance, Eigen::SparseMatrix<std::complex<double>>& data,
+                             std::optional<std::string> input_description)
             : MonomialMatrix{context, symbols, zero_tolerance,
                              to_monomial_matrix(data), is_hermitian(data, zero_tolerance)} {
 
-        this->description = "Complex Value Matrix";
+        if (input_description.has_value()) {
+            this->description = input_description.value();
+        } else {
+            this->description = "Complex Value Matrix";
+        }
     }
 
 

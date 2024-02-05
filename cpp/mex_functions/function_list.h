@@ -67,6 +67,7 @@ namespace Moment::mex::functions {
         SymmetrizedMatrixSystem,
         TransformMatrix,
         TransformSymbols,
+        ValueMatrix,
         Version,
         WordList
     };

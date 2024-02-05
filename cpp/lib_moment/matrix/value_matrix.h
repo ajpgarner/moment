@@ -9,6 +9,9 @@
 
 #include "monomial_matrix.h"
 
+#include <optional>
+#include <string>
+
 
 namespace Moment {
 
@@ -18,18 +21,22 @@ namespace Moment {
     class ValueMatrix : public MonomialMatrix {
     public:
         /** Construct value matrix from dense real Eigen matrix. */
-        ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance, const Eigen::MatrixXd& data);
+        ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
+                    const Eigen::MatrixXd& data, std::optional<std::string> description = std::nullopt);
 
         /** Construct value matrix from dense complex Eigen matrix. */
-        ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance, const Eigen::MatrixXcd& data);
+        ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
+                    const Eigen::MatrixXcd& data, std::optional<std::string> description = std::nullopt);
 
         /** Construct value matrix from sparse real Eigen matrix. */
         ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
-                    Eigen::SparseMatrix<double>& data);
+                    Eigen::SparseMatrix<double>& data, std::optional<std::string> description = std::nullopt);
 
         /** Construct value matrix from sparse complex Eigen matrix. */
         ValueMatrix(const Context& context, SymbolTable& symbols, double zero_tolerance,
-                    Eigen::SparseMatrix<std::complex<double>>& data);
+                    Eigen::SparseMatrix<std::complex<double>>& data,
+                    std::optional<std::string> description = std::nullopt);
+
 
     };
 }

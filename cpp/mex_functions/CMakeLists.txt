@@ -91,6 +91,7 @@ matlab_add_mex(NAME moment_mex
             functions/operator_matrix/moment_matrix.cpp
             functions/operator_matrix/operator_matrix.cpp
             functions/operator_matrix/substituted_matrix.cpp
+            functions/operator_matrix/value_matrix.cpp
             functions/operator_rules/complete.cpp
             functions/operator_rules/operator_rules.cpp
             functions/probability/collins_gisin.cpp

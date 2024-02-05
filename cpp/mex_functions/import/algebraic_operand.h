@@ -13,9 +13,13 @@
 #include "dictionary/raw_polynomial.h"
 #include "symbolic/polynomial.h"
 
+#include <Eigen/Dense>
+
 #include "MatlabDataArray.hpp"
 
 #include <iosfwd>
+#include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -27,6 +31,7 @@ namespace matlab::engine {
 namespace Moment {
     class MatrixSystem;
     class SymbolicMatrix;
+    class ValueMatrix;
 
     namespace mex {
 
@@ -53,7 +58,8 @@ namespace Moment {
             /** Before parsing, what format was the input in? */
             enum class InputFormat : unsigned char {
                 Unknown,
-                Number,
+                NumericData,
+                Integer,
                 SymbolCell,
                 OperatorCell
             } format = InputFormat::Unknown;
@@ -66,17 +72,25 @@ namespace Moment {
                 Monomial = 0x04,
                 MonomialArray = 0x84,
                 Polynomial = 0x08,
-                PolynomialArray = 0x88
+                PolynomialArray = 0x88,
+                RealNumber = 0x10,
+                RealNumberArray = 0x90,
+                ComplexNumber = 0x20,
+                ComplexNumberArray = 0xa0
             } type = InputType::Unknown;
 
             /** Dimensions of the object */
             std::vector<size_t> shape;
 
-
-
         protected:
-            /** The actual data (union) */
-            std::variant<size_t, std::vector<std::vector<raw_sc_data>>, std::vector<StagingPolynomial>> raw;
+            /** The actual data (variant union) */
+            std::variant<size_t,
+                         std::vector<std::vector<raw_sc_data>>,
+                         std::vector<StagingPolynomial>,
+                         double,
+                         std::complex<double>,
+                         Eigen::MatrixXd,
+                         Eigen::MatrixXcd> raw;
 
         public:
 
@@ -98,6 +112,23 @@ namespace Moment {
                 return std::get<2>(this->raw);
             }
 
+            [[nodiscard]] inline double raw_scalar() const  {
+                return std::get<3>(this->raw);
+            }
+
+            [[nodiscard]] inline std::complex<double> raw_complex_scalar() const  {
+                return std::get<4>(this->raw);
+            }
+
+            [[nodiscard]] inline Eigen::MatrixXd raw_numeric_array() const  {
+                return std::get<5>(this->raw);
+            }
+
+            [[nodiscard]] inline Eigen::MatrixXcd raw_complex_numeric_array() const  {
+                return std::get<6>(this->raw);
+            }
+
+
         public:
             AlgebraicOperand(matlab::engine::MATLABEngine& engine, const std::string& name_in)
                 : matlabEngine{engine}, name{std::move(name_in)} { }
@@ -110,7 +141,7 @@ namespace Moment {
              * Read raw input.
              * @param input The input data to parse.
              */
-            void parse_input(matlab::data::Array& input);
+            void parse_input(const matlab::data::Array& input);
 
             /** True if operand represents a single scalar object (cf. an array or tensor). */
             [[nodiscard]] bool is_scalar() const noexcept;
@@ -147,8 +178,19 @@ namespace Moment {
 
             [[nodiscard]] const std::vector<RawPolynomial> to_raw_polynomial_array(const MatrixSystem& system);
 
+            /**
+             * If input was numeric data, turn it into a value matrix (but do not register matrix in system).
+             * No new symbols should be created, but VM c'tor needs read-write-access to system.
+             * @param system The matrix system the matrix will be associated with.
+             * @Param label Optional label to set the matrix's description to.
+             */
+            [[nodiscard]] std::unique_ptr<ValueMatrix> to_value_matrix(MatrixSystem& system,
+                                                                       std::optional<std::string> label = std::nullopt);
+
         private:
             void parse_as_matrix_key(const matlab::data::Array& input);
+
+            void parse_as_numeric_data(const matlab::data::Array& input);
 
             void parse_cell(const matlab::data::Array& input);
 

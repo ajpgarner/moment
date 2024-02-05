@@ -8,7 +8,9 @@
 #include "echo_operand.h"
 #include "storage_manager.h"
 
+#include "eigen/export_eigen_dense.h"
 #include "export/export_polynomial.h"
+
 #include "utilities/read_as_scalar.h"
 
 #include "dictionary/raw_polynomial.h"
@@ -25,7 +27,6 @@ namespace Moment::mex::functions  {
         this->matrix_system_key.parse_input(this->inputs[0]);
 
         // Get operand
-        //const bool expect_symbols = this->flags.contains(u"symbolic");
         this->operand.parse_input(this->inputs[1]);
 
         // Parse to symbols (default: only parse to symbols if symbols supplied as input).
@@ -223,6 +224,109 @@ namespace Moment::mex::functions  {
                 }
             }
         }
+
+        void output_symbolic(matlab::engine::MATLABEngine& engine,
+                             IOArgumentRange& output, EchoOperandParams& input,
+                             const bool print_output, const MatrixSystem& matrix_system) {
+
+            // Try and parse symbolic cases:
+            const bool is_scalar = input.operand.is_scalar();
+            const bool output_as_monomial = !input.parse_to_symbols && input.operand.is_monomial();
+            if (is_scalar) {
+                if (input.parse_to_symbols) {
+                    auto parsed_poly = input.operand.to_polynomial(matrix_system);
+                    output_full_polynomial(engine, output, input, print_output, matrix_system, parsed_poly);
+                } else {
+                    auto parsed_raw_poly = input.operand.to_raw_polynomial(matrix_system);
+                    if (output_as_monomial) {
+                        output_monomial(engine, output, input, print_output, matrix_system, parsed_raw_poly);
+                    } else {
+                        output_raw_polynomial(engine, output, input, print_output, matrix_system, parsed_raw_poly);
+                    }
+                }
+            } else {
+                if (input.parse_to_symbols) {
+                    auto parsed_polys = input.operand.to_polynomial_array(matrix_system);
+                    output_full_polynomial_array(engine, output, input, print_output,
+                                                 matrix_system, parsed_polys);
+                } else {
+                    auto parsed_raw_polys = input.operand.to_raw_polynomial_array(matrix_system);
+                    if (output_as_monomial) {
+                        output_monomial_array(engine, output, input, print_output,
+                                              matrix_system, parsed_raw_polys);
+                    } else {
+                        output_raw_polynomial_array(engine, output, input, print_output,
+                                                    matrix_system, parsed_raw_polys);
+                    }
+                }
+            }
+
+            // Write monomial status of output
+            if (output.size() >= 2) {
+                matlab::data::ArrayFactory factory;
+                output[1] = factory.createScalar<bool>(output_as_monomial);
+            }
+        }
+
+        void output_scalar_value(matlab::engine::MATLABEngine& engine, IOArgumentRange& output,
+                                 const AlgebraicOperand& operand, const bool print_output) {
+            if (print_output) {
+                std::stringstream ss;
+                ss << operand;
+                print_to_console(engine, ss.str());
+            }
+
+            if (output.size() >= 1) {
+                matlab::data::ArrayFactory factory;
+                if (operand.type == AlgebraicOperand::InputType::RealNumber) {
+                    double value = operand.raw_scalar();
+                    output[0] = factory.createScalar<double>(value);
+                } else {
+                    assert(operand.type == AlgebraicOperand::InputType::ComplexNumber);
+
+                    std::complex<double> value = operand.raw_complex_scalar();
+                    output[0] = factory.createScalar<std::complex<double>>(value);
+                }
+            }
+        }
+
+        void output_numeric_array(matlab::engine::MATLABEngine& engine, IOArgumentRange& output,
+                                  const AlgebraicOperand& operand, const bool print_output) {
+            if (print_output) {
+                std::stringstream ss;
+                ss << operand;
+                print_to_console(engine, ss.str());
+            }
+
+            if (output.size() >= 1) {
+                matlab::data::ArrayFactory factory;
+                if (operand.type == AlgebraicOperand::InputType::RealNumberArray) {
+                    const auto& value = operand.raw_numeric_array();
+                    output[0] = export_eigen_dense(engine, factory, value);
+                } else {
+                    assert(operand.type == AlgebraicOperand::InputType::ComplexNumberArray);
+                    const auto& value = operand.raw_complex_numeric_array();
+                    output[0] = export_eigen_dense(engine, factory, value);
+                }
+            }
+        }
+
+        void output_numeric(matlab::engine::MATLABEngine& engine,
+                            IOArgumentRange& output, EchoOperandParams& input,
+                            const bool print_output, const MatrixSystem& matrix_system) {
+            switch (input.operand.type) {
+                case AlgebraicOperand::InputType::RealNumber:
+                case AlgebraicOperand::InputType::ComplexNumber:
+                    output_scalar_value(engine, output, input.operand, print_output);
+                    break;
+                case AlgebraicOperand::InputType::RealNumberArray:
+                case AlgebraicOperand::InputType::ComplexNumberArray:
+                    output_numeric_array(engine, output, input.operand, print_output);
+                    break;
+                default:
+                    throw_error(engine, errors::internal_error, "Unexpected input type.");
+            }
+        }
     }
 
 
@@ -246,49 +350,19 @@ namespace Moment::mex::functions  {
             case AlgebraicOperand::InputType::MonomialArray:
             case AlgebraicOperand::InputType::Polynomial:
             case AlgebraicOperand::InputType::PolynomialArray:
-                break; // Move on...
+                output_symbolic(this->matlabEngine, output, input, print_output, matrix_system);
+                return;
+
+            case AlgebraicOperand::InputType::RealNumber:
+            case AlgebraicOperand::InputType::RealNumberArray:
+            case AlgebraicOperand::InputType::ComplexNumber:
+            case AlgebraicOperand::InputType::ComplexNumberArray:
+                output_numeric(this->matlabEngine, output, input, print_output, matrix_system);
+                return;
 
             default: // Catch bad input cases
             case AlgebraicOperand::InputType::Unknown:
                 throw_error(matlabEngine, errors::bad_param, "Unknown algebraic operand!");
-        }
-
-        // Now, try and parse remaining cases:
-        const bool is_scalar = input.operand.is_scalar();
-        const bool output_as_monomial = !input.parse_to_symbols && input.operand.is_monomial();
-        if (is_scalar) {
-            if (input.parse_to_symbols) {
-                auto parsed_poly = input.operand.to_polynomial(matrix_system);
-                output_full_polynomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_poly);
-            } else {
-                auto parsed_raw_poly = input.operand.to_raw_polynomial(matrix_system);
-                if (output_as_monomial) {
-                    output_monomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_raw_poly);
-                } else {
-                    output_raw_polynomial(this->matlabEngine, output, input, print_output, matrix_system, parsed_raw_poly);
-                }
-            }
-        } else {
-            if (input.parse_to_symbols) {
-                auto parsed_polys = input.operand.to_polynomial_array(matrix_system);
-                output_full_polynomial_array(this->matlabEngine, output, input, print_output,
-                                             matrix_system, parsed_polys);
-            } else {
-                auto parsed_raw_polys = input.operand.to_raw_polynomial_array(matrix_system);
-                if (output_as_monomial) {
-                    output_monomial_array(this->matlabEngine, output, input, print_output,
-                                          matrix_system, parsed_raw_polys);
-                } else {
-                    output_raw_polynomial_array(this->matlabEngine, output, input, print_output,
-                                                matrix_system, parsed_raw_polys);
-                }
-            }
-        }
-
-        // Write monomial status of output
-        if (output.size() >= 2) {
-            matlab::data::ArrayFactory factory;
-            output[1] = factory.createScalar<bool>(output_as_monomial);
         }
     }
 
