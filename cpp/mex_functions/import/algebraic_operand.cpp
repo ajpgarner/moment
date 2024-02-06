@@ -157,8 +157,6 @@ namespace Moment::mex {
 
     AlgebraicOperand::InputFormat
     AlgebraicOperand::infer_format_from_scalar_object(const matlab::data::CellArray& input, size_t outer_index) const {
-        assert(!input.isEmpty());
-
         // If scalar object is empty, cannot infer its type:
         if (input.isEmpty()) {
             return InputFormat::Unknown;

@@ -24,17 +24,17 @@ namespace Moment {
     };
 
     /** True if object is Hermitian (including special case of zero). */
-    [nodiscard] inline bool is_hermitian(HermitianType ht) noexcept {
+    [[nodiscard]] inline bool is_hermitian(HermitianType ht) noexcept {
         return (static_cast<uint8_t>(ht) & 0x01) == 0x01;
     }
 
     /** True if object is anti-Hermitian (including special case of zero). */
-    [nodiscard] inline bool is_antihermitian(HermitianType ht) noexcept  {
+    [[nodiscard]] inline bool is_antihermitian(HermitianType ht) noexcept  {
         return (static_cast<uint8_t>(ht) & 0x02) == 0x02;
     }
 
     /** True if object is zero. */
-    [nodiscard] inline bool is_zero(HermitianType ht) noexcept  {
+    [[nodiscard]] inline bool is_zero(HermitianType ht) noexcept  {
         return ht == HermitianType::Zero;
     }
 }
