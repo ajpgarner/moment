@@ -54,10 +54,8 @@ namespace Moment::mex::functions {
     }
 
     RawPolynomial Commutator::one_to_one(const RawPolynomial& lhs, const RawPolynomial& rhs) {
-        assert(this->pauli_context_ptr != nullptr);
         // Whole architecture relies on branch prediction...
         //  in theory could refactor if statements outside of loops.
-
         if (this->pauli_context_ptr) {
             if (this->anticommute) {
                 return this->pauli_context_ptr->anticommutator(lhs, rhs, this->tolerance);
