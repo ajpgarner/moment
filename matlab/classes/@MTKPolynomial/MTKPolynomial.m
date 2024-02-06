@@ -12,7 +12,10 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
         OperatorCell
         SymbolCell
         
-        % True if all symbols can be found in symbol table.
+        % True if symbols for each element can be found in symbol table.
+        FoundSymbol
+        
+        % True if all symbols for every element can be found in symbol table.
         FoundAllSymbols
     end
     
@@ -189,6 +192,10 @@ classdef (InferiorClasses={?MTKMonomial}) MTKPolynomial < MTKObject
                 end
             end
             val = obj.symbol_cell;
+        end
+        
+        function val = get.FoundSymbol(obj)
+            val = checkSymbolsFound(obj);
         end
         
         function val = get.FoundAllSymbols(obj)

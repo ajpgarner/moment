@@ -10,10 +10,10 @@ classdef MTKMonomial < MTKObject
     
     %% Public dependent properties
     properties(Dependent, GetAccess = public)
-        % True if monomial can be found in symbol table (array)
+        % True if monomial can be found in symbol table (per element)
         FoundSymbol
         
-        % True if symbols are located for all contained values
+        % True if all symbols in array have been located.
         FoundAllSymbols;
         
         % The ID number of the corresponding symbol in table.
