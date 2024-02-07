@@ -10,21 +10,21 @@ function val = times(lhs, rhs)
     
     % Test if accelerated multiplication is possible    
     if isa(other, 'MTKPolynomial') || isa(other, 'MTKMonomial')
-        this.checkSameScenario(other.Scenario);
+        this.checkSameScenario(other);
         assert(other.IsScalar, ...
             "Currently, operator matrices can only be multiplied by scalar objects");
         
         if (this_on_lhs)
             [res_id, res_dim, res_mono, res_herm] = ...
-                mtk('multiply', obj.Scenario.System.RefId, ...
-                                obj.Index, other.OperatorCell);
+                mtk('multiply', this.Scenario.System.RefId, ...
+                                this.Index, other.OperatorCell);
         else
             [res_id, res_dim, res_mono, res_herm] = ...
-                mtk('multiply', obj.Scenario.System.RefId, ...
-                                other.OperatorCell, obj.Index);
+                mtk('multiply', this.Scenario.System.RefId, ...
+                                other.OperatorCell, this.Index);
         end
 
-        val = MTKOpMatrix(obj.Scenario, res_id, res_dim, res_mono, res_herm);    
+        val = MTKOpMatrix(this.Scenario, res_id, res_dim, res_mono, res_herm);    
         return;
     end
        
