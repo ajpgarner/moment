@@ -1,4 +1,12 @@
 function mode = spliceIn(obj, indices, value)
+    
+    % Promote RHS to Polynomial if Monomial
+    if isa(value, 'MTKMonomial')
+        value = MTKPolynomial(value);
+    elseif isnumeric(value) % Promote RHS to Polynomial if numeric
+        value = MTKPolynomial.InitValue(obj.Scenario, value);
+    end
+        
     mode = spliceIn@MTKObject(obj, indices, value);
   
     switch mode

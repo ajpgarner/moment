@@ -27,10 +27,11 @@
             end
             
             % Only allow expressions of form: obj(index) = new_obj
-            if (length(s) ~= 1) || ~isa(val, 'MTKObject')
-                error("subsasgn can only be used to splice in MTKObjects.");
-            end
-  
+            assert(length(s) == 1, ...
+                "subsasgn can only be used to splice in scalar objects.");
+            assert(isa(val, 'MTKObject') || isnumeric(val), ...
+                "subsasgn can only be used to splice in numbers or MTKObjects.");
+
             % Handle empty () case
             if isempty(s(1).subs)
                 if isequal(size(obj), size(val))

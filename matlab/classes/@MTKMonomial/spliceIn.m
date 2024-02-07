@@ -1,4 +1,11 @@
 function mode = spliceIn(obj, indices, value)
+
+    
+    % Promote RHS to Monomial if numeric
+    if isnumeric(value)
+        value = MTKMonomial.InitValue(obj.Scenario, value);
+    end
+    
     mode = spliceIn@MTKObject(obj, indices, value);
 
     switch mode
