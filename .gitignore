@@ -34,6 +34,9 @@
 # Matlab autosaves
 *.asv
 
+# Working scratch scripts
+/matlab/temp*.m
+
 # Matlab executables
 *.mexa64
 *.mexmaci64
