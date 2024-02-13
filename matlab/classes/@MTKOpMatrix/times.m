@@ -25,6 +25,10 @@ function val = times(lhs, rhs)
         end
 
         val = MTKOpMatrix(this.Scenario, res_id, res_dim, res_mono, res_herm);    
+        
+        % This might result in new symbols:
+        this.Scenario.System.UpdateSymbolTable();
+        
         return;
     end
        
