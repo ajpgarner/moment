@@ -28,6 +28,7 @@ namespace Moment::mex::functions {
         AlphabeticName,
         ApplyMomentRules,
         CollinsGisin,
+        ConvertTensor,
         Commutator,
         CommutatorMatrix,
         Complete,

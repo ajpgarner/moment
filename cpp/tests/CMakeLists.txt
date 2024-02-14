@@ -50,6 +50,7 @@ add_executable(moment_tests
         scenarios/locality/locality_probability_tensor_tests.cpp
         scenarios/locality/locality_osg_tests.cpp
         scenarios/locality/party_tests.cpp
+        scenarios/locality/tensor_conversion_tests.cpp
         scenarios/locality/virtual_polynomial_view_tests.cpp
         scenarios/pauli/commutator_matrix_tests.cpp
         scenarios/pauli/lattice_duplicator_tests.cpp

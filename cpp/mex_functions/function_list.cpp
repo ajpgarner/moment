@@ -48,6 +48,7 @@
 #include "functions/operator_rules/complete.h"
 #include "functions/operator_rules/operator_rules.h"
 #include "functions/probability/collins_gisin.h"
+#include "functions/probability/convert_tensor.h"
 #include "functions/probability/full_correlator.h"
 #include "functions/probability/make_explicit.h"
 #include "functions/probability/probability_table.h"
@@ -67,6 +68,7 @@ namespace Moment::mex::functions {
             output.emplace("alphabetic_name",           MTKEntryPointID::AlphabeticName);
             output.emplace("apply_moment_rules",        MTKEntryPointID::ApplyMomentRules);
             output.emplace("collins_gisin",             MTKEntryPointID::CollinsGisin);
+            output.emplace("convert_tensor",            MTKEntryPointID::ConvertTensor);
             output.emplace("commutator",                MTKEntryPointID::Commutator);
             output.emplace("commutator_matrix",         MTKEntryPointID::CommutatorMatrix);
             output.emplace("complete",                  MTKEntryPointID::Complete);
@@ -159,6 +161,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::CollinsGisin:
                 the_function = std::make_unique<functions::CollinsGisin>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::ConvertTensor:
+                the_function = std::make_unique<functions::ConvertTensor>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::Commutator:
                 the_function = std::make_unique<functions::Commutator>(engine, storageManager);

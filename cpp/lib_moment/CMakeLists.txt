@@ -76,6 +76,7 @@ add_library(lib_moment
         scenarios/locality/locality_osg.cpp
         scenarios/locality/party.cpp
         scenarios/locality/party_measurement_index.cpp
+        scenarios/locality/tensor_conversion.cpp
         scenarios/symmetrized/group.cpp
         scenarios/symmetrized/group_rep_generation_worker.cpp
         scenarios/symmetrized/representation.cpp

@@ -95,6 +95,7 @@ matlab_add_mex(NAME moment_mex
             functions/operator_rules/complete.cpp
             functions/operator_rules/operator_rules.cpp
             functions/probability/collins_gisin.cpp
+            functions/probability/convert_tensor.cpp
             functions/probability/full_correlator.cpp
             functions/probability/make_explicit.cpp
             functions/probability/probability_table.cpp
