@@ -18,7 +18,7 @@ function indices = cleanIndices(obj, indices)
     if numel(indices)==1
         last_limit = numel(obj);
         if ischar(indices{1}) && indices{1} == ':'
-            indices{1} = 1:last_limit;
+            indices{1} = (1:last_limit)';
         elseif any(indices{1} > last_limit)
                 bad = indices{1}(find(indices{1} > last_limit, 1));
                 error("Index '%d' is out of bounds.", bad);
