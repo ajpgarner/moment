@@ -46,13 +46,13 @@ cvx_begin sdp
     sym_scenario.cvxVars('a', 'b');
     
     % Compose moment matrix from these basis variables
-    M = sym_mm.cvx(a, b);
+    M = sym_mm.Apply(a, b);
     
     % Constraints (normalization & positivity)
     a(1) == 1;
     M >= 0;
     
     % Optimize equality
-    solve_chsh_ineq = sym_CHSH_ineq.cvx(a);
+    solve_chsh_ineq = sym_CHSH_ineq.Apply(a);
     maximize(solve_chsh_ineq);
 cvx_end

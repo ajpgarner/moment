@@ -32,7 +32,7 @@ yalmip('clear');
 a = triangle.yalmipVars;
 
 % Compose moment matrix from these basis variables
-M = subbed_matrix.yalmip(a);
+M = subbed_matrix.Apply(a);
 
 % Constraints
 constraints = [a(1) == 1, M >= 0];

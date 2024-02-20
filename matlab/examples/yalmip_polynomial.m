@@ -30,16 +30,16 @@ yalmip('clear');
     a = setting.yalmipVars;
     
     % Compose moment matrix from these basis variables
-    M = mm.yalmip(a);
+    M = mm.Apply(a);
     
     % Compose localizing matrix from these basis variables
-    L = lm.yalmip(a);
+    L = lm.Apply(a);
     
     % Constraints
     constraints = [a(1) == 1, M >= 0, L >= 0];
     
     % Objective
-    obj = objective.yalmip(a);    
+    obj = objective.Apply(a);    
     opt_results = optimize(constraints,obj);
 
 %% Output solution

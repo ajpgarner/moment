@@ -87,13 +87,13 @@ function val = solve_bff_sdp(setting, t, moment_matrix_level, ...
     a = setting.yalmipVars();
     
     % Compose moment matrix in these basis variables
-    M = mm.yalmip(a);
+    M = mm.Apply(a);
         	
     % Impose constraints
-    constraints = [a(1) == 1;  M >= 0, chsh.yalmip(a) >= value_chsh];
+    constraints = [a(1) == 1;  M >= 0, chsh.Apply(a) >= value_chsh];
          
     % Set objective
-	objective = obj.yalmip(a);
+	objective = obj.Apply(a);
     
     % Set other settings    
     ops = sdpsettings('verbose', verbose);

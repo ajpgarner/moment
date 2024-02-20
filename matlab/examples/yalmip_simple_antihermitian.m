@@ -24,13 +24,13 @@ yalmip('clear');
     [a, b] = setting.yalmipVars;
     
     % Compose moment matrix from these basis variables
-    M = mm.yalmip(a, b);
+    M = mm.Apply(a, b);
     
     % Constraints
     constraints = [a(1) == 1, M >= 0];
     
     % Objective
-    obj = objective.yalmip(a, b);    
+    obj = objective.Apply(a, b);    
     opt_results = optimize(constraints, obj);
 
 %% Output solution

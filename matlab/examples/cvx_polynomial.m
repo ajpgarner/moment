@@ -31,10 +31,10 @@ cvx_begin sdp
     setting.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = mm.cvx(a);
+    M = mm.Apply(a);
     
     % Compose localizing matrix from these basis variables
-    L = lm.cvx(a);
+    L = lm.Apply(a);
     
     % Constraints
     a(1) == 1;
@@ -42,7 +42,7 @@ cvx_begin sdp
     L >= 0;
     
     % Objective
-    obj = objective.cvx(a);    
+    obj = objective.Apply(a);    
     minimize(obj)
 cvx_end
 

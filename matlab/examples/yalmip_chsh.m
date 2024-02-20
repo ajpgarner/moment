@@ -27,14 +27,14 @@ yalmip('clear')
 
 % Get SDP vars and matrix
 a = setting.yalmipVars();
-M = matrix.yalmip(a);
+M = matrix.Apply(a);
 
 % Constraints (normalization, positivity)
 constraints = [a(1) == 1];
 constraints = [constraints, M>=0];
 
 % Objective function (maximize)
-objective = -CHSH_ineq.yalmip(a);
+objective = -CHSH_ineq.Apply(a);
 
 % Solve
 optimize(constraints, objective); 

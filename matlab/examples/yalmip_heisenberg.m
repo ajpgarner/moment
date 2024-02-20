@@ -48,11 +48,11 @@ fprintf("Generated moment objects in %f seconds.\n", setup_time);
 
 %% Define SDP using Yalmip
 a = setting.yalmipVars(); % NB: PauliScenario has no complex basis.
-M = mm.yalmip(a);
-G = gamma.yalmip(a);
+M = mm.Apply(a);
+G = gamma.Apply(a);
 G = G(2:end, 2:end);
 
-objective = H.yalmip(a);
+objective = H.Apply(a);
 constraints = [a(1) == 1, M >= 0, G >= 0];
 
 %% Solve for upper bound (maximize):

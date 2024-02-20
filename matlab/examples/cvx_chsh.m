@@ -39,7 +39,7 @@ cvx_begin sdp
     scenario.cvxVars('a', 'b');
     
     % Compose moment matrix from these basis variables
-    M = matrix.cvx(a, b);
+    M = matrix.Apply(a, b);
 
     % Normalization
     a(1) == 1;
@@ -48,7 +48,7 @@ cvx_begin sdp
     M >= 0;
 
     % CHSH inequality (maximize!)
-    solve_chsh_ineq = CHSH_ineq.cvx(a);
+    solve_chsh_ineq = CHSH_ineq.Apply(a);
     maximize(solve_chsh_ineq);
 cvx_end
 

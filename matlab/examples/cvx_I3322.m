@@ -35,7 +35,7 @@ cvx_begin sdp
     i3322.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = matrix.cvx(a);
+    M = matrix.Apply(a);
      
     % Normalization
     a(1) == 1;
@@ -44,7 +44,7 @@ cvx_begin sdp
     M >= 0;
              
     % CHSH inequality (maximize!)
-    i3322_ineq = I3322_ineq.cvx(a);
+    i3322_ineq = I3322_ineq.Apply(a);
     maximize(i3322_ineq);
 cvx_end
 

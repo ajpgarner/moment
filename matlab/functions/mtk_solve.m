@@ -230,14 +230,14 @@ function [result, sdp_a, sdp_b, timing] ...
         % Compose matrices with SDP constraints
         M = cell(numel(matrices), 1);
         for i = 1:numel(matrices)
-            M{i} = matrices{i}.yalmip(a, b);
+            M{i} = matrices{i}.Apply(a, b);
             constraints = [constraints, M{i} >= 0];            
         end
 
         % Extra polynomial constraints:
         C = cell(numel(opts.constraints), 1);
         for i = 1:numel(opts.constraints)
-            C{i} = opts.constraints(i).yalmip(a, b);
+            C{i} = opts.constraints(i).Apply(a, b);
             constraints = [constraints, C{i} >= 0];
         end
         
@@ -250,14 +250,14 @@ function [result, sdp_a, sdp_b, timing] ...
         % Compose matrices with SDP constraints
         M = cell(numel(matrices), 1);
         for i = 1:numel(matrices)
-            M{i} = matrices{i}.yalmip(a);
+            M{i} = matrices{i}.Apply(a);
             constraints = [constraints, M{i} >= 0];            
         end
         
          % Extra polynomial constraints:
         C = cell(numel(opts.constraints), 1);
         for i = 1:numel(opts.constraints)
-            C{i} = opts.constraints(i).yalmip(a);
+            C{i} = opts.constraints(i).Apply(a);
             constraints = [constraints, C{i} >= 0];
         end
         
@@ -269,9 +269,9 @@ function [result, sdp_a, sdp_b, timing] ...
     % Objective / feasibility
     if ~isempty(objective)
         if opts.complex        
-            O = objective.yalmip(a, b);
+            O = objective.Apply(a, b);
         else 
-            O = objective.yalmip(a);
+            O = objective.Apply(a);
         end
         
         % Do not solve, if in mock mode.
@@ -340,20 +340,20 @@ function [result, sdp_a, sdp_b, solve_timing] ...
             % Constraint(s): SDP matrices
             M = cell(numel(matrices), 1);
             for i = 1:numel(matrices)
-                M{i} = matrices{i}.cvx(a, b);
+                M{i} = matrices{i}.Apply(a, b);
                 M{i} >= 0;
             end
                
             % Extra polynomial constraints:
             C = cell(numel(opts.constraints), 1);
             for i = 1:numel(opts.constraints)
-                C{i} = opts.constraints(i).cvx(a, b);
+                C{i} = opts.constraints(i).Apply(a, b);
                 C{i} >= 0;
             end
 
             % Set objective
             if ~isempty(objective)
-                obj = objective.cvx(a, b);
+                obj = objective.Apply(a, b);
                 minimize obj;
             end
             timeInCVX = toc(cvxTimerVal);
@@ -383,20 +383,20 @@ function [result, sdp_a, sdp_b, solve_timing] ...
             % Constraint(s): SDP matrices
             M = cell(numel(matrices), 1);
             for i = 1:numel(matrices)
-                M{i} = matrices{i}.cvx(a);
+                M{i} = matrices{i}.Apply(a);
                 M{i} >= 0;
             end
             
             % Extra polynomial constraints:
             C = cell(numel(opts.constraints), 1);
             for i = 1:numel(opts.constraints)
-                C{i} = opts.constraints(i).cvx(a);
+                C{i} = opts.constraints(i).Apply(a);
                 C{i} >= 0;
             end
 
             % Set objective
             if ~isempty(objective)
-                obj = objective.cvx(a);
+                obj = objective.Apply(a);
                 minimize obj;
             end
             timeInCVX = toc(cvxTimerVal);

@@ -31,7 +31,7 @@ disp(subbed_matrix.SequenceStrings);
 cvx_begin sdp
     triangle.cvxVars('a')
     
-    M = subbed_matrix.cvx(a);
+    M = subbed_matrix.Apply(a);
     
     a(1) == 1;
     M >= 0;

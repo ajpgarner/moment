@@ -38,14 +38,14 @@ yalmip('clear')
 
 % Get SDP vars and matrix
 [a, b] = sym_scenario.yalmipVars();
-M = sym_mm.yalmip(a, b);
+M = sym_mm.Apply(a, b);
 
 % Constraints (normalization, positivity)
 constraints = [a(1) == 1];
 constraints = [constraints, M>=0];
 
 % Objective function (maximize)
-objective = -sym_CHSH_ineq.yalmip(a, b);
+objective = -sym_CHSH_ineq.Apply(a, b);
 
 % Solve
 optimize(constraints, objective); 
