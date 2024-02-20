@@ -14,6 +14,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Moment {
@@ -85,9 +86,12 @@ namespace Moment::Symmetrized {
         /**
          * Get index offset.
          */
-        [[nodiscard]] inline size_t operator[](size_t index) const noexcept {
+        [[nodiscard]] inline std::optional<size_t> operator[](size_t index) const noexcept {
             assert(index < this->remap.size());
-            return this->remap[index];
+            if (this->remap[index] > 0) {
+                return this->remap[index] - 1;
+            }
+            return std::nullopt;
         }
 
         /**

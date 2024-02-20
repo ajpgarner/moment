@@ -40,7 +40,8 @@ namespace Moment::Symmetrized {
             // First, reverse OSG to get map from hash to order.
             const auto& osg = context.operator_sequence_generator(target_word_length);
             std::map<size_t, size_t> hash_to_index;
-            size_t osg_index = 0;
+            hash_to_index.emplace(std::make_pair(static_cast<size_t>(0), static_cast<size_t>(0))); // 0 -> 0
+            size_t osg_index = 1;
             for (const auto& seq : osg) {
                 hash_to_index.emplace_hint(
                         hash_to_index.end(),
@@ -76,13 +77,16 @@ namespace Moment::Symmetrized {
             RepresentationMapper::lhs_mat_t output(static_cast<int>(remapped_dim), static_cast<int>(raw_dim)); // rows, cols
             std::vector<Eigen::Triplet<double>> triplets;
 
-            size_t true_index = 0;
+            size_t raw_index = 0;
             for (const auto mapped_index : remap) {
-                triplets.emplace_back(static_cast<int>(mapped_index),   // row
-                                      static_cast<int>(true_index), // col
-                                      1.0);
-                ++true_index;
+                if (mapped_index > 0) {
+                    triplets.emplace_back(static_cast<int>(mapped_index - 1),   // row
+                                          static_cast<int>(raw_index), // col
+                                          1.0);
+                }
+                ++raw_index;
             }
+            assert(raw_index == raw_dim);
 
             output.setFromTriplets(triplets.begin(), triplets.end());
 
@@ -102,12 +106,14 @@ namespace Moment::Symmetrized {
             size_t true_index = 0;
 
             for (const auto mapped_index : remap) {
-                if (!done_map.test(mapped_index)) {
-                    triplets.emplace_back(static_cast<int>(true_index),   // row
-                                          static_cast<int>(mapped_index), // col
-                                          1.0);
+                if (mapped_index > 0) {
+                    if (!done_map.test(mapped_index-1)) {
+                        triplets.emplace_back(static_cast<int>(true_index),   // row
+                                              static_cast<int>(mapped_index-1), // col
+                                              1.0);
 
-                    done_map.set(mapped_index);
+                        done_map.set(mapped_index-1);
+                    }
                 }
                 ++true_index;
             }
@@ -130,7 +136,7 @@ namespace Moment::Symmetrized {
 
         // Remap is identity
         this->remap.resize(this->raw_dim);
-        std::iota(this->remap.begin(), this->remap.end(), 0);
+        std::iota(this->remap.begin(), this->remap.end(), 1);
     }
 
     RepresentationMapper::RepresentationMapper(const Context &context,
@@ -142,7 +148,7 @@ namespace Moment::Symmetrized {
         assert(parent_A.target_word_length + parent_B.target_word_length == max_word_length);
 
 
-        // Raw dimension comes from product of parent outputs
+        // Raw dimension comes from product of parent OSG sizes
         this->left_input_dim = parent_A.remapped_dim;
         this->right_input_dim = parent_B.remapped_dim;
         this->raw_dim = this->left_input_dim * this->right_input_dim;

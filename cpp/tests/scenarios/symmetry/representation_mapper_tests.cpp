@@ -258,4 +258,28 @@ namespace Moment::Tests {
         EXPECT_TRUE(rep_level2.isApprox(expected_level2)) << "actual = " << rep_level2
                                                           << "\n expected = " << expected_level2;
     }
+
+    TEST(Scenarios_Symmetry_RepresentationMapper, Tripartite_1to2) {
+        Locality::LocalityContext context{Locality::Party::MakeList(1, 1, 3)};
+
+        RepresentationMapper rm1{context};
+        ASSERT_EQ(rm1.raw_dimension(), 3); // e, a0, a1
+        ASSERT_EQ(rm1.remapped_dimension(), 3); // e, a0, a1
+
+        RepresentationMapper remapper{context, rm1, rm1, 2};
+        ASSERT_EQ(remapper.raw_dimension(), 9); // {e, a0, a1}^2
+        ASSERT_EQ(remapper.remapped_dimension(), 3); // still e, a0, a1
+
+        // Remap 9->3 comes from following operators:
+        std::vector<ptrdiff_t > expected_map = {0, 1, 2,    // e, a0, a1
+                                                1, 1, -1,    // [a0], [a0], [x a0a1]
+                                                2, -1, 2};   // [a1], [x a1a0], [a1]
+        for (auto x = 0; x < 9; ++x) {
+            if (expected_map[x] >= 0) {
+                ASSERT_EQ(remapper[x], expected_map[x]) << "Index " << x;
+            } else {
+                ASSERT_EQ(remapper[x], std::nullopt) << "Index " << x;
+            }
+        }
+    }
 }
