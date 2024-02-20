@@ -9,7 +9,7 @@
 
 #include "integer_types.h"
 
-#include "/tensor/tensor.h"
+#include "tensor/tensor.h"
 
 #include <span>
 #include <vector>
