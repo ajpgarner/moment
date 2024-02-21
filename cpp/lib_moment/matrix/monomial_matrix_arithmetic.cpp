@@ -96,10 +96,12 @@ namespace Moment {
             // Do multiplication
             std::unique_ptr<OperatorMatrix> multiplied_op_ptr;
             if constexpr (premultiply) {
-                multiplied_op_ptr = matrix.operator_matrix().pre_multiply(op_sequence, policy);
+                multiplied_op_ptr = matrix.unaliased_operator_matrix().pre_multiply(op_sequence, policy);
             } else {
-                multiplied_op_ptr = matrix.operator_matrix().post_multiply(op_sequence, policy);
+                multiplied_op_ptr = matrix.unaliased_operator_matrix().post_multiply(op_sequence, policy);
             }
+
+            // TODO: Handle aliasing in multiplied matrix
 
             // Do creation
             return std::make_unique<MonomialMatrix>(symbol_registry, std::move(multiplied_op_ptr), new_factor);
@@ -143,7 +145,7 @@ namespace Moment {
 
             // Do multiplication of operator matrices
             const size_t poly_size = poly.size();
-            auto& op_mat = matrix.operator_matrix();
+            auto& op_mat = matrix.unaliased_operator_matrix();
             std::vector<std::unique_ptr<OperatorMatrix>> multiplied_op_mats;
             if constexpr (premultiply) {
                 multiplied_op_mats = op_mat.pre_multiply(poly, policy);

@@ -1,7 +1,7 @@
 /**
  * matrix_creation_worker.h
  *
- * @copyright Copyright (c) 2023 Austrian Academy of Sciences
+ * @copyright Copyright (c) 2023-2024 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 
@@ -9,11 +9,13 @@
 
 #include "dictionary/operator_sequence_generator.h"
 
-#include "multithreading.h"
+#include "multithreading/multithreading.h"
 
 #include "symbolic/symbol_table.h"
 
 #include "utilities/linear_map_merge.h"
+
+#include "is_hermitian.h"
 
 #include <algorithm>
 #include <atomic>
@@ -39,6 +41,7 @@ namespace Moment::Multithreading {
         std::thread the_thread;
 
         std::promise<bool> done_os_generation;
+        std::promise<bool> done_alias_generation;
         std::promise<bool> done_symbol_identification;
         std::promise<bool> done_sm_generation;
 
@@ -96,7 +99,19 @@ namespace Moment::Multithreading {
                 this->done_os_generation.set_value(true);
             } catch(...) {
                 this->done_os_generation.set_exception(std::current_exception());
-                return; // exit thread
+                return; // exit thread, having transferred exception to future.
+            }
+
+            // Alias generation (if applicable)
+            if (this->bundle.context.can_have_aliases()) {
+                this->bundle.ready_to_begin_alias_generation.wait(false, std::memory_order_acquire);
+                try {
+                    this->generate_aliased_operator_sequence_matrix();
+                    this->done_alias_generation.set_value(true);
+                } catch(...) {
+                    this->done_alias_generation.set_exception(std::current_exception());
+                    return; // exit thread, having transferred exception to future.
+                }
             }
 
             // Symbol identification
@@ -108,6 +123,10 @@ namespace Moment::Multithreading {
                 this->done_symbol_identification.set_value(true);
             } catch(...) {
                 this->done_symbol_identification.set_exception(std::current_exception());
+                if (0 != this->worker_id) {
+                    // Divide & conquer may be waiting on this...
+                    this->bundle.workers[0]->done_symbol_identification.set_exception(std::current_exception());
+                }
                 return; // exit thread
             }
 
@@ -212,6 +231,21 @@ namespace Moment::Multithreading {
             }
         }
 
+
+        void generate_aliased_operator_sequence_matrix() {
+            const auto& context = this->bundle.context;
+
+            const size_t row_length = bundle.dimension;
+            for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
+                for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
+                    const size_t total_idx = (col_idx * row_length) + row_idx;
+                    // TODO: Avoid copy
+                    this->bundle.alias_data_ptr[total_idx] =
+                            context.simplify_as_moment(OperatorSequence{this->bundle.os_data_ptr[total_idx]});
+                }
+            }
+        }
+
         /**
          * First hierarchical level of merge.
          */
@@ -269,8 +303,8 @@ namespace Moment::Multithreading {
                 for (size_t row_idx = col_idx; row_idx < row_length; ++row_idx) {
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const size_t conj_offset = (row_idx * row_length) + col_idx;
-                    const auto &elem = this->bundle.os_data_ptr[offset];
-                    const auto &conj_elem = this->bundle.os_data_ptr[conj_offset];
+                    const auto &elem = this->bundle.alias_data_ptr[offset];
+                    const auto &conj_elem = this->bundle.alias_data_ptr[conj_offset];
 
                     int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
                     const bool elem_hermitian = (compare == 1);
@@ -320,7 +354,7 @@ namespace Moment::Multithreading {
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
                 for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
                     const size_t offset = (col_idx * row_length) + row_idx;
-                    const auto &elem = this->bundle.os_data_ptr[offset];
+                    const auto &elem = this->bundle.alias_data_ptr[offset];
 
                     const auto conj_elem = elem.conjugate();
                     int compare = OperatorSequence::compare_same_negation(elem, conj_elem);
@@ -407,7 +441,7 @@ namespace Moment::Multithreading {
         }
 
         void generate_symbol_matrix_generic() {
-            assert(this->bundle.os_data_ptr != nullptr);
+            assert(this->bundle.alias_data_ptr != nullptr);
             assert(this->bundle.sm_data_ptr != nullptr);
 
             const auto& symbol_table = this->bundle.symbols;
@@ -417,7 +451,7 @@ namespace Moment::Multithreading {
                 for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
 
                     const size_t offset = (col_idx * row_length) + row_idx;
-                    const auto& elem = this->bundle.os_data_ptr[offset];
+                    const auto& elem = this->bundle.alias_data_ptr[offset];
 
                     const auto mono_factor = this->bundle.prefactor * to_scalar(elem.get_sign());
                     const size_t hash = elem.hash();
@@ -439,7 +473,7 @@ namespace Moment::Multithreading {
         }
 
         void generate_symbol_matrix_hermitian() {
-            assert(this->bundle.os_data_ptr != nullptr);
+            assert(this->bundle.alias_data_ptr != nullptr);
             assert(this->bundle.sm_data_ptr != nullptr);
 
             const auto& symbol_table = this->bundle.symbols;
@@ -451,7 +485,7 @@ namespace Moment::Multithreading {
 
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const size_t trans_offset = (row_idx * row_length) + col_idx;
-                    const auto& elem = this->bundle.os_data_ptr[offset];
+                    const auto& elem = this->bundle.alias_data_ptr[offset];
 
                     const size_t hash = elem.hash();
                     const auto monomial_sign = to_scalar(elem.get_sign());
@@ -508,21 +542,30 @@ namespace Moment::Multithreading {
         std::vector<std::unique_ptr<worker_t>> workers;
 
         std::vector<std::future<bool>> done_os_generation;
+        std::vector<std::future<bool>> done_alias_generation;
         std::vector<std::future<bool>> done_symbol_identification;
         std::vector<std::future<bool>> done_sm_generation;
 
         std::atomic_flag ready_to_begin_osm_generation;
+        std::atomic_flag ready_to_begin_alias_generation;
         std::atomic_flag ready_to_begin_symbol_identification;
         std::atomic_flag ready_to_begin_sm_generation;
 
 
-
         elem_functor_t * os_functor;
+
+        /** Pointer to allocated memory for operator sequence matrix. */
         OperatorSequence * os_data_ptr = nullptr;
+
+        /** Pointer to allocated memory for aliased operator sequence matrix. */
+        OperatorSequence * alias_data_ptr = nullptr;
+
         /** True if, in principle, the generation requested could make a non-Hermitian matrix. */
         bool could_be_non_hermitian = true;
+
         /** True if, in actuality, the generation requested made a non-Hermitian matrix. */
         bool is_hermitian = false;
+
         Monomial * sm_data_ptr = nullptr;
         std::optional<NonHInfo> minimum_non_h_info;
 
@@ -590,6 +633,7 @@ namespace Moment::Multithreading {
                                                const bool should_be_hermitian = false) {
             // Supply functor & data pointers
             this->os_data_ptr = os_data;
+            this->alias_data_ptr = os_data;
             this->os_functor = &functor;
             this->could_be_non_hermitian = this->context.can_make_unexpected_nonhermitian_matrices()
                                            || !should_be_hermitian;
@@ -607,11 +651,31 @@ namespace Moment::Multithreading {
                 }
             }
 
+            // Leading thread determines if constructed matrix is Hermitian.
             this->determine_hermitian_status();
 
-            // Dispose functor
+            // Dispose functor [otherwise, will be storing invalid ptr!]
             this->os_functor = nullptr;
         }
+
+        void generate_aliased_operator_sequence_matrix(OperatorSequence * const aliased_os_data) {
+            // Likely unchanged; but accommodates possibility of move.
+            this->alias_data_ptr = aliased_os_data; // overwrite existing ptr.
+
+            // Signal all workers to begin
+            this->ready_to_begin_alias_generation.test_and_set(std::memory_order_release);
+            this->ready_to_begin_alias_generation.notify_all();
+
+            // Block until all workers are done:
+            for (auto& signal : this->done_alias_generation) {
+                bool done = false;
+                while (!done) {
+                    signal.wait();
+                    done = signal.get();
+                }
+            }
+        }
+
 
         [[nodiscard]] inline std::optional<NonHInfo> non_hermitian_info() const noexcept {
             return this->minimum_non_h_info;

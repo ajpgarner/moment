@@ -39,8 +39,8 @@ namespace Moment {
             const OperatorMatrix::OpSeqMatrix& osm;
 
         public:
-            const bool hermitian;
-            const std::complex<double> prefactor;
+            const bool hermitian = false;
+            const std::complex<double> prefactor = {1.0, 1.0};
         public:
             OpSeqToSymbolConverter(const Context &context, SymbolTable &symbol_table,
                                    const OperatorMatrix::OpSeqMatrix &osm)
@@ -324,17 +324,20 @@ namespace Moment {
             // Count symbols
             this->MonomialMatrix::renumerate_bases(symbols, zero_tolerance);
 
-            // Set  matrix properties
+            // Set matrix properties
             this->description = "Monomial Symbolic Matrix";
             this->hermitian = constructed_as_hermitian;
     }
 
 
     MonomialMatrix::MonomialMatrix(SymbolTable& symbols,
-                                   std::unique_ptr<OperatorMatrix> op_mat_ptr,
+                                   std::unique_ptr<OperatorMatrix> unaliased_mat_ptr,
+                                   std::unique_ptr<OperatorMatrix> aliased_mat_ptr,
                                    std::unique_ptr<SquareMatrix<Monomial>> sym_mat_ptr)
-            : MonomialMatrix{op_mat_ptr->context, symbols, 1.0, std::move(sym_mat_ptr),
-                             op_mat_ptr->is_hermitian(), 1.0} {
+            : MonomialMatrix{unaliased_mat_ptr->context, symbols, 1.0, std::move(sym_mat_ptr),
+                             (aliased_mat_ptr != nullptr) ? aliased_mat_ptr->is_hermitian()
+                                                          : unaliased_mat_ptr->is_hermitian(),
+                             1.0} {
 
         // Sanity check
         if (!sym_exp_matrix) {
@@ -342,23 +345,27 @@ namespace Moment {
         }
 
         // Register operator matrix with this monomial matrix
-        this->op_mat = std::move(op_mat_ptr);
-        if (this->op_mat) {
-            this->op_mat->set_properties(*this);
+        this->unaliased_op_mat = std::move(unaliased_mat_ptr);
+        this->aliased_op_mat = std::move(aliased_mat_ptr);
+
+        // Preferably take properties from aliased matrix
+        if (this->aliased_op_mat) {
+            this->aliased_op_mat->set_properties(*this);
+        } else if (this->unaliased_op_mat) { // Otherwise, properties from unaliased matrix
+            this->unaliased_op_mat->set_properties(*this);
         }
     }
-
-
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr)
         : MonomialMatrix{op_mat_ptr->context, symbols, 1.0,
                          do_conversion(symbols, op_mat_ptr.get()),
                          op_mat_ptr->is_hermitian(), std::complex<double>{1.0,0.0}} {
         assert(op_mat_ptr);
+        assert(!this->context.can_have_aliases()); // Should not create matrix this way in aliasing scenario!
 
         // Register operator matrix with this monomial matrix
-        this->op_mat = std::move(op_mat_ptr);
-        this->op_mat->set_properties(*this);
+        this->unaliased_op_mat = std::move(op_mat_ptr);
+        this->unaliased_op_mat->set_properties(*this);
     }
 
     MonomialMatrix::MonomialMatrix(SymbolTable &symbols, std::unique_ptr<OperatorMatrix> op_mat_ptr,
@@ -367,15 +374,48 @@ namespace Moment {
                          do_conversion(symbols, op_mat_ptr.get(), prefactor),
                          op_mat_ptr->is_hermitian()  && approximately_real(prefactor), prefactor}  {
         assert(op_mat_ptr);
+        assert(!this->context.can_have_aliases()); // Should not create matrix this way in aliasing scenario!
 
         // Register operator matrix with this monomial matrix
-        this->op_mat = std::move(op_mat_ptr);
-        this->op_mat->set_properties(*this);
+        this->unaliased_op_mat = std::move(op_mat_ptr);
+        this->unaliased_op_mat->set_properties(*this);
     }
 
+    MonomialMatrix::MonomialMatrix(SymbolTable &symbols,
+                                   std::unique_ptr<OperatorMatrix> unaliased_op_mat_ptr,
+                                   std::unique_ptr<OperatorMatrix> aliased_op_mat_ptr)
+        : MonomialMatrix{aliased_op_mat_ptr->context, symbols, 1.0,
+                         do_conversion(symbols, aliased_op_mat_ptr.get()),
+                         aliased_op_mat_ptr->is_hermitian(), std::complex<double>{1.0,0.0}} {
+        assert(unaliased_op_mat_ptr);
+        assert(aliased_op_mat_ptr);
+        assert(this->context.can_have_aliases()); // Should not create matrix this way in non-aliasing scenario!
+
+        // Register operator matrix with this monomial matrix
+        this->unaliased_op_mat = std::move(unaliased_op_mat_ptr);
+        this->aliased_op_mat = std::move(aliased_op_mat_ptr);
+        this->aliased_op_mat->set_properties(*this);
+    }
+
+    MonomialMatrix::MonomialMatrix(SymbolTable &symbols,
+                                   std::unique_ptr<OperatorMatrix> unaliased_op_mat_ptr,
+                                   std::unique_ptr<OperatorMatrix> aliased_op_mat_ptr,
+                                   std::complex<double> prefactor)
+        : MonomialMatrix{aliased_op_mat_ptr->context, symbols, 1.0,
+                         do_conversion(symbols, aliased_op_mat_ptr.get(), prefactor),
+                         aliased_op_mat_ptr->is_hermitian()  && approximately_real(prefactor), prefactor}  {
+
+        assert(unaliased_op_mat_ptr);
+        assert(aliased_op_mat_ptr);
+        assert(this->context.can_have_aliases()); // Should not create matrix this way in non-aliasing scenario!
+
+        // Register operator matrix with this monomial matrix
+        this->unaliased_op_mat = std::move(unaliased_op_mat_ptr);
+        this->aliased_op_mat = std::move(aliased_op_mat_ptr);
+        this->aliased_op_mat->set_properties(*this);
+    }
 
     MonomialMatrix::~MonomialMatrix() noexcept = default;
-
 
     void MonomialMatrix::renumerate_bases(const SymbolTable &symbols, double zero_tolerance) {
         for (auto& symbol : *this->sym_exp_matrix) {
@@ -448,8 +488,21 @@ namespace Moment {
                     )
                 );
 
+            std::unique_ptr<OperatorMatrix> aliased_matrix;
+            if (context.can_have_aliases()) {
+                aliased_matrix = std::make_unique<OperatorMatrix>(context,
+                      std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension,
+                        std::vector<OperatorSequence>(dimension * dimension, context.zero())
+                    )
+                );
+            }
+
+
             // Operator sequence info: all zeros
-            return std::make_unique<MonomialMatrix>(symbol_table, std::move(operator_data), std::move(symbolic_data));
+            return std::make_unique<MonomialMatrix>(symbol_table,
+                                                    std::move(operator_data),
+                                                    std::move(aliased_matrix),
+                                                    std::move(symbolic_data));
         }
 
         // Otherwise, we can construct w/o operator sequences
@@ -469,14 +522,17 @@ namespace Moment {
         // Make copy of the matrix
         std::unique_ptr<MonomialMatrix> copied_matrix =
                 std::make_unique<MonomialMatrix>(symbol_table,
-                                                this->has_operator_matrix() ? this->operator_matrix().clone(policy)
-                                                                            : nullptr,
+                                                this->has_unaliased_operator_matrix()
+                                                    ? this->unaliased_operator_matrix().clone(policy)
+                                                    : nullptr,
+                                                context.can_have_aliases() && this->has_aliased_operator_matrix()
+                                                     ? this->aliased_operator_matrix().clone(policy)
+                                                     : nullptr,
                                                  std::move(cloned_symbol_matrix));
 
         // Copy other matrix properties:
         this->copy_properties_onto_clone(*copied_matrix);
         copied_matrix->global_prefactor = this->global_prefactor;
-
 
         return copied_matrix;
     }

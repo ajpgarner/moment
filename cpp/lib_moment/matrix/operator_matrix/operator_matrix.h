@@ -114,6 +114,13 @@ namespace Moment {
         }
 
         /**
+         * Provide extremely raw access to operator sequences.
+         */
+         [[nodiscard]] const OperatorSequence* raw() const noexcept {
+             return this->op_seq_matrix->raw();
+         }
+
+        /**
          * Operator matrices usually are made in an algorithmic manner, and can provide a name to their symbolization.
          */
         [[nodiscard]] virtual std::string description() const {

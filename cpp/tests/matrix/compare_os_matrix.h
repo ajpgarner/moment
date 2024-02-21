@@ -46,8 +46,8 @@ namespace Moment::Tests {
 
     inline void compare_os_matrix(const SymbolicMatrix& symbolic, const size_t dimension,
                                   const std::initializer_list<OperatorSequence> reference) {
-        ASSERT_TRUE(symbolic.has_operator_matrix());
-        const auto& op_mat = symbolic.operator_matrix();
+        ASSERT_TRUE(symbolic.has_aliased_operator_matrix());
+        const auto& op_mat = symbolic.aliased_operator_matrix();
         compare_os_matrix(symbolic.Description(), op_mat, dimension, reference);
     }
 
@@ -64,10 +64,10 @@ namespace Moment::Tests {
 
     inline void compare_lm_os_matrix(const SymbolicMatrix& theLM, size_t dimension,
                                      const std::initializer_list<OperatorSequence> reference) {
-        ASSERT_TRUE(theLM.has_operator_matrix());
+        ASSERT_TRUE(theLM.has_aliased_operator_matrix());
         std::stringstream ss;
-        ss << theLM.operator_matrix().description();
-        return compare_os_matrix(ss.str(), theLM.operator_matrix(), dimension, reference);
+        ss << theLM.aliased_operator_matrix().description();
+        return compare_os_matrix(ss.str(), theLM.aliased_operator_matrix(), dimension, reference);
     }
 
 }

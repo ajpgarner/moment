@@ -105,7 +105,10 @@ namespace Moment {
         std::map<symbol_name_t, std::pair<ptrdiff_t, ptrdiff_t>> basis_key;
 
         /** Operator matrix, if set - (may be null) */
-        std::unique_ptr<OperatorMatrix> op_mat;
+        std::unique_ptr<OperatorMatrix> unaliased_op_mat;
+
+        /** Aliased operator matrix, if set - (may be null) */
+        std::unique_ptr<OperatorMatrix> aliased_op_mat;
 
     public:
         friend class MatrixBasis;
@@ -177,18 +180,27 @@ namespace Moment {
             return this->basis_key;
         }
 
-
         /**  True if matrix has operator matrix. */
-         [[nodiscard]] bool has_operator_matrix() const noexcept {
-             return static_cast<bool>(this->op_mat);
-         }
+        [[nodiscard]] bool has_unaliased_operator_matrix() const noexcept {
+            return static_cast<bool>(this->unaliased_op_mat);
+        }
+
+        /**  True if matrix has aliased operator matrix (or there is no aliasing). */
+         [[nodiscard]] bool has_aliased_operator_matrix() const noexcept;
 
          /**
-          * Gets operator matrix.
+          * Gets unaliased operator matrix.
+          * Operator sequences should be interpreted as operators.
           * @throws errors::missing_component if no operator matrix defined for this matrix.
           */
-         [[nodiscard]] const OperatorMatrix& operator_matrix() const;
+         [[nodiscard]] const OperatorMatrix& unaliased_operator_matrix() const;
 
+         /**
+          * Gets operator matrix, with any aliasing (if applicable).
+          * Operator sequences should be interpreted as moments.
+          * @throws errors::missing_component if no operator matrix defined for this matrix.
+          */
+         [[nodiscard]] const OperatorMatrix& aliased_operator_matrix() const;
 
          /**
           * True if matrix is defined in terms of monomial symbols.

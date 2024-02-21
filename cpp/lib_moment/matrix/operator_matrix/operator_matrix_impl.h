@@ -46,31 +46,6 @@ namespace Moment {
         /** Operator sequence generator index type */
         using OSGIndexT = typename functor_t::OSGIndex;
 
-        /** Generator functor wrapped with call to contextual alias resolution. */
-        struct aliasing_functor_t {
-        public:
-            const context_t& context;
-            const functor_t underlying_functor;
-
-            inline aliasing_functor_t(const context_t& context, functor_t functor)
-                : context{context}, underlying_functor{std::move(functor)} { }
-
-            [[nodiscard]] inline OperatorSequence operator()(const OperatorSequence& lhs,
-                                                             const OperatorSequence& rhs) const {
-                return context.simplify_as_moment(underlying_functor(lhs, rhs));
-            }
-
-            [[nodiscard]] static inline OSGIndexT get_osg_index(const IndexT& index) {
-                return functor_t::get_osg_index(index);
-            }
-
-            [[nodiscard]] static inline const OSGPair&
-            get_generators(const context_t& context, const OSGIndexT& osg_index) {
-                return functor_t::get_generators(context, osg_index);
-            }
-
-        };
-
         /**
          * The index object that labels this operator matrix.
          */
@@ -114,11 +89,19 @@ namespace Moment {
         /**
          * Returns underlying operator matrix pointer, or a nullptr if matrix is not of a matching type.
          */
-        [[nodiscard]] static matrix_t const * to_operator_matrix_ptr(const SymbolicMatrix& matrix) noexcept {
-            if (!matrix.has_operator_matrix()) {
-                return nullptr;
+        [[nodiscard]] static matrix_t const * to_operator_matrix_ptr(const SymbolicMatrix& matrix,
+                                                                     bool aliased = true) noexcept {
+            if (aliased) {
+                if (!matrix.has_aliased_operator_matrix()) {
+                    return nullptr;
+                }
+                return dynamic_cast<matrix_t const*>(&(matrix.aliased_operator_matrix()));
+            } else {
+                if (!matrix.has_unaliased_operator_matrix()) {
+                    return nullptr;
+                }
+                return dynamic_cast<matrix_t const*>(&(matrix.unaliased_operator_matrix()));
             }
-            return dynamic_cast<matrix_t const *>(&(matrix.operator_matrix()));
         }
 
         /**
@@ -138,20 +121,13 @@ namespace Moment {
             const bool should_be_hermitian = functor_t::should_be_hermitian(index);
             const std::complex<double> prefactor = functor_t::determine_prefactor(index);
 
-            if (context.can_have_aliases()) {
-                OperatorMatrixFactory<matrix_t, context_t, OSGIndexT, aliasing_functor_t>
-                        creation_factory{context, symbols, functor_t::get_osg_index(index),
-                                         aliasing_functor_t{context, functor_t{context, index}},
-                                         should_be_hermitian, prefactor, mt_policy};
-                return creation_factory.execute(index);
-            } else {
-                OperatorMatrixFactory<matrix_t, context_t, OSGIndexT, functor_t>
-                        creation_factory{context, symbols, functor_t::get_osg_index(index),
-                                         functor_t{context, index},
-                                         should_be_hermitian, prefactor, mt_policy};
+            OperatorMatrixFactory<matrix_t, context_t, OSGIndexT, functor_t>
+                    creation_factory{context, symbols, functor_t::get_osg_index(index),
+                                     functor_t{context, index},
+                                     should_be_hermitian, prefactor, mt_policy};
 
-                return creation_factory.execute(index);
-            }
+            return creation_factory.execute(index);
+
         }
     };
 }

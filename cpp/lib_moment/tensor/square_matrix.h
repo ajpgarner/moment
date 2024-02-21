@@ -481,11 +481,18 @@ namespace Moment {
             return this->data[offset];
         }
 
+
+        /** Gets a column-major read-only iterator over matrix data. */
+        constexpr const_iterator cbegin() const noexcept { return this->data.cbegin(); }
+
         /** Gets a column-major read-only iterator over matrix data. */
         constexpr const_iterator begin() const noexcept { return this->data.cbegin(); }
 
         /** Gets a column-major iterator over matrix data. */
         constexpr iterator begin() noexcept { return this->data.begin(); }
+
+        /** Gets the end of the column-major read-only iterator over matrix data. */
+        constexpr const_iterator cend() const noexcept { return this->data.cend(); }
 
         /** Gets the end of the column-major read-only iterator over matrix data. */
         constexpr const_iterator end() const noexcept { return this->data.cend(); }

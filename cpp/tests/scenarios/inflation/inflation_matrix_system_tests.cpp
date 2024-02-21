@@ -135,7 +135,7 @@ namespace Moment::Tests {
 
     TEST(Scenarios_Inflation_MatrixSystem, LevelThreeRefreshProbability) {
         // 'bad allocation' bug found via matlab
-        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{4,      4,      4},
+        InflationMatrixSystem ims{std::make_unique<InflationContext>(CausalNetwork{{4, 4, 4},
                                                                                    {{0, 1}, {1, 2}, {0, 2}}},
                                                                      3)};
         const auto &context = ims.InflationContext();

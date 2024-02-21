@@ -96,9 +96,9 @@ namespace Moment::Tests {
 
         ASSERT_TRUE(matrix.is_monomial());
         const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(matrix);
-        ASSERT_TRUE(matrix.has_operator_matrix());
+        ASSERT_TRUE(matrix.has_aliased_operator_matrix());
         ASSERT_NE(MonomialCommutatorMatrix::to_operator_matrix_ptr(matrix), nullptr);
-        const auto& op_matrix = mono_matrix.operator_matrix();
+        const auto& op_matrix = mono_matrix.aliased_operator_matrix();
         compare_os_matrix("[MM, Z]", op_matrix, 4, {Zero,  miy,   ix,   Zero,
                                                     miy,   Zero,  Zero, x,
                                                     ix,    Zero,  Zero, y,
@@ -122,9 +122,9 @@ namespace Moment::Tests {
         auto& matrix = system.AnticommutatorMatrices(plmi_Z1);
         ASSERT_TRUE(matrix.is_monomial());
         const auto& mono_matrix = dynamic_cast<const MonomialMatrix&>(matrix);
-        ASSERT_TRUE(matrix.has_operator_matrix());
+        ASSERT_TRUE(matrix.has_aliased_operator_matrix());
         ASSERT_NE(MonomialAnticommutatorMatrix::to_operator_matrix_ptr(matrix), nullptr);
-        const auto& op_matrix = mono_matrix.operator_matrix();
+        const auto& op_matrix = mono_matrix.aliased_operator_matrix();
         compare_os_matrix("{MM, Z}", op_matrix, 4, {z,    Zero,   Zero, I,
                                                     Zero, z,      iI,   Zero,
                                                     Zero, miI,    z,    Zero,

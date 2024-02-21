@@ -24,19 +24,50 @@ namespace Moment {
 
     SymbolicMatrix::~SymbolicMatrix() noexcept = default;
 
-    const OperatorMatrix &SymbolicMatrix::operator_matrix() const {
-        if (!has_operator_matrix()) {
+    bool SymbolicMatrix::has_aliased_operator_matrix() const noexcept {
+        // If we have it, simply return yes
+        if (this->aliased_op_mat) {
+            return true;
+        }
+
+        // Otherwise, in unaliasing scenarios, return whether we have the raw operator matrix.
+        if (!this->context.can_have_aliases()) {
+            return this->unaliased_op_mat != nullptr;
+        } else {
+            return false;
+        }
+    }
+
+    const OperatorMatrix& SymbolicMatrix::unaliased_operator_matrix() const {
+        if (!this->unaliased_op_mat) {
             throw errors::missing_component{"No operator matrix defined for this matrix."};
         }
-        return *this->op_mat;
+        return *this->unaliased_op_mat;
+    }
+
+    const OperatorMatrix& SymbolicMatrix::aliased_operator_matrix() const {
+        // If we have it, simplify return it
+        if (this->aliased_op_mat) {
+            return *this->aliased_op_mat;
+        }
+
+        // If we don't have it, should we have it?
+        if (this->context.can_have_aliases()) {
+            throw errors::missing_component{"No aliased matrix was defined for this matrix."};
+        }
+
+        // Otherwise, we can default to unaliased op matrix.
+        return this->unaliased_operator_matrix();
     }
 
     void SymbolicMatrix::throw_error_if_cannot_multiply() const {
         // Get operator matrix
-        if (!this->has_operator_matrix()) {
-            throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if no OperatorMatrix present."};
+        if (!this->has_unaliased_operator_matrix()) {
+            throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if OperatorMatrix is not present."};
         }
+
         if (this->context.can_have_aliases()) {
+            // TODO: Soon we can in fact do this multiplication!
             throw errors::cannot_multiply_exception{
                     "Multiplication will give unexpected results if aliases (i.e. symmetries) are present."
             };

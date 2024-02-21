@@ -168,9 +168,9 @@ namespace Moment::Tests {
         const auto& pMM = system.PauliMomentMatrices(Pauli::MomentMatrixIndex{2, 1});
         ASSERT_EQ(pMM.Dimension(), 28);
         ASSERT_TRUE(pMM.is_monomial());
-        ASSERT_TRUE(pMM.has_operator_matrix());
+        ASSERT_TRUE(pMM.has_aliased_operator_matrix());
 
-        const auto* asMM_ptr = dynamic_cast<const Pauli::MomentMatrix*>(&(pMM.operator_matrix()));
+        const auto* asMM_ptr = dynamic_cast<const Pauli::MomentMatrix*>(&(pMM.aliased_operator_matrix()));
         ASSERT_NE(asMM_ptr, nullptr);
         const auto& asMM = *asMM_ptr;
 
@@ -192,8 +192,8 @@ namespace Moment::Tests {
         const auto& pLM_x = system.PauliLocalizingMatrices(plmi);
         ASSERT_EQ(pLM_x.Dimension(), 28);
         ASSERT_TRUE(pLM_x.is_monomial());
-        ASSERT_TRUE(pLM_x.has_operator_matrix());
-        const auto* asLM_ptr = dynamic_cast<const Pauli::MonomialLocalizingMatrix*>(&pLM_x.operator_matrix());
+        ASSERT_TRUE(pLM_x.has_aliased_operator_matrix());
+        const auto* asLM_ptr = dynamic_cast<const Pauli::MonomialLocalizingMatrix*>(&pLM_x.aliased_operator_matrix());
         ASSERT_NE(asLM_ptr, nullptr);
         const auto& asLM = *asLM_ptr;
 

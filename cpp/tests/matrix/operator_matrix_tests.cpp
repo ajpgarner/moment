@@ -91,8 +91,8 @@ namespace Moment::Tests {
                                         z, iy, mix, I});
 
 
-        ASSERT_TRUE(mmRaw.has_operator_matrix());
-        auto& mm_ops = mmRaw.operator_matrix();
+        ASSERT_TRUE(mmRaw.has_aliased_operator_matrix());
+        auto& mm_ops = mmRaw.aliased_operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
         auto zMMptr = mm_ops.pre_multiply(z);
         const auto& zMM = *zMMptr;
@@ -113,8 +113,8 @@ namespace Moment::Tests {
                                      y, miz, I, ix,
                                      z, iy, mix, I});
 
-        ASSERT_TRUE(mm.has_operator_matrix());
-        auto& mm_ops = mm.operator_matrix();
+        ASSERT_TRUE(mm.has_aliased_operator_matrix());
+        auto& mm_ops = mm.aliased_operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
 
         auto MMzptr = mm_ops.post_multiply(z);
@@ -137,8 +137,8 @@ namespace Moment::Tests {
                                         z, iy, mix, I});
 
 
-        ASSERT_TRUE(mmRaw.has_operator_matrix());
-        auto& mm_ops = mmRaw.operator_matrix();
+        ASSERT_TRUE(mmRaw.has_aliased_operator_matrix());
+        auto& mm_ops = mmRaw.aliased_operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
 
         // Make and check polynomial
@@ -174,8 +174,8 @@ namespace Moment::Tests {
                                      z, iy, mix, I});
 
 
-        ASSERT_TRUE(mmRaw.has_operator_matrix());
-        auto& mm_ops = mmRaw.operator_matrix();
+        ASSERT_TRUE(mmRaw.has_aliased_operator_matrix());
+        auto& mm_ops = mmRaw.aliased_operator_matrix();
         ASSERT_EQ(mm_ops.Dimension(), 4);
 
         // Make and check polynomial

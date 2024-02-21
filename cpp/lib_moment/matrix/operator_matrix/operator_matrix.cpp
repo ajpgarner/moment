@@ -99,7 +99,6 @@ namespace Moment {
     }
 
     void OperatorMatrix::set_properties(SymbolicMatrix &matrix) const {
-        assert(matrix.op_mat && (matrix.op_mat.get() == this));
         matrix.description = this->description();
         matrix.hermitian = this->is_hermitian();
     }

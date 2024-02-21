@@ -63,7 +63,7 @@ namespace Moment::Tests {
         const auto& zMM = dynamic_cast<MonomialMatrix&>(*zMM_ptr);
 
 
-        compare_os_matrix("Z*MM", zMM.operator_matrix(),
+        compare_os_matrix("Z*MM", zMM.unaliased_operator_matrix(),
                           4, {z, iy, mix, I,
                               iy, z, i_os, mx,
                               mix, mi, z, my,
@@ -123,10 +123,11 @@ namespace Moment::Tests {
         const auto& MMz = dynamic_cast<MonomialMatrix&>(*MMz_ptr);
 
         // Compare operator sequences
-        compare_os_matrix("MM*z", MMz.operator_matrix(), 4, {z, miy, ix , I,
-                                                             miy, z, i_os, x,
-                                                             ix, mi, z, y,
-                                                             I, mx, my, z});
+        compare_os_matrix("MM*z", MMz.unaliased_operator_matrix(),
+                          4, {z, miy, ix , I,
+                              miy, z, i_os, x,
+                              ix, mi, z, y,
+                              I, mx, my, z});
 
         const std::complex<double> i{0, 1.0};
         compare_monomial_matrix("MM*Z", MMz, 4,

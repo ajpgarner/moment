@@ -140,8 +140,16 @@ namespace Moment {
         }
 
         // Error if attempting to add an aliased symbol.
-        assert(!this->can_have_aliases || !elem.has_sequence()
-               || !this->context.can_be_simplified_as_moment(elem.sequence()));
+        if constexpr(debug_mode) {
+            if (this->can_have_aliases && elem.has_sequence()) {
+                if (this->context.can_be_simplified_as_moment(elem.sequence())) {
+                    std::stringstream errSS;
+                    errSS << "Element contained sequence '" << elem.sequence() << "' which is unexpectedly aliased!";
+                    throw std::runtime_error{errSS.str()};
+                }
+            }
+        }
+
 
         // Otherwise, query
         const auto next_index = static_cast<symbol_name_t>(this->unique_sequences.size());

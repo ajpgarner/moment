@@ -168,7 +168,7 @@ namespace Moment::Tests {
         EXPECT_EQ(as_plm_ptr->index.Polynomial[0], Monomial(find_result_made->Id(), {0.5, 0.0}));
 
         const auto &lmCCC = dynamic_cast<const MonomialMatrix &>(const_system.LocalizingMatrix({1, ccc}));
-        EXPECT_TRUE(lmCCC.has_operator_matrix());
+        EXPECT_TRUE(lmCCC.has_aliased_operator_matrix());
         EXPECT_EQ(const_system.size(), 2); // ccc and 0.5 ccc
 
         ASSERT_EQ(as_plm_ptr->Constituents().size(), 1);

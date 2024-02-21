@@ -68,7 +68,9 @@ namespace Moment {
 
     public:
         /** Construct monomial matrix, with pre-calculated Monomials AND operator matrix */
-        MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
+        MonomialMatrix(SymbolTable& symbols,
+                       std::unique_ptr<OperatorMatrix> operator_matrix,
+                       std::unique_ptr<OperatorMatrix> aliased_operator_matrix,
                        std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix);
 
         /** Construct precomputed monomial matrix without operator matrix. */
@@ -76,13 +78,35 @@ namespace Moment {
                        std::unique_ptr<SquareMatrix<Monomial>> symbolMatrix,
                        bool is_hermitian, std::complex<double> prefactor = std::complex<double>{1.0, 0.0});
 
-        /** Compute monomial matrix from operator matrix, registering new symbols (in single-threaded manner). */
+        /**
+         * Compute monomial matrix from operator matrix, registering new symbols as necessary (in single-threaded
+         * manner).
+         */
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix);
 
         /**
          * Compute monomial matrix from operator matrix, registering new symbols as necessary (in single-threaded
-         * manner), and multiplying all elements by a global factor. */
+         * manner), and multiplying all elements by a global factor.
+         */
         MonomialMatrix(SymbolTable& symbols, std::unique_ptr<OperatorMatrix> operator_matrix,
+                       std::complex<double> prefactor);
+
+        /**
+         * Compute monomial matrix from operator matrix, registering new symbols (in single-threaded manner).
+         * Aliasing specialization.
+         */
+        MonomialMatrix(SymbolTable& symbols,
+                       std::unique_ptr<OperatorMatrix> unaliased_matrix,
+                       std::unique_ptr<OperatorMatrix> aliased_matrix);
+
+        /**
+         * Compute monomial matrix from operator matrix, registering new symbols as necessary (in single-threaded
+         * manner), and multiplying all elements by a global factor.
+         * Aliasing specialization.
+         */
+        MonomialMatrix(SymbolTable& symbols,
+                       std::unique_ptr<OperatorMatrix> unaliased_matrix,
+                       std::unique_ptr<OperatorMatrix> aliased_matrix,
                        std::complex<double> prefactor);
 
         /** Destruct monomial matrix. */

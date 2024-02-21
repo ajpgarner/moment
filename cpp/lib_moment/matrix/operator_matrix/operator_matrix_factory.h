@@ -13,7 +13,7 @@
 #include "dictionary/osg_pair.h"
 
 #include "multithreading/multithreading.h"
-#include "multithreading/matrix_generation_worker.h"
+#include "matrix_generation_worker.h"
 
 #include "scenarios/context.h"
 
@@ -57,7 +57,11 @@ namespace Moment {
         OperatorSequenceGenerator const * colGen = nullptr;
 
     public:
+        /** The operator matrix formed by applying the functor to dual OSGs. */
         std::unique_ptr<os_matrix_t> operatorMatrix;
+        /** The operator matrix formed by resolving aliases operator strings to their 'symmetrized' form, or nullptr. */
+        std::unique_ptr<os_matrix_t> aliasedOperatorMatrix;
+        /** The matrix formed by identifying unique operator sequences (from aliased matrix if aliases possible). */
         std::unique_ptr<MonomialMatrix> symbolicMatrix;
 
         explicit constexpr
@@ -89,16 +93,23 @@ namespace Moment {
             // Determine, from dimension, whether to go into MT mode.
             const bool use_multithreading
                     = Multithreading::should_multithread_matrix_creation(mt_policy, this->dimension*this->dimension);
+
             if (use_multithreading) {
                 this->mt_policy = Multithreading::MultiThreadPolicy::Always;
                 this->mt_bundle.emplace(this->context, this->symbols, *this->colGen, *this->rowGen, this->prefactor);
 
                 this->make_operator_matrix_multi_thread(std::forward<Args>(args)...);
+                if (this->context.can_have_aliases()) {
+                    this->make_aliased_operator_matrix_multi_thread(std::forward<Args>(args)...);
+                }
                 this->register_new_symbols_multi_thread();
                 this->make_symbolic_matrix_multi_thread();
             } else {
                 this->mt_policy = Multithreading::MultiThreadPolicy::Never;
                 this->make_operator_matrix_single_thread(std::forward<Args>(args)...);
+                if (this->context.can_have_aliases()) {
+                    this->make_aliased_operator_matrix_single_thread(std::forward<Args>(args)...);
+                }
                 this->register_new_symbols_single_thread();
                 this->make_symbolic_matrix_single_thread();
             }
@@ -110,6 +121,8 @@ namespace Moment {
         void make_operator_matrix_single_thread(Args&&... params) {
             assert(colGen);
             assert(rowGen);
+
+            // Generate unaliased matrix
             std::vector<OperatorSequence> matrix_data;
             matrix_data.reserve(this->numel);
             for (const auto &colSeq: *colGen) {
@@ -120,7 +133,30 @@ namespace Moment {
             auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
             this->operatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)..., std::move(OSM));
             assert(this->operatorMatrix);
+
         }
+
+        template<typename... Args>
+        void make_aliased_operator_matrix_single_thread(Args&&... params) {
+            assert(this->colGen);
+            assert(this->rowGen);
+            assert(this->operatorMatrix);
+
+            // Generate aliased operator matrix, if this could exist
+            std::vector<OperatorSequence> aliased_data;
+            aliased_data.reserve(this->numel);
+            std::transform( (*this->operatorMatrix)().cbegin(), (*this->operatorMatrix)().cend(),
+                            std::back_inserter(aliased_data), [this](const OperatorSequence& unaliased_sequence) {
+                        // TODO: Avoid copy
+                        return this->context.simplify_as_moment(OperatorSequence{unaliased_sequence});
+                    });
+            auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(aliased_data));
+            this->aliasedOperatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)...,
+                                                                        std::move(aOSM));
+
+            assert(this->aliasedOperatorMatrix);
+        }
+
 
         void register_new_symbols_single_thread() {
 
@@ -128,11 +164,24 @@ namespace Moment {
 
         void make_symbolic_matrix_single_thread() {
             assert(this->operatorMatrix);
-            if (this->prefactor != 1.0) {
-                this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                        std::move(this->operatorMatrix), prefactor);
+            if (this->context.can_have_aliases()) {
+                if (this->prefactor != 1.0) {
+                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
+                                                                            std::move(this->operatorMatrix),
+                                                                            std::move(this->aliasedOperatorMatrix),
+                                                                            prefactor);
+                } else {
+                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
+                                                                            std::move(this->operatorMatrix),
+                                                                            std::move(this->aliasedOperatorMatrix));
+                }
             } else {
-                this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols, std::move(this->operatorMatrix));
+                if (this->prefactor != 1.0) {
+                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
+                                                                            std::move(this->operatorMatrix), prefactor);
+                } else {
+                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols, std::move(this->operatorMatrix));
+                }
             }
         }
 
@@ -153,6 +202,25 @@ namespace Moment {
             assert(this->operatorMatrix);
         }
 
+        template<typename... Args>
+        void make_aliased_operator_matrix_multi_thread(Args&&... params) {
+            assert(this->colGen != nullptr);
+            assert(this->rowGen != nullptr);
+            assert(this->mt_bundle.has_value());
+            assert(this->operatorMatrix != nullptr);
+            assert(this->context.can_have_aliases());
+
+            std::vector<OperatorSequence> aliased_data{OperatorSequence::create_uninitialized_vector(this->numel)};
+            this->mt_bundle->generate_aliased_operator_sequence_matrix(aliased_data.data());
+
+            auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(aliased_data),
+                                                                     this->mt_bundle->non_hermitian_info());
+
+            this->aliasedOperatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)...,
+                                                                        std::move(aOSM));
+            assert(this->aliasedOperatorMatrix);
+        }
+
         void register_new_symbols_multi_thread() {
             assert(this->operatorMatrix);
             assert(this->mt_bundle.has_value());
@@ -170,6 +238,7 @@ namespace Moment {
 
             this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
                                                                     std::move(this->operatorMatrix),
+                                                                    std::move(this->aliasedOperatorMatrix),
                                                                     std::move(mono_m_ptr));
         }
     };
