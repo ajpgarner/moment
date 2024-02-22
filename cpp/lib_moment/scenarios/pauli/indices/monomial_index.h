@@ -31,6 +31,9 @@ namespace Moment::Pauli {
     class PauliMatrixSystem;
 
     struct PauliMonomialIndex {
+    public:
+        using OSGIndex = NearestNeighbourIndex;
+
         NearestNeighbourIndex Index;
         OperatorSequence Word;
         uint64_t WordHash;

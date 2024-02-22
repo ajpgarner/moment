@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <span>
+#include <utility>
 #include <vector>
 
 namespace Moment::Inflation {
@@ -212,9 +213,20 @@ namespace Moment::Inflation {
         /**
          * Replace string with symmetric equivalent
          */
-        [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence &&seq) const final;
+        [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence&& seq) const final;
+
+        /**
+         * Replace string with symmetric equivalent
+         */
+        [[nodiscard]] OperatorSequence simplify_as_moment(const OperatorSequence& seq) const final;
 
 
+    private:
+        std::pair<bool, const std::vector<oper_name_t>&> find_permutation(const OperatorSequence& seq) const;
+
+        OperatorSequence apply_permutation(const OperatorSequence& input,
+                                           const std::vector<oper_name_t>& permutation) const;
+    public:
         /**
          * Bitstring of sources associated with an operator sequence.
          */

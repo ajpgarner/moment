@@ -8,19 +8,21 @@
 #pragma once
 
 #include "operator_matrix.h"
+#include "operator_matrix_factory_multithreaded.h"
+#include "operator_matrix_factory_singlethreaded.h"
 
 #include "dictionary/dictionary.h"
 #include "dictionary/osg_pair.h"
 
 #include "multithreading/multithreading.h"
-#include "matrix_generation_worker.h"
+
+
 
 #include "scenarios/context.h"
 
 #include <cassert>
 
 #include <memory>
-#include <optional>
 #include <vector>
 
 namespace Moment {
@@ -28,219 +30,117 @@ namespace Moment {
     class SymbolicMatrix;
     class SymbolTable;
 
-    template<std::derived_from<OperatorMatrix> os_matrix_t,
-            std::derived_from<Context> context_t,
-            typename index_t, typename functor_t>
-    class OperatorMatrixFactory  {
+    template<typename os_matrix_t, typename context_t, typename index_t, typename functor_t>
+    class OperatorMatrixFactory {
     public:
+        using osg_index_t = typename index_t::OSGIndex;
+
+        using st_factory_t = OperatorMatrixFactorySinglethreaded<os_matrix_t, context_t, index_t, functor_t>;
+        using mt_factory_t = OperatorMatrixFactoryMultithreaded<os_matrix_t, context_t, index_t, functor_t>;
+        using mt_factory_worker_t = OperatorMatrixFactoryWorker<os_matrix_t, context_t, index_t, functor_t>;
+
+    public:
+        /** Operator context */
         const context_t& context;
 
-    protected:
+        /** Symbol table w/ write access. */
         SymbolTable& symbols;
 
-        functor_t elem_functor;
-        const bool should_be_hermitian;
-
-        std::optional<Multithreading::matrix_generation_worker_bundle<functor_t>> mt_bundle;
-
-    public:
+        /** Full index, for purposes of labelling resultant matrix  */
         const index_t Index;
 
-        const std::complex<double> prefactor;
+        /** Index, for purposes of operator sequence generator(s) */
+        const osg_index_t OSGIndex;
 
-        Multithreading::MultiThreadPolicy mt_policy;
-
-        size_t dimension = 0;
-        size_t numel = 0;
-
-        OperatorSequenceGenerator const * rowGen = nullptr;
-        OperatorSequenceGenerator const * colGen = nullptr;
+    private:
+        /** Function combining dictionary elements to matrix element (e.g. for MM, row * col). */
+        functor_t elem_functor;
 
     public:
-        /** The operator matrix formed by applying the functor to dual OSGs. */
-        std::unique_ptr<os_matrix_t> operatorMatrix;
-        /** The operator matrix formed by resolving aliases operator strings to their 'symmetrized' form, or nullptr. */
-        std::unique_ptr<os_matrix_t> aliasedOperatorMatrix;
-        /** The matrix formed by identifying unique operator sequences (from aliased matrix if aliases possible). */
-        std::unique_ptr<MonomialMatrix> symbolicMatrix;
+        /** True if the resulting matrix should, through logical arguments, be Hermitian. */
+        const bool should_be_hermitian;
 
-        explicit constexpr
+        /** Constant pre-factor to add in front of matrix. */
+        const std::complex<double> prefactor;
+
+        /** Which multi-threading policy should we use. */
+        const Multithreading::MultiThreadPolicy mt_policy;
+
+    private:
+        /** Pointer to the conjugated dictionary "row generator". */
+        OperatorSequenceGenerator const* rowGen = nullptr;
+
+        /** Pointer to the dictionary "column generator". */
+        OperatorSequenceGenerator const* colGen = nullptr;
+
+        /** Size of matrix */
+        size_t dimension = 0;
+
+        /** True, if we cannot guarantee the resulting matrix is Hermitian (even if it should be). */
+        bool could_be_non_hermitian = true;
+
+    public:
+
+        /**
+         * Class that produces a moment matrix by first generating its operator matrix, applying any implicit symmetries,
+         * identifying (and registering) the unique sequences in the matrix as symbols, and then producing the resulting
+         * symbolic monomial (i.e. 'moment') matrix.
+         *
+         * Depending on mt_policy, this may use single or multi-threaded execution.
+         *
+         * @param context The operator context.
+         * @param symbols The symbol table (whole matrix system should be under write lock).
+         * @param matrix_index The index labelling the dictionary used to generate the matrix.
+         * @param the_functor The function that combines elements from the dictionary to form matrix element operators.
+         * @param should_be_hermitian True, if logically the matrix generated must be Hermitian.
+         * @param prefactor Constant factor to multiply all operator sequences in matrix by.
+         * @param mt_policy Should we use multi-threaded creation?
+         */
         OperatorMatrixFactory(const context_t& context, SymbolTable& symbols, const index_t& matrix_index,
                               functor_t the_functor, bool should_be_hermitian, std::complex<double> prefactor,
                               const Multithreading::MultiThreadPolicy mt_policy)
-            : context{context}, symbols{symbols}, elem_functor{std::move(the_functor)},
-              should_be_hermitian{should_be_hermitian}, prefactor{prefactor},
-              Index{matrix_index}, mt_policy{mt_policy} {
+                : context{context}, symbols{symbols}, elem_functor{std::move(the_functor)},
+                  should_be_hermitian{should_be_hermitian}, prefactor{prefactor},
+                  Index{matrix_index},
+                  OSGIndex{functor_t::get_osg_index(matrix_index)},
+                  mt_policy{mt_policy} {
         }
 
-        /** True, if we have determined that multithreading should be used */
-        [[nodiscard]] inline constexpr bool Multithread() const noexcept {
-            return mt_policy == Multithreading::MultiThreadPolicy::Always;
-        }
-
-        template<typename... Args>
-        [[nodiscard]] std::unique_ptr<MonomialMatrix> execute(Args&&... args) {
+        /**
+         * Do matrix creation.
+         * @return Newly created matrix.
+         */
+        [[nodiscard]] std::unique_ptr<MonomialMatrix> execute() {
             // Make or get generators
-            const auto& osg_pair = functor_t::get_generators(context, this->Index); // index is already OSGIndex
+            const auto& osg_pair = functor_t::get_generators(context, this->OSGIndex);
             this->colGen = &(osg_pair());
             this->rowGen = &(osg_pair.conjugate());
+            assert(this->colGen && this->rowGen);
 
-            // Ascertain dimension
+            // Ascertain matrix dimension & element count:
             this->dimension = colGen->size();
-            assert(this->dimension == rowGen->size());
-            this->numel = this->dimension * this->dimension;
+            assert(dimension == rowGen->size());
+            const size_t numel = dimension * dimension;
 
-            // Determine, from dimension, whether to go into MT mode.
-            const bool use_multithreading
-                    = Multithreading::should_multithread_matrix_creation(mt_policy, this->dimension*this->dimension);
+            // Non-Hermitian possible, from context?
+            this->could_be_non_hermitian = !should_be_hermitian
+                                           || this->context.can_make_unexpected_nonhermitian_matrices();
 
-            if (use_multithreading) {
-                this->mt_policy = Multithreading::MultiThreadPolicy::Always;
-                this->mt_bundle.emplace(this->context, this->symbols, *this->colGen, *this->rowGen, this->prefactor);
-
-                this->make_operator_matrix_multi_thread(std::forward<Args>(args)...);
-                if (this->context.can_have_aliases()) {
-                    this->make_aliased_operator_matrix_multi_thread(std::forward<Args>(args)...);
-                }
-                this->register_new_symbols_multi_thread();
-                this->make_symbolic_matrix_multi_thread();
+            // Determine, from dimension and mt_policy, whether we should use multithreading:
+            if (Multithreading::should_multithread_matrix_creation(mt_policy, numel)) {
+                // Use multithreaded creation
+                mt_factory_t factory{*this};
+                return factory.execute();
             } else {
-                this->mt_policy = Multithreading::MultiThreadPolicy::Never;
-                this->make_operator_matrix_single_thread(std::forward<Args>(args)...);
-                if (this->context.can_have_aliases()) {
-                    this->make_aliased_operator_matrix_single_thread(std::forward<Args>(args)...);
-                }
-                this->register_new_symbols_single_thread();
-                this->make_symbolic_matrix_single_thread();
-            }
-            return std::move(this->symbolicMatrix);
-        }
-
-    private:
-        template<typename... Args>
-        void make_operator_matrix_single_thread(Args&&... params) {
-            assert(colGen);
-            assert(rowGen);
-
-            // Generate unaliased matrix
-            std::vector<OperatorSequence> matrix_data;
-            matrix_data.reserve(this->numel);
-            for (const auto &colSeq: *colGen) {
-                for (const auto &rowSeq: *rowGen) {
-                    matrix_data.emplace_back(elem_functor(rowSeq, colSeq));
-                }
-            }
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data));
-            this->operatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)..., std::move(OSM));
-            assert(this->operatorMatrix);
-
-        }
-
-        template<typename... Args>
-        void make_aliased_operator_matrix_single_thread(Args&&... params) {
-            assert(this->colGen);
-            assert(this->rowGen);
-            assert(this->operatorMatrix);
-
-            // Generate aliased operator matrix, if this could exist
-            std::vector<OperatorSequence> aliased_data;
-            aliased_data.reserve(this->numel);
-            std::transform( (*this->operatorMatrix)().cbegin(), (*this->operatorMatrix)().cend(),
-                            std::back_inserter(aliased_data), [this](const OperatorSequence& unaliased_sequence) {
-                        // TODO: Avoid copy
-                        return this->context.simplify_as_moment(OperatorSequence{unaliased_sequence});
-                    });
-            auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(aliased_data));
-            this->aliasedOperatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)...,
-                                                                        std::move(aOSM));
-
-            assert(this->aliasedOperatorMatrix);
-        }
-
-
-        void register_new_symbols_single_thread() {
-
-        }
-
-        void make_symbolic_matrix_single_thread() {
-            assert(this->operatorMatrix);
-            if (this->context.can_have_aliases()) {
-                if (this->prefactor != 1.0) {
-                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                            std::move(this->operatorMatrix),
-                                                                            std::move(this->aliasedOperatorMatrix),
-                                                                            prefactor);
-                } else {
-                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                            std::move(this->operatorMatrix),
-                                                                            std::move(this->aliasedOperatorMatrix));
-                }
-            } else {
-                if (this->prefactor != 1.0) {
-                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                            std::move(this->operatorMatrix), prefactor);
-                } else {
-                    this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols, std::move(this->operatorMatrix));
-                }
+                // Use single-threaded creation
+                st_factory_t factory{*this};
+                return factory.execute();
             }
         }
 
-        template<typename... Args>
-        void make_operator_matrix_multi_thread(Args&&... params) {
-            assert(this->colGen != nullptr);
-            assert(this->rowGen != nullptr);
-            assert(this->mt_bundle.has_value());
-
-            std::vector<OperatorSequence> matrix_data{OperatorSequence::create_uninitialized_vector(this->numel)};
-            this->mt_bundle->generate_operator_sequence_matrix(matrix_data.data(), this->elem_functor,
-                                                               this->should_be_hermitian);
-
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(matrix_data),
-                                                                     this->mt_bundle->non_hermitian_info());
-
-            this->operatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)..., std::move(OSM));
-            assert(this->operatorMatrix);
-        }
-
-        template<typename... Args>
-        void make_aliased_operator_matrix_multi_thread(Args&&... params) {
-            assert(this->colGen != nullptr);
-            assert(this->rowGen != nullptr);
-            assert(this->mt_bundle.has_value());
-            assert(this->operatorMatrix != nullptr);
-            assert(this->context.can_have_aliases());
-
-            std::vector<OperatorSequence> aliased_data{OperatorSequence::create_uninitialized_vector(this->numel)};
-            this->mt_bundle->generate_aliased_operator_sequence_matrix(aliased_data.data());
-
-            auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(aliased_data),
-                                                                     this->mt_bundle->non_hermitian_info());
-
-            this->aliasedOperatorMatrix = std::make_unique<os_matrix_t>(context, std::forward<Args>(params)...,
-                                                                        std::move(aOSM));
-            assert(this->aliasedOperatorMatrix);
-        }
-
-        void register_new_symbols_multi_thread() {
-            assert(this->operatorMatrix);
-            assert(this->mt_bundle.has_value());
-            this->mt_bundle->identify_unique_symbols();
-            this->mt_bundle->register_unique_symbols();
-        }
-
-        void make_symbolic_matrix_multi_thread() {
-            assert(this->operatorMatrix);
-            assert(this->mt_bundle.has_value());
-
-            std::vector<Monomial> monomial_data(this->numel);
-            this->mt_bundle->generate_symbol_matrix(monomial_data.data());
-            auto mono_m_ptr = std::make_unique<SquareMatrix<Monomial>>(this->dimension, std::move(monomial_data));
-
-            this->symbolicMatrix = std::make_unique<MonomialMatrix>(symbols,
-                                                                    std::move(this->operatorMatrix),
-                                                                    std::move(this->aliasedOperatorMatrix),
-                                                                    std::move(mono_m_ptr));
-        }
+        friend st_factory_t;
+        friend mt_factory_t;
+        friend mt_factory_worker_t;
     };
 
 }

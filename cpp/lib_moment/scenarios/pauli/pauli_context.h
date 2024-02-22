@@ -139,6 +139,8 @@ namespace Moment {
                 return this->translational_symmetry == SymmetryType::Translational;
             }
 
+            [[nodiscard]] OperatorSequence simplify_as_moment(const OperatorSequence& seq) const final;
+
             [[nodiscard]] OperatorSequence simplify_as_moment(OperatorSequence&& seq) const final;
 
             [[nodiscard]] bool can_be_simplified_as_moment(const OperatorSequence& seq) const final;

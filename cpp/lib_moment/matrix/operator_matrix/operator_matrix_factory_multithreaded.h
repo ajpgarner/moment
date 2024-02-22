@@ -1,5 +1,5 @@
 /**
- * matrix_creation_worker.h
+ * multithreaded_operator_matrix_factory.h
  *
  * @copyright Copyright (c) 2023-2024 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
@@ -29,15 +29,19 @@
 #include <vector>
 
 
-namespace Moment::Multithreading {
+namespace Moment {
+    template<typename os_matrix_t, typename context_t, typename index_t, typename functor_t>
+    class OperatorMatrixFactory;
 
-    template<typename elem_functor_t>
-    class matrix_generation_worker_bundle;
+    template<typename os_matrix_t, typename context_t, typename index_t, typename elem_functor_t>
+    class OperatorMatrixFactoryMultithreaded;
 
-    template<typename elem_functor_t>
-    class matrix_generation_worker {
+    template<typename os_matrix_t, typename context_t, typename index_t, typename elem_functor_t>
+    class OperatorMatrixFactoryWorker {
+    public:
+        using factory_t = OperatorMatrixFactoryMultithreaded<os_matrix_t, context_t, index_t, elem_functor_t>;
     private:
-        matrix_generation_worker_bundle<elem_functor_t>& bundle;
+        factory_t& bundle;
         std::thread the_thread;
 
         std::promise<bool> done_os_generation;
@@ -57,30 +61,33 @@ namespace Moment::Multithreading {
         const size_t worker_id;
         const size_t max_workers;
 
-        matrix_generation_worker(matrix_generation_worker_bundle<elem_functor_t>& the_bundle,
-                                 const size_t worker_id,
-                                 const size_t max_workers)
+        OperatorMatrixFactoryWorker(factory_t& the_bundle,
+                                    const size_t worker_id,
+                                    const size_t max_workers)
                 : bundle{the_bundle}, worker_id{worker_id}, max_workers{max_workers} {
             assert(worker_id < max_workers);
             assert(max_workers != 0);
             merge_level = std::numeric_limits<size_t>::max();
         }
 
-        matrix_generation_worker(const matrix_generation_worker& rhs) = delete;
+        OperatorMatrixFactoryWorker(const OperatorMatrixFactoryWorker& rhs) = delete;
 
-        matrix_generation_worker(matrix_generation_worker&& rhs) = default;
+        OperatorMatrixFactoryWorker(OperatorMatrixFactoryWorker&& rhs) = default;
 
-        inline std::tuple<std::future<bool>, std::future<bool>, std::future<bool>>
+        inline std::tuple<std::future<bool>, std::future<bool>, std::future<bool>, std::future<bool>>
         get_futures() {
             return std::make_tuple(
                     this->done_os_generation.get_future(),
+                    this->done_alias_generation.get_future(),
                     this->done_symbol_identification.get_future(),
                     this->done_sm_generation.get_future()
             );
         }
 
         inline void launch_thread() {
-            this->the_thread = std::thread(&matrix_generation_worker<elem_functor_t>::execute, this);
+            this->the_thread = std::thread(
+                    &OperatorMatrixFactoryWorker<os_matrix_t, context_t, index_t, elem_functor_t>::execute,
+                    this);
         }
 
         [[nodiscard]] std::map<size_t, Symbol>& yield_unique_elements() noexcept {
@@ -103,7 +110,7 @@ namespace Moment::Multithreading {
             }
 
             // Alias generation (if applicable)
-            if (this->bundle.context.can_have_aliases()) {
+            if (this->bundle.factory.context.can_have_aliases()) {
                 this->bundle.ready_to_begin_alias_generation.wait(false, std::memory_order_acquire);
                 try {
                     this->generate_aliased_operator_sequence_matrix();
@@ -149,23 +156,27 @@ namespace Moment::Multithreading {
          */
         void generate_operator_sequence_matrix_hermitian() {
             assert(this->bundle.os_data_ptr != nullptr);
-            assert(this->bundle.os_functor != nullptr);
 
-            const size_t row_length = bundle.dimension;
+            const auto& functor = bundle.factory.elem_functor;
+            const auto& col_osg = (*bundle.factory.colGen);
+            const auto& row_osg = (*bundle.factory.rowGen);
+
+            const size_t row_length = bundle.factory.dimension;
+
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
-                const auto &colSeq = bundle.colGen[col_idx];
+                const auto &colSeq = col_osg[col_idx];
 
                 // Diagonal element
                 const size_t diag_idx = (col_idx * row_length) + col_idx;
-                const auto &conjColSeq = bundle.rowGen[col_idx]; // <- Conjugate by construction
-                this->bundle.os_data_ptr[diag_idx] = (*this->bundle.os_functor)(conjColSeq, colSeq);
+                const auto &conjColSeq = row_osg[col_idx]; // <- Conjugate by construction
+                this->bundle.os_data_ptr[diag_idx] = functor(conjColSeq, colSeq);
 
                 // Off diagonal elements
                 for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
-                    const auto &rowSeq = bundle.rowGen[row_idx];
+                    const auto &rowSeq = row_osg[row_idx];
 
                     const size_t total_idx = (col_idx * row_length) + row_idx;
-                    this->bundle.os_data_ptr[total_idx] = (*this->bundle.os_functor)(rowSeq, colSeq);
+                    this->bundle.os_data_ptr[total_idx] = functor(rowSeq, colSeq);
 
                     const size_t conj_idx = (row_idx * row_length) + col_idx;
                     this->bundle.os_data_ptr[conj_idx] = this->bundle.os_data_ptr[total_idx].conjugate();
@@ -178,17 +189,20 @@ namespace Moment::Multithreading {
          */
         void generate_operator_sequence_matrix_generic() {
             assert(this->bundle.os_data_ptr != nullptr);
-            assert(this->bundle.os_functor != nullptr);
 
-            const size_t row_length = bundle.dimension;
+            const auto& functor = bundle.factory.elem_functor;
+            const auto& col_osg = (*bundle.factory.colGen);
+            const auto& row_osg = (*bundle.factory.rowGen);
+
+            const size_t row_length = bundle.factory.dimension;
 
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
-                const auto &colSeq = bundle.colGen[col_idx];
-                const auto &conjColSeq = bundle.rowGen[col_idx]; // <- Conjugate by construction
+                const auto &colSeq = col_osg[col_idx];
+                const auto &conjColSeq = row_osg[col_idx]; // <- Conjugate by construction
 
                 // Diagonal element
                 const size_t diag_idx = (col_idx * row_length) + col_idx;
-                this->bundle.os_data_ptr[diag_idx] = (*this->bundle.os_functor)(conjColSeq, colSeq);
+                this->bundle.os_data_ptr[diag_idx] = functor(conjColSeq, colSeq);
 
                 // Check for Hermiticity if not yet non-hermitian
                 if (!this->non_hermitian.has_value()) {
@@ -201,14 +215,14 @@ namespace Moment::Multithreading {
 
                 // Off diagonal elements
                 for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
-                    const auto &rowSeq = bundle.rowGen[row_idx];
-                    const auto &conjRowSeq = bundle.colGen[row_idx]; // <- Conjugate by construction
+                    const auto &rowSeq = row_osg[row_idx];
+                    const auto &conjRowSeq = col_osg[row_idx]; // <- Conjugate by construction
 
                     const size_t total_idx = (col_idx * row_length) + row_idx;
-                    this->bundle.os_data_ptr[total_idx] = (*this->bundle.os_functor)(rowSeq, colSeq);
+                    this->bundle.os_data_ptr[total_idx] = functor(rowSeq, colSeq);
 
                     const size_t conj_idx = (row_idx * row_length) + col_idx;
-                    this->bundle.os_data_ptr[conj_idx] = (*this->bundle.os_functor)(conjColSeq, conjRowSeq);
+                    this->bundle.os_data_ptr[conj_idx] = functor(conjColSeq, conjRowSeq);
 
                     // Check for Hermiticity if not yet nonhermitian
                     if (!this->non_hermitian.has_value()) {
@@ -224,25 +238,90 @@ namespace Moment::Multithreading {
         }
 
         inline void generate_operator_sequence_matrix() {
-            if (this->bundle.could_be_non_hermitian) {
+            if (this->bundle.factory.could_be_non_hermitian) {
                 generate_operator_sequence_matrix_generic();
             } else {
                 generate_operator_sequence_matrix_hermitian();
             }
         }
 
+        void generate_aliased_operator_sequence_matrix_generic() {
+            // Reset non-Hermitian information
+            this->non_hermitian.reset();
 
-        void generate_aliased_operator_sequence_matrix() {
-            const auto& context = this->bundle.context;
-
-            const size_t row_length = bundle.dimension;
+            const auto& context = this->bundle.factory.context;
+            const size_t row_length = bundle.factory.dimension;
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
-                for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
+
+                // Diagonal element
+                const size_t diag_idx = (col_idx * row_length) + col_idx;
+                this->bundle.os_data_ptr[diag_idx] =
+                        context.simplify_as_moment(this->bundle.os_data_ptr[diag_idx]);
+
+                // Check for Hermiticity if not yet non-hermitian
+                if (!this->non_hermitian.has_value()) {
+                    const auto& seq = this->bundle.os_data_ptr[diag_idx];
+                    const auto conj_seq = seq.conjugate();
+                    if (seq.hash() != conj_seq.hash()) {
+                        this->non_hermitian.emplace(col_idx, col_idx);
+                    }
+                }
+
+                for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
                     const size_t total_idx = (col_idx * row_length) + row_idx;
+                    const size_t conj_idx  = (row_idx * row_length) + col_idx;
                     // TODO: Avoid copy
                     this->bundle.alias_data_ptr[total_idx] =
-                            context.simplify_as_moment(OperatorSequence{this->bundle.os_data_ptr[total_idx]});
+                            context.simplify_as_moment(this->bundle.os_data_ptr[total_idx]);
+                    this->bundle.alias_data_ptr[conj_idx] =
+                            context.simplify_as_moment(this->bundle.os_data_ptr[conj_idx]);
+
+                    // Check for Hermiticity if not yet non-Hermitian
+                    if (!this->non_hermitian.has_value()) {
+                        const auto& seq = this->bundle.os_data_ptr[total_idx];
+                        const auto conj_seq = seq.conjugate();
+                        const auto& tx_seq = this->bundle.os_data_ptr[conj_idx];
+                        if (conj_seq.hash() != tx_seq.hash()) {
+                            this->non_hermitian.emplace(row_idx, col_idx);
+                        }
+                    }
                 }
+            }
+        }
+
+
+        void generate_aliased_operator_sequence_matrix_hermitian() {
+            assert(this->bundle.os_data_ptr != nullptr);
+
+            const auto& context = bundle.factory.context;
+
+            const size_t row_length = bundle.factory.dimension;
+
+            for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
+
+                // Diagonal element
+                const size_t diag_idx = (col_idx * row_length) + col_idx;
+                this->bundle.os_data_ptr[diag_idx] =
+                        context.simplify_as_moment(this->bundle.os_data_ptr[diag_idx]);
+
+                for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
+                    const size_t total_idx = (col_idx * row_length) + row_idx;
+                    const size_t conj_idx  = (row_idx * row_length) + col_idx;
+
+                    this->bundle.alias_data_ptr[total_idx] =
+                            context.simplify_as_moment(OperatorSequence{this->bundle.os_data_ptr[total_idx]});
+                    // simplify_as_moment must commute with Hermitian conjugation:
+                    this->bundle.alias_data_ptr[conj_idx] = this->bundle.alias_data_ptr[total_idx].conjugate();
+                }
+            }
+        }
+
+
+        void generate_aliased_operator_sequence_matrix() {
+            if (this->bundle.factory.could_be_non_hermitian) {
+                generate_aliased_operator_sequence_matrix_generic();
+            } else {
+                generate_aliased_operator_sequence_matrix_hermitian();
             }
         }
 
@@ -287,13 +366,13 @@ namespace Moment::Multithreading {
 
 
         void identify_unique_symbols_hermitian() {
-            const size_t row_length = bundle.dimension;
+            const size_t row_length = bundle.factory.dimension;
             std::set<size_t> known_hashes;
 
             // First, always manually insert zero and one (if thread 0).
             if (this->worker_id == 0) {
-                unique_elements.emplace(static_cast<size_t>(0), Symbol::Zero(this->bundle.context));
-                unique_elements.emplace(static_cast<size_t>(1), Symbol::Identity(this->bundle.context));
+                unique_elements.emplace(static_cast<size_t>(0), Symbol::Zero(this->bundle.factory.context));
+                unique_elements.emplace(static_cast<size_t>(1), Symbol::Identity(this->bundle.factory.context));
                 known_hashes.emplace(0);
                 known_hashes.emplace(1);
             }
@@ -338,13 +417,13 @@ namespace Moment::Multithreading {
         }
 
         void identify_unique_symbols_generic() {
-            const size_t row_length = bundle.dimension;
+            const size_t row_length = bundle.factory.dimension;
             std::set<size_t> known_hashes;
 
             // First, always manually insert zero and one (if thread 0).
             if (this->worker_id == 0) {
-                unique_elements.emplace(static_cast<size_t>(0), Symbol::Zero(this->bundle.context));
-                unique_elements.emplace(static_cast<size_t>(1), Symbol::Identity(this->bundle.context));
+                unique_elements.emplace(static_cast<size_t>(0), Symbol::Zero(this->bundle.factory.context));
+                unique_elements.emplace(static_cast<size_t>(1), Symbol::Identity(this->bundle.factory.context));
                 known_hashes.emplace(0);
                 known_hashes.emplace(1);
             }
@@ -444,16 +523,17 @@ namespace Moment::Multithreading {
             assert(this->bundle.alias_data_ptr != nullptr);
             assert(this->bundle.sm_data_ptr != nullptr);
 
-            const auto& symbol_table = this->bundle.symbols;
+            const auto& symbol_table = this->bundle.factory.symbols;
+            const auto prefactor = this->bundle.factory.prefactor;
+            const size_t row_length = bundle.factory.dimension;
 
-            const size_t row_length = bundle.dimension;
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
                 for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
 
                     const size_t offset = (col_idx * row_length) + row_idx;
                     const auto& elem = this->bundle.alias_data_ptr[offset];
 
-                    const auto mono_factor = this->bundle.prefactor * to_scalar(elem.get_sign());
+                    const auto mono_factor = prefactor * to_scalar(elem.get_sign());
                     const size_t hash = elem.hash();
                     auto [symbol_id, conjugated] = symbol_table.hash_to_index(hash);
 
@@ -476,10 +556,11 @@ namespace Moment::Multithreading {
             assert(this->bundle.alias_data_ptr != nullptr);
             assert(this->bundle.sm_data_ptr != nullptr);
 
-            const auto& symbol_table = this->bundle.symbols;
+            const auto& symbol_table = this->bundle.factory.symbols;
             auto * const write_ptr = this->bundle.sm_data_ptr;
+            const size_t row_length = bundle.factory.dimension;
+            const auto prefactor = this->bundle.factory.prefactor;
 
-            const size_t row_length = bundle.dimension;
             for (size_t col_idx = worker_id; col_idx < row_length; col_idx += max_workers) {
                 for (size_t row_idx = 0; row_idx < row_length; ++row_idx) {
 
@@ -501,16 +582,16 @@ namespace Moment::Multithreading {
                     const auto& unique_elem = symbol_table[symbol_id];
 
                     // Write entry
-                    write_ptr[offset] = Monomial{unique_elem.Id(), this->bundle.prefactor * monomial_sign, conjugated};
+                    write_ptr[offset] = Monomial{unique_elem.Id(), prefactor * monomial_sign, conjugated};
 
                     // Write H conj entry
                     if (offset != trans_offset) {
                         if (unique_elem.is_hermitian()) {
                             write_ptr[trans_offset] = Monomial{unique_elem.Id(),
-                                                               this->bundle.prefactor * std::conj(monomial_sign), false};
+                                                               prefactor * std::conj(monomial_sign), false};
                         } else {
                             write_ptr[trans_offset] = Monomial{unique_elem.Id(),
-                                                               this->bundle.prefactor * std::conj(monomial_sign), !conjugated};
+                                                               prefactor * std::conj(monomial_sign), !conjugated};
                         }
                     }
                 }
@@ -523,22 +604,15 @@ namespace Moment::Multithreading {
         }
     };
 
-    template<typename elem_functor_t>
-    class matrix_generation_worker_bundle {
+    template<typename os_matrix_t, typename context_t, typename index_t, typename elem_functor_t>
+    class OperatorMatrixFactoryMultithreaded {
     public:
-        using worker_t = matrix_generation_worker<elem_functor_t>;
-
-        const Context& context;
-        SymbolTable& symbols;
-
-        const OperatorSequenceGenerator &colGen;
-        const OperatorSequenceGenerator &rowGen;
-
-        const size_t dimension;
-
-        const std::complex<double> prefactor;
+        using info_factory_t = OperatorMatrixFactory<os_matrix_t, context_t, index_t, elem_functor_t>;
+        using worker_t = OperatorMatrixFactoryWorker<os_matrix_t, context_t, index_t, elem_functor_t>;
 
     private:
+        info_factory_t& factory;
+
         std::vector<std::unique_ptr<worker_t>> workers;
 
         std::vector<std::future<bool>> done_os_generation;
@@ -550,9 +624,6 @@ namespace Moment::Multithreading {
         std::atomic_flag ready_to_begin_alias_generation;
         std::atomic_flag ready_to_begin_symbol_identification;
         std::atomic_flag ready_to_begin_sm_generation;
-
-
-        elem_functor_t * os_functor;
 
         /** Pointer to allocated memory for operator sequence matrix. */
         OperatorSequence * os_data_ptr = nullptr;
@@ -566,34 +637,38 @@ namespace Moment::Multithreading {
         /** True if, in actuality, the generation requested made a non-Hermitian matrix. */
         bool is_hermitian = false;
 
+        /** Pointer to allocated memory for monomial matrix */
         Monomial * sm_data_ptr = nullptr;
+
+        /** Optional information about non-Hermitian element in matrix. */
         std::optional<NonHInfo> minimum_non_h_info;
 
     public:
-        friend class matrix_generation_worker<elem_functor_t>;
+        friend worker_t;
 
     public:
-        matrix_generation_worker_bundle(const Context& context, SymbolTable& symbols,
-                                        const OperatorSequenceGenerator& cols,
-                                        const OperatorSequenceGenerator& rows,
-                                        std::complex<double> prefactor)
-              : context{context}, symbols{symbols}, colGen{cols}, rowGen{rows}, dimension{cols.size()},
-                prefactor{prefactor} {
+        explicit OperatorMatrixFactoryMultithreaded(info_factory_t& factory)
+            : factory{factory} {
 
-
-            assert(rows.size() == cols.size());
+            // Clear progress flags
             this->ready_to_begin_osm_generation.clear(std::memory_order_relaxed);
+            this->ready_to_begin_alias_generation.clear(std::memory_order_relaxed);
             this->ready_to_begin_symbol_identification.clear(std::memory_order_relaxed);
             this->ready_to_begin_sm_generation.clear(std::memory_order_relaxed);
 
-            const size_t num_threads = std::min(Multithreading::get_max_worker_threads(), rows.size());
+            // Query for pool size
+            const size_t num_threads = std::min(Multithreading::get_max_worker_threads(), factory.dimension);
 
-            // Set up workers, get associated future
+            // Set up worker pool
             this->workers.reserve(num_threads);
             for (size_t index = 0; index < num_threads; ++index) {
+                // Make new worker
                 this->workers.emplace_back(std::make_unique<worker_t>(*this, index, num_threads));
-                auto [os_f, si_f, sm_f] = workers.back()->get_futures();
+
+                // Register futures
+                auto [os_f, aos_f, si_f, sm_f] = workers.back()->get_futures();
                 this->done_os_generation.emplace_back(std::move(os_f));
+                this->done_alias_generation.emplace_back(std::move(aos_f));
                 this->done_symbol_identification.emplace_back(std::move(si_f));
                 this->done_sm_generation.emplace_back(std::move(sm_f));
             }
@@ -604,17 +679,87 @@ namespace Moment::Multithreading {
             }
         }
 
-        matrix_generation_worker_bundle(const matrix_generation_worker_bundle&) = delete;
+        /** No copy constructor! */
+        OperatorMatrixFactoryMultithreaded(const OperatorMatrixFactoryMultithreaded&) = delete;
 
         /**
          * Destructor: gather finished threads.
          */
-        ~matrix_generation_worker_bundle() noexcept {
+        ~OperatorMatrixFactoryMultithreaded() noexcept {
             for (auto& worker : workers) {
                 worker->join();
             }
         }
 
+        /**
+         * Do multi-stage matrix generation.
+         * NB: Only one thread should call execute at once!
+         */
+        std::unique_ptr<MonomialMatrix> execute() {
+            // Allocate memory for unaliased operator sequences
+            const size_t numel = this->factory.dimension * this->factory.dimension;
+            std::vector<OperatorSequence> unaliased_data{OperatorSequence::create_uninitialized_vector(numel)};
+
+            this->os_data_ptr = unaliased_data.data();
+            this->generate_operator_sequence_matrix();
+
+            // Create operator sequence square matrix, with aliased data, and knowledge of Hermiticity
+            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(unaliased_data),
+                                                                     this->non_hermitian_info());
+
+            // Create OSM
+            auto unaliased_operator_matrix = std::make_unique<os_matrix_t>(factory.context, factory.Index,
+                                                                           std::move(OSM));
+            // Likely same as before; promise not to change from here on!
+            this->os_data_ptr = const_cast<OperatorSequence *>(unaliased_operator_matrix->raw());
+
+            // Do we need to detect aliasing?
+            std::unique_ptr<os_matrix_t> aliased_operator_matrix;
+            std::vector<OperatorSequence> aliased_data;
+            if (this->factory.context.can_have_aliases()) {
+                aliased_data = OperatorSequence::create_uninitialized_vector(numel);
+                this->alias_data_ptr = aliased_data.data();
+                this->generate_aliased_operator_sequence_matrix();
+
+                auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension,
+                                                                          std::move(aliased_data),
+                                                                          this->non_hermitian_info());
+                aliased_operator_matrix = std::make_unique<os_matrix_t>(factory.context, factory.Index,
+                                                                        std::move(aOSM));
+
+                // Likely same as before; promise not to change from here on!
+                this->alias_data_ptr = const_cast<OperatorSequence *>(aliased_operator_matrix->raw());
+            } else {
+                // No aliasing, so 'aliased' (really, de-aliased) operators are just the raw operators.
+                this->alias_data_ptr = this->os_data_ptr;
+            }
+
+            // What new symbols are there?
+            this->identify_unique_symbols();
+
+            // Add them to the symbol table.
+            this->register_unique_symbols();
+
+            // Finally, do symbolization of matrix
+            std::vector<Monomial> monomial_data(numel);
+            this->sm_data_ptr = monomial_data.data();
+            this->generate_symbol_matrix();
+            auto mono_m_ptr = std::make_unique<SquareMatrix<Monomial>>(factory.dimension, std::move(monomial_data));
+
+
+            // Clear pointers to (possibly transient) variables:
+            this->os_data_ptr = nullptr;
+            this->alias_data_ptr = nullptr;
+            this->sm_data_ptr = nullptr;
+
+            // Construct resulting monomial matrix
+            return std::make_unique<MonomialMatrix>(factory.symbols, std::move(unaliased_operator_matrix),
+                                                             std::move(aliased_operator_matrix),
+                                                             std::move(mono_m_ptr));
+        }
+
+
+    private:
         void determine_hermitian_status() {
             // Query workers, and find lowest non-Hermitian element
             const NonHInfoOrdering nh_less{};
@@ -629,14 +774,7 @@ namespace Moment::Multithreading {
             this->is_hermitian = !this->minimum_non_h_info.has_value();
         }
 
-        void generate_operator_sequence_matrix(OperatorSequence * const os_data, elem_functor_t functor,
-                                               const bool should_be_hermitian = false) {
-            // Supply functor & data pointers
-            this->os_data_ptr = os_data;
-            this->alias_data_ptr = os_data;
-            this->os_functor = &functor;
-            this->could_be_non_hermitian = this->context.can_make_unexpected_nonhermitian_matrices()
-                                           || !should_be_hermitian;
+        void generate_operator_sequence_matrix() {
 
             // Signal all workers to begin
             this->ready_to_begin_osm_generation.test_and_set(std::memory_order_release);
@@ -653,15 +791,9 @@ namespace Moment::Multithreading {
 
             // Leading thread determines if constructed matrix is Hermitian.
             this->determine_hermitian_status();
-
-            // Dispose functor [otherwise, will be storing invalid ptr!]
-            this->os_functor = nullptr;
         }
 
-        void generate_aliased_operator_sequence_matrix(OperatorSequence * const aliased_os_data) {
-            // Likely unchanged; but accommodates possibility of move.
-            this->alias_data_ptr = aliased_os_data; // overwrite existing ptr.
-
+        void generate_aliased_operator_sequence_matrix() {
             // Signal all workers to begin
             this->ready_to_begin_alias_generation.test_and_set(std::memory_order_release);
             this->ready_to_begin_alias_generation.notify_all();
@@ -700,13 +832,10 @@ namespace Moment::Multithreading {
         void register_unique_symbols() {
             // Merge on main thread...
             auto& elems = this->workers.front()->yield_unique_elements();
-            this->symbols.merge_in(elems.begin(), elems.end());
+            this->factory.symbols.merge_in(elems.begin(), elems.end());
         }
 
-        void generate_symbol_matrix(Monomial* symbol_data) {
-            // Supply data pointers
-            this->sm_data_ptr = symbol_data;
-
+        void generate_symbol_matrix() {
             // Signal all workers to begin
             this->ready_to_begin_sm_generation.test_and_set(std::memory_order_release);
             this->ready_to_begin_sm_generation.notify_all();

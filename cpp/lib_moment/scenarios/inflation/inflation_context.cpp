@@ -352,20 +352,16 @@ namespace Moment::Inflation {
         return false;
     }
 
-
-    OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
-        assert(this->can_have_aliases());
-        // If 0, or I, or no inflation, then just pass through
-        if (input.empty()) {
-            return std::move(input);
-        }
+    std::pair<bool, const std::vector<oper_name_t>&>
+    InflationContext::find_permutation(const OperatorSequence& input) const {
 
         SmallVector<oper_name_t, 4> next_free_source_variant(this->base_network.explicit_source_count(), 0);
 
         std::vector<oper_name_t>& permutation = get_permutation_scratch(this->total_inflated_sources);
+        std::pair<bool, const std::vector<oper_name_t>&> output{false, permutation};
 
         DynamicBitset<uint64_t, size_t, SmallVector<uint64_t, 1>> done_permutation{this->total_inflated_sources};
-        bool non_trivial = false;
+        bool& non_trivial = output.first;
 
         // Go through operators looking for permutations
         for (const auto op : input) {
@@ -394,12 +390,11 @@ namespace Moment::Inflation {
                 }
             }
         }
+        return output;
+    }
 
-        // Early exit if no permutations made
-        if (!non_trivial) {
-            return std::move(input);
-        }
-
+    OperatorSequence InflationContext::apply_permutation(const OperatorSequence& input,
+                                                         const std::vector<oper_name_t>& permutation) const {
         // Permute operators
         sequence_storage_t permuted_operators;
         for (const oper_name_t op : input) {
@@ -422,10 +417,49 @@ namespace Moment::Inflation {
 
         // If source-relabelling causes change in operator order, there could be further simplifications:
         if (!std::is_sorted(permuted_operators.cbegin(), permuted_operators.cend())) {
-            return this->simplify_as_moment(OperatorSequence{std::move(permuted_operators), *this});
+            return this->simplify_as_moment(OperatorSequence{std::move(permuted_operators), *this}); // recurse..!
         }
 
         return OperatorSequence{std::move(permuted_operators), *this};
+    }
+
+
+    OperatorSequence InflationContext::simplify_as_moment(OperatorSequence&& input) const {
+        assert(this->can_have_aliases());
+        // If 0, or I, or no inflation, then just pass through
+        if (input.empty()) {
+            return std::move(input);
+        }
+
+        // Can we simplify through permutation?
+        auto [non_trivial, permutations] = this->find_permutation(input);
+
+        // Early exit if no permutations made
+        if (!non_trivial) {
+            return std::move(input);
+        }
+
+        // Otherwise, apply this permutation.
+        return this->apply_permutation(input, permutations);
+    }
+
+    OperatorSequence InflationContext::simplify_as_moment(const OperatorSequence& input) const {
+        assert(this->can_have_aliases());
+        // If 0, or I, or no inflation, then just copy through
+        if (input.empty()) {
+            return OperatorSequence{input};
+        }
+
+        // Can we simplify through permutation?
+        auto [non_trivial, permutations] = this->find_permutation(input);
+
+        // Early exit if no permutations made
+        if (!non_trivial) {
+            return OperatorSequence{input};
+        }
+
+        // Otherwise, apply this permutation.
+        return this->apply_permutation(input, permutations);
     }
 
     std::vector<OVOIndex>

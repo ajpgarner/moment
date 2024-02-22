@@ -44,6 +44,8 @@ namespace Moment::Pauli {
      */
     struct MomentMatrixIndex : public NearestNeighbourIndex {
     public:
+        using OSGIndex = NearestNeighbourIndex;
+
         constexpr explicit MomentMatrixIndex(const size_t mm_level, const size_t neighbours = 0)
                 : NearestNeighbourIndex{mm_level, neighbours} { }
 

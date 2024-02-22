@@ -121,12 +121,12 @@ namespace Moment {
             const bool should_be_hermitian = functor_t::should_be_hermitian(index);
             const std::complex<double> prefactor = functor_t::determine_prefactor(index);
 
-            OperatorMatrixFactory<matrix_t, context_t, OSGIndexT, functor_t>
-                    creation_factory{context, symbols, functor_t::get_osg_index(index),
+            OperatorMatrixFactory<matrix_t, context_t, index_t, functor_t>
+                    creation_factory{context, symbols, index,
                                      functor_t{context, index},
                                      should_be_hermitian, prefactor, mt_policy};
 
-            return creation_factory.execute(index);
+            return creation_factory.execute();
 
         }
     };

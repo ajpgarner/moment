@@ -301,11 +301,11 @@ namespace Moment::mex {
             sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
 
             // Export
-            if (!inputMatrix.has_operator_matrix()) {
+            if (!inputMatrix.has_aliased_operator_matrix()) {
                 using AppropriateInferredFormatView = FormatView<typename matrix_t::ElementType>;
                 return do_export<AppropriateInferredFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
             } else {
-                return do_export<DirectFormatView>(engine, inputMatrix.operator_matrix()(), sfc);
+                return do_export<DirectFormatView>(engine, inputMatrix.aliased_operator_matrix()(), sfc);
             }
         }
     }
@@ -347,8 +347,8 @@ namespace Moment::mex {
         }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
-        if (matrix.has_operator_matrix()) {
-            const auto& op_mat = matrix.operator_matrix();
+        if (matrix.has_aliased_operator_matrix()) {
+            const auto& op_mat = matrix.aliased_operator_matrix();
             return export_direct(engine, this->system.Context(), this->system.Symbols(), op_mat);
         }
 
@@ -365,9 +365,9 @@ namespace Moment::mex {
         }
 
         // Do we have direct sequences? If so, export direct (neutral) view.
-        if (matrix.has_operator_matrix()) [[unlikely]] {
+        if (matrix.has_aliased_operator_matrix()) [[unlikely]] {
              // Unlikely: Most polynomial matrices are not created from categorizing symbols in an operator matrix.
-            return export_direct(engine, this->system.Context(), this->system.Symbols(), matrix.operator_matrix());
+            return export_direct(engine, this->system.Context(), this->system.Symbols(), matrix.aliased_operator_matrix());
         }
 
         // If all else fails, use inferred string formatting

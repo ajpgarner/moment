@@ -161,16 +161,16 @@ namespace Moment::mex {
     FullMonomialSpecification OperatorMatrixExporter::monomials(const MonomialMatrix &matrix) const {
         FullMonomialSpecification output{this->factory, OperatorMatrixExporter::matrix_dimensions(matrix), true};
 
-        if (!matrix.has_operator_matrix()) {
+        if (!matrix.has_aliased_operator_matrix()) {
             throw_error(this->engine, errors::internal_error,
                         "Cannot convert matrix to monomials, if underlying operator sequences are not defined.");
         }
 
         auto read_iter = IterTuple{matrix.SymbolMatrix().begin(),
-                                   matrix.operator_matrix()().begin()};
+                                   matrix.aliased_operator_matrix()().begin()};
 
         const auto read_iter_end = IterTuple{matrix.SymbolMatrix().end(),
-                                             matrix.operator_matrix()().end()};
+                                             matrix.aliased_operator_matrix()().end()};
 
         auto write_iter = output.full_write_begin();
         const auto write_iter_end = output.full_write_end();

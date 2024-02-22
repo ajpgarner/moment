@@ -475,8 +475,14 @@ namespace Moment::Pauli {
         return std::make_unique<PauliSequenceGenerator>(*this, word_length);
     }
 
-    OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
+    OperatorSequence PauliContext::simplify_as_moment(const OperatorSequence& seq) const {
+        assert(this->translational_symmetry == SymmetryType::Translational);
+        assert(this->tx_hasher); // assert hasher was instantiated
 
+        return this->tx_hasher->canonical_sequence(seq);
+    }
+
+    OperatorSequence PauliContext::simplify_as_moment(OperatorSequence&& seq) const {
         assert(this->translational_symmetry == SymmetryType::Translational);
         assert(this->tx_hasher); // assert hasher was instantiated
 

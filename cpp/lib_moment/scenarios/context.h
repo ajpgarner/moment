@@ -92,6 +92,17 @@ namespace Moment {
          [[nodiscard]] virtual OperatorSequence simplify_as_moment(OperatorSequence&& seq) const;
 
          /**
+          * Use context to simplify or substitute an operator sequence, at the point where it is taken as a moment.
+          * Undefined behaviour if can_have_aliases() returns false.
+          * @param seq The operator sequence representing the moment to simplify.
+          */
+         [[nodiscard]] virtual OperatorSequence simplify_as_moment(const OperatorSequence& seq) const {
+             // Default behaviour: copy construct then simplify.
+             return this->simplify_as_moment(OperatorSequence{seq});
+         }
+
+    public:
+         /**
           * True, if context would not apply any moment simplification to supplied sequence.
           * Undefined behaviour if can_have_aliases() returns false.
           */
