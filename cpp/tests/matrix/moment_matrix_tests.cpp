@@ -448,6 +448,9 @@ namespace Moment::Tests {
         std::vector<oper_name_t> alice{0, 1};
         auto [id2, matLevel2] = system.MomentMatrix.create(2);
 
+        ASSERT_TRUE(matLevel2.has_aliased_operator_matrix());
+        EXPECT_TRUE(matLevel2.aliased_operator_matrix().is_hermitian());
+
         compare_unique_sequences(matLevel2, {
                 {OperatorSequence({alice[0]}, context), // 2
                         OperatorSequence({alice[0]}, context), true},

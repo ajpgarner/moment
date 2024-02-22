@@ -9,6 +9,8 @@
 #include "operator_matrix.h"
 #include "operator_matrix_factory.h"
 
+#include "matrix/monomial_matrix_factory.h"
+
 #include "dictionary/dictionary.h"
 #include "scenarios/context.h"
 
@@ -121,13 +123,26 @@ namespace Moment {
             const bool should_be_hermitian = functor_t::should_be_hermitian(index);
             const std::complex<double> prefactor = functor_t::determine_prefactor(index);
 
+            // First invoke operator matrix generation
             OperatorMatrixFactory<matrix_t, context_t, index_t, functor_t>
                     creation_factory{context, symbols, index,
                                      functor_t{context, index},
                                      should_be_hermitian, prefactor, mt_policy};
 
-            return creation_factory.execute();
+            std::unique_ptr<matrix_t> unaliased_op_mat;
+            std::unique_ptr<matrix_t> aliased_op_mat;
+            if (context.can_have_aliases()) {
+                auto pair_ptrs = creation_factory.make_aliased();
+                unaliased_op_mat = std::move(pair_ptrs.first);
+                aliased_op_mat = std::move(pair_ptrs.second);
+            } else {
+                unaliased_op_mat = creation_factory.make_unaliased();
+            }
 
+            // Secondly, invoke monomial matrix factory to transform op matrices into monomial matrix
+            return MonomialMatrix::register_symbols_and_create_matrix(symbols, std::move(unaliased_op_mat),
+                                                                               std::move(aliased_op_mat),
+                                                                               prefactor, mt_policy);
         }
     };
 }

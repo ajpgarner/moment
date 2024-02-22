@@ -73,8 +73,11 @@ namespace Moment {
         /** Pointer to the dictionary "column generator". */
         OperatorSequenceGenerator const* colGen = nullptr;
 
-        /** Size of matrix */
+        /** Size of matrix (number of rows/cols) */
         size_t dimension = 0;
+
+        /** Number of elements in matrix */
+        size_t numel = 0;
 
         /** True, if we cannot guarantee the resulting matrix is Hermitian (even if it should be). */
         bool could_be_non_hermitian = true;
@@ -104,13 +107,7 @@ namespace Moment {
                   Index{matrix_index},
                   OSGIndex{functor_t::get_osg_index(matrix_index)},
                   mt_policy{mt_policy} {
-        }
 
-        /**
-         * Do matrix creation.
-         * @return Newly created matrix.
-         */
-        [[nodiscard]] std::unique_ptr<MonomialMatrix> execute() {
             // Make or get generators
             const auto& osg_pair = functor_t::get_generators(context, this->OSGIndex);
             this->colGen = &(osg_pair());
@@ -120,21 +117,36 @@ namespace Moment {
             // Ascertain matrix dimension & element count:
             this->dimension = colGen->size();
             assert(dimension == rowGen->size());
-            const size_t numel = dimension * dimension;
+            this->numel = dimension * dimension;
 
             // Non-Hermitian possible, from context?
             this->could_be_non_hermitian = !should_be_hermitian
                                            || this->context.can_make_unexpected_nonhermitian_matrices();
+        }
 
+        [[nodiscard]] std::unique_ptr<os_matrix_t> make_unaliased() {
             // Determine, from dimension and mt_policy, whether we should use multithreading:
             if (Multithreading::should_multithread_matrix_creation(mt_policy, numel)) {
                 // Use multithreaded creation
                 mt_factory_t factory{*this};
-                return factory.execute();
+                return factory.make_unaliased();
             } else {
                 // Use single-threaded creation
                 st_factory_t factory{*this};
-                return factory.execute();
+                return factory.make_unaliased();
+            }
+        }
+
+        [[nodiscard]] std::pair<std::unique_ptr<os_matrix_t>, std::unique_ptr<os_matrix_t>> make_aliased() {
+            // Determine, from dimension and mt_policy, whether we should use multithreading:
+            if (Multithreading::should_multithread_matrix_creation(mt_policy, numel)) {
+                // Use multithreaded creation
+                mt_factory_t factory{*this};
+                return factory.make_aliased();
+            } else {
+                // Use single-threaded creation
+                st_factory_t factory{*this};
+                return factory.make_aliased();
             }
         }
 

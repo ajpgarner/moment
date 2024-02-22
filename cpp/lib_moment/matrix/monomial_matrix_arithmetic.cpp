@@ -7,6 +7,7 @@
 
 #include "composite_matrix.h"
 #include "monomial_matrix.h"
+#include "monomial_matrix_factory.h"
 #include "polynomial_matrix.h"
 
 #include "operator_matrix/operator_matrix.h"
@@ -101,10 +102,12 @@ namespace Moment {
                 multiplied_op_ptr = matrix.unaliased_operator_matrix().post_multiply(op_sequence, policy);
             }
 
-            // TODO: Handle aliasing in multiplied matrix
+            return MonomialMatrix::register_symbols_and_create_matrix(symbol_registry,
+                                                                      std::move(multiplied_op_ptr),
+                                                                      nullptr, // XXX: Wrong, for aliased!
+                                                                      new_factor,
+                                                                      policy);
 
-            // Do creation
-            return std::make_unique<MonomialMatrix>(symbol_registry, std::move(multiplied_op_ptr), new_factor);
         }
     }
 
@@ -161,8 +164,12 @@ namespace Moment {
             raw_ptrs.reserve(poly_size);
             for (size_t n = 0; n < poly_size; ++n) {
                 symbolized_op_mats.emplace_back(
-                        std::make_unique<MonomialMatrix>(symbol_registry, std::move(multiplied_op_mats[n]),
-                                                         matrix.global_factor() * poly[n].weight));
+                        MonomialMatrix::register_symbols_and_create_matrix(symbol_registry,
+                                                                           std::move(multiplied_op_mats[n]),
+                                                                           nullptr, // XXX: Wrong, for aliased!
+                                                                           matrix.global_factor() * poly[n].weight,
+                                                                           policy)
+                );
                 raw_ptrs.emplace_back(symbolized_op_mats.back().get());
             }
 

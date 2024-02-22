@@ -13,6 +13,7 @@ add_library(lib_moment
         matrix/monomial_matrix.cpp
         matrix/monomial_matrix_arithmetic.cpp
         matrix/monomial_matrix_basis.cpp
+        matrix/monomial_matrix_factory.cpp
         matrix/polynomial_matrix.cpp
         matrix/polynomial_matrix_arithmetic.cpp
         matrix/polynomial_matrix_basis.cpp

@@ -11,7 +11,6 @@
 #include "operator_matrix.h"
 
 #include "dictionary/operator_sequence_generator.h"
-#include "matrix/monomial_matrix.h"
 #include "scenarios/context.h"
 
 #include <memory>
@@ -33,20 +32,26 @@ namespace Moment {
 
             }
 
+            /**
+             * Do multi-stage matrix generation.
+             * NB: Only one thread should call execute at once!
+             */
+            std::unique_ptr<os_matrix_t> make_unaliased() {
+                return this->make_operator_matrix();
+            }
 
             /**
              * Do multi-stage matrix generation.
              * NB: Only one thread should call execute at once!
              */
-            std::unique_ptr<MonomialMatrix> execute() {
-                std::unique_ptr<os_matrix_t> unaliased_matrix = this->make_operator_matrix();
+            std::pair<std::unique_ptr<os_matrix_t>, std::unique_ptr<os_matrix_t>> make_aliased() {
 
-                std::unique_ptr<os_matrix_t> aliased_matrix;
+                std::pair<std::unique_ptr<os_matrix_t>, std::unique_ptr<os_matrix_t>> output;
+                output.first = this->make_operator_matrix();
                 if (this->factory.context.can_have_aliases()) {
-                    aliased_matrix = this->make_aliased_operator_matrix(*unaliased_matrix);
+                    output.second = this->make_aliased_operator_matrix(*output.first);
                 }
-
-                return this->make_symbolic_matrix_single_thread(std::move(unaliased_matrix), std::move(aliased_matrix));
+                return output;
             }
 
 
@@ -80,31 +85,5 @@ namespace Moment {
             auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(aliased_data));
             return std::make_unique<os_matrix_t>(factory.context, factory.Index, std::move(aOSM));
         }
-
-        std::unique_ptr<MonomialMatrix>
-        make_symbolic_matrix_single_thread(std::unique_ptr<os_matrix_t> unaliased_matrix,
-                                           std::unique_ptr<os_matrix_t> aliased_matrix) {
-            assert(unaliased_matrix);
-            if (this->factory.context.can_have_aliases()) {
-                assert(aliased_matrix);
-                if (this->factory.prefactor != 1.0) {
-                    return std::make_unique<MonomialMatrix>(factory.symbols,
-                                                            std::move(unaliased_matrix), std::move(aliased_matrix),
-                                                            factory.prefactor);
-                } else {
-                    return std::make_unique<MonomialMatrix>(factory.symbols,
-                                                            std::move(unaliased_matrix), std::move(aliased_matrix));
-                }
-            } else {
-                assert(aliased_matrix == nullptr);
-                if (this->factory.prefactor != 1.0) {
-                    return std::make_unique<MonomialMatrix>(factory.symbols, std::move(unaliased_matrix),
-                                                            factory.prefactor);
-                } else {
-                    return std::make_unique<MonomialMatrix>(factory.symbols, std::move(unaliased_matrix));
-                }
-            }
-        }
     };
-
 }
