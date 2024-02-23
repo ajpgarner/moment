@@ -7,7 +7,6 @@
 
 #include "composite_matrix.h"
 #include "monomial_matrix.h"
-#include "monomial_matrix_factory.h"
 #include "polynomial_matrix.h"
 
 #include "operator_matrix/operator_matrix.h"
@@ -15,7 +14,6 @@
 #include "dictionary/operator_sequence.h"
 #include "dictionary/raw_polynomial.h"
 
-#include "scenarios/context.h"
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
 
@@ -101,13 +99,16 @@ namespace Moment {
             } else {
                 multiplied_op_ptr = matrix.unaliased_operator_matrix().post_multiply(op_sequence, policy);
             }
+            std::unique_ptr<OperatorMatrix> aliased_op_ptr;
+            if (matrix.context.can_have_aliases()) {
+                aliased_op_ptr = multiplied_op_ptr->simplify_as_moments(policy);
+            }
 
             return MonomialMatrix::register_symbols_and_create_matrix(symbol_registry,
                                                                       std::move(multiplied_op_ptr),
-                                                                      nullptr, // XXX: Wrong, for aliased!
+                                                                      std::move(aliased_op_ptr),
                                                                       new_factor,
                                                                       policy);
-
         }
     }
 
@@ -157,6 +158,18 @@ namespace Moment {
             }
             assert(multiplied_op_mats.size() == poly_size);
 
+            // Do simplification of resulting matrices if necessary
+            std::vector<std::unique_ptr<OperatorMatrix>> aliased_op_mats;
+            if (matrix.context.can_have_aliases()) {
+                std::transform(multiplied_op_mats.cbegin(), multiplied_op_mats.cend(),
+                               std::back_inserter(aliased_op_mats),
+                               [policy](const std::unique_ptr<OperatorMatrix>& imp) {
+                    return imp->simplify_as_moments(policy);
+                });
+            } else {
+                std::fill_n(std::back_inserter(aliased_op_mats), poly_size, nullptr);
+            }
+
             // Calculate symbols [at this stage, we will consider weights]
             std::vector<std::unique_ptr<MonomialMatrix>> symbolized_op_mats;
             symbolized_op_mats.reserve(poly_size);
@@ -166,7 +179,7 @@ namespace Moment {
                 symbolized_op_mats.emplace_back(
                         MonomialMatrix::register_symbols_and_create_matrix(symbol_registry,
                                                                            std::move(multiplied_op_mats[n]),
-                                                                           nullptr, // XXX: Wrong, for aliased!
+                                                                           std::move(aliased_op_mats[n]),
                                                                            matrix.global_factor() * poly[n].weight,
                                                                            policy)
                 );

@@ -139,4 +139,19 @@ namespace Moment {
         return do_poly_multiply<false>(*this, rhs, symbols, policy);
     }
 
+    std::unique_ptr<OperatorMatrix>
+    OperatorMatrix::simplify_as_moments(Multithreading::MultiThreadPolicy policy) const {
+        if (!this->context.can_have_aliases()) {
+            return nullptr;
+        }
+
+        const Context& the_context = this->context;
+        OperatorMatrixTransformation simplifier{
+                [&the_context](const OperatorSequence& matrix_elem) -> OperatorSequence {
+                    return the_context.simplify_as_moment(matrix_elem);
+                }, policy, Multithreading::minimum_matrix_element_count};
+
+        return simplifier(*this);
+    }
+
 }

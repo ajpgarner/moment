@@ -179,6 +179,15 @@ namespace Moment {
                       Multithreading::MultiThreadPolicy policy = Multithreading::MultiThreadPolicy::Optional) const;
 
         /**
+         * Create a new operator matrix by identifying moment aliases.
+         * @param mt_policy Whether the simplification should be done with multithreading (Never, Optional, Always).
+         * @return Newly created OperatorMatrix, or nullptr if context does not admit aliases.
+         */
+        [[nodiscard]] std::unique_ptr<OperatorMatrix>
+        simplify_as_moments(Multithreading::MultiThreadPolicy policy
+            = Multithreading::MultiThreadPolicy::Optional) const;
+
+        /**
          * Creates a copy of this matrix
          */
         [[nodiscard]] std::unique_ptr<OperatorMatrix>

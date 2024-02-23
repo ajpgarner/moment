@@ -65,13 +65,6 @@ namespace Moment {
         if (!this->has_unaliased_operator_matrix()) {
             throw errors::cannot_multiply_exception{"MonomialMatrix cannot multiply if OperatorMatrix is not present."};
         }
-
-        if (this->context.can_have_aliases()) {
-            // TODO: Soon we can in fact do this multiplication!
-            throw errors::cannot_multiply_exception{
-                    "Multiplication will give unexpected results if aliases (i.e. symmetries) are present."
-            };
-        }
     }
 
 

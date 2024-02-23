@@ -327,4 +327,66 @@ namespace Moment::Tests {
 
     }
 
+    TEST(Scenarios_Pauli_MatrixSystem, Aliased_Multiplication) {
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(2, WrapType::None, SymmetryType::Translational)};
+        const auto& context = system.pauliContext;
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+
+        // Trigger MM generation
+        const auto& mm1 = system.MomentMatrix(1);
+        EXPECT_EQ(mm1.Dimension(), 7);
+        ASSERT_TRUE(mm1.has_unaliased_operator_matrix());
+        ASSERT_TRUE(mm1.has_aliased_operator_matrix());
+
+        auto x0_mm1_ptr = mm1.pre_multiply(context.sigmaX(0), 1.0, system.polynomial_factory(), system.Symbols(),
+                                             Multithreading::MultiThreadPolicy::Never);
+        ASSERT_NE(x0_mm1_ptr, nullptr);
+        const auto& x0_mm1 = *x0_mm1_ptr;
+        EXPECT_EQ(x0_mm1.Dimension(), 7);
+        ASSERT_TRUE(x0_mm1.has_unaliased_operator_matrix());
+        ASSERT_TRUE(x0_mm1.has_aliased_operator_matrix());
+
+        const auto& x0_mm_unaliased = x0_mm1.unaliased_operator_matrix();
+
+        // Utility functions, for defining operator matrix:
+        auto e = context.identity();
+        auto i = context.identity(SequenceSignType::Imaginary);
+        auto mi = context.identity(SequenceSignType::NegativeImaginary);
+        auto x =   [&context](size_t n) { return context.sigmaX(n); };
+        auto y =   [&context](size_t n) { return context.sigmaY(n); };
+        auto z =   [&context](size_t n) { return context.sigmaZ(n); };
+        auto my =  [&context](size_t n) { return context.sigmaY(n, SequenceSignType::Negative); };
+        auto mz =  [&context](size_t n) { return context.sigmaZ(n, SequenceSignType::Negative); };
+        auto iz =  [&context](size_t n) { return context.sigmaZ(n, SequenceSignType::Imaginary); };
+        auto miy = [&context](size_t n) { return context.sigmaY(n, SequenceSignType::NegativeImaginary); };
+
+        // Check unaliased multiplication
+        compare_os_matrix("X0*MM, Unaliased", x0_mm_unaliased, 7, {
+            x(0),      e,     iz(0),       miy(0),       x(0)*x(1),    x(0)*y(1),    x(0)*z(1),
+            e,         x(0),  y(0),        z(0),         x(1),         y(1),         z(1),
+            iz(0),     my(0), x(0),        i,            i*z(0)*x(1),  i*z(0)*y(1),  i*z(0)*z(1),
+            miy(0),    mz(0), mi,          x(0),         mi*y(0)*x(1), mi*y(0)*y(1), mi*y(0)*z(1),
+            x(0)*x(1), x(1),  i*z(0)*x(1), mi*y(0)*x(1), x(0),         i*x(0)*z(1),  mi*x(0)*y(1),
+            x(0)*y(1), y(1),  i*z(0)*y(1), mi*y(0)*y(1), mi*x(0)*z(1), x(0),         i*x(0)*x(1),
+            x(0)*z(1), z(1),  i*z(0)*z(1), mi*y(0)*z(1), i*x(0)*y(1),  mi*x(0)*x(1), x(0)
+        });
+
+
+        // Check post-symmetrization (without wrap, only X1 -> X0, Y1 -> Y0 and Z1 -> Z0):
+        const auto& x0_mm_aliased = x0_mm1.aliased_operator_matrix();
+        compare_os_matrix("X0*MM, Aliased", x0_mm_aliased, 7, {
+                x(0),      e,     iz(0),       miy(0),       x(0)*x(1),    x(0)*y(1),    x(0)*z(1),
+                e,         x(0),  y(0),        z(0),         x(0),         y(0),         z(0),
+                iz(0),     my(0), x(0),        i,            i*z(0)*x(1),  i*z(0)*y(1),  i*z(0)*z(1),
+                miy(0),    mz(0), mi,          x(0),         mi*y(0)*x(1), mi*y(0)*y(1), mi*y(0)*z(1),
+                x(0)*x(1), x(0),  i*z(0)*x(1), mi*y(0)*x(1), x(0),         i*x(0)*z(1),  mi*x(0)*y(1),
+                x(0)*y(1), y(0),  i*z(0)*y(1), mi*y(0)*y(1), mi*x(0)*z(1), x(0),         i*x(0)*x(1),
+                x(0)*z(1), z(0),  i*z(0)*z(1), mi*y(0)*z(1), i*x(0)*y(1),  mi*x(0)*x(1), x(0)
+        });
+
+
+
+    }
+
 }
