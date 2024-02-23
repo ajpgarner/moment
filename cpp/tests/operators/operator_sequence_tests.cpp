@@ -230,6 +230,67 @@ namespace Moment::Tests {
         EXPECT_FALSE(conjA.zero());
     }
 
+
+    TEST(Operators_OperatorSequence, NegateLValue) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4};
+        OperatorSequence seqA{{0, 1, 2, 3}, context};
+
+        auto negA = -seqA;
+        EXPECT_EQ(negA.hash(), seqA.hash());
+        EXPECT_EQ(negA.get_sign(), SequenceSignType::Negative);
+        ASSERT_EQ(negA.size(), 4);
+        EXPECT_EQ(negA[0], 0);
+        EXPECT_EQ(negA[1], 1);
+        EXPECT_EQ(negA[2], 2);
+        EXPECT_EQ(negA[3], 3);
+    }
+
+    TEST(Operators_OperatorSequence, NegateRValue) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4};
+        OperatorSequence seqA{{0, 1, 2, 3}, context};
+
+        auto negA = -OperatorSequence{{0, 1, 2, 3}, context};
+        EXPECT_EQ(negA.hash(), seqA.hash());
+        EXPECT_EQ(negA.get_sign(), SequenceSignType::Negative);
+        ASSERT_EQ(negA.size(), 4);
+        EXPECT_EQ(negA[0], 0);
+        EXPECT_EQ(negA[1], 1);
+        EXPECT_EQ(negA[2], 2);
+        EXPECT_EQ(negA[3], 3);
+    }
+
+    TEST(Operators_OperatorSequence, Negate_Zero) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4};
+        auto zero = OperatorSequence::Zero(context);
+
+        auto negZero = -zero;
+        EXPECT_EQ(negZero.hash(), zero.hash());
+        ASSERT_EQ(negZero.size(), 0);
+        EXPECT_TRUE(negZero.zero());
+        EXPECT_EQ(negZero.get_sign(), SequenceSignType::Positive); // Zero always +0
+
+        auto alsoZero = -OperatorSequence::Zero(context);
+        EXPECT_EQ(alsoZero.hash(), zero.hash());
+        ASSERT_EQ(alsoZero.size(), 0);
+        EXPECT_TRUE(alsoZero.zero());
+        EXPECT_EQ(alsoZero.get_sign(), SequenceSignType::Positive);
+    }
+
+    TEST(Operators_OperatorSequence, Negate_Id) {
+        using namespace Moment::Algebraic;
+        AlgebraicContext context{4};
+        auto id = OperatorSequence::Identity(context);
+
+        auto negId = -id;
+        EXPECT_EQ(negId.hash(), id.hash());
+        ASSERT_EQ(negId.size(), 0);
+        EXPECT_FALSE(negId.zero());
+        EXPECT_EQ(negId.get_sign(), SequenceSignType::Negative);
+    }
+
     TEST(Operators_OperatorSequence, HermitianType) {
         using namespace Moment::Algebraic;
         AlgebraicContext context{2};

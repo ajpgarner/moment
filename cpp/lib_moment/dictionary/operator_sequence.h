@@ -150,6 +150,29 @@ namespace Moment {
         friend OperatorSequence operator* (const OperatorSequence& lhs, const OperatorSequence& rhs);
 
         /**
+         * Unary minus: copies OperatorSequence, but with sign-type negated.
+         */
+         friend OperatorSequence operator-(const OperatorSequence& input) {
+             if (input.zero()) {
+                 return OperatorSequence::Zero(*input.context);
+             }
+             // Copy construct
+             return OperatorSequence{ConstructRawFlag{}, input.operators, input.hash(),
+                                     *input.context, negate(input.get_sign())};
+         }
+
+         /**
+         * Unary minus: negates sign-type of operator sequence.
+         */
+         friend OperatorSequence operator-(OperatorSequence&& input) noexcept {
+             if (input.zero()) {
+                 return input;
+             }
+             input.set_sign(negate(input.get_sign()));
+             return input;
+         }
+
+        /**
          * Calculates if element is (anti-)Hermitian, by comparing to its conjugate.
          */
         [[nodiscard]] HermitianType hermitian_type() const;
