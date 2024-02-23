@@ -24,9 +24,7 @@ setting = PauliScenario(chain_length, 'wrap', wrap, 'symmetrized', true);
 base_H = H_coupling(1)*X(1)*X(2) ...
        + H_coupling(2)*Y(1)*Y(2) ...
        + H_coupling(3)*Z(1)*Z(2);
-base_magnetization = MTKPolynomial(Z(1));
 H = setting.symmetrize(base_H);
-magnetization = setting.symmetrize(base_magnetization);
 
 % Generate operator matrices
 raw_mm = setting.MomentMatrix(mm_level, neighbours);
