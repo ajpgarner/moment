@@ -72,74 +72,25 @@ namespace Moment::Multithreading {
         return std::min(OS_cores, worker_thread_limit);
     }
 
-    bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements) {
-        switch (policy) {
-            case MultiThreadPolicy::Never:
-                return false;
-            case MultiThreadPolicy::Always:
-                return true;
-            case MultiThreadPolicy::Optional:
-            default:
-                return elements >= minimum_matrix_element_count;
-        }
-
-    }
-    bool should_multithread_matrix_multiplication(MultiThreadPolicy policy, size_t elements) {
-        switch (policy) {
-            case MultiThreadPolicy::Never:
-                return false;
-            case MultiThreadPolicy::Always:
-                return true;
-            case MultiThreadPolicy::Optional:
-            default:
-                return elements >= minimum_matrix_multiply_element_count;
-        }
+    bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements) noexcept {
+        return should_multithread(policy, minimum_matrix_element_count, elements);
     }
 
-    bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules) {
-        switch (policy) {
-            case MultiThreadPolicy::Never:
-                return false;
-            case MultiThreadPolicy::Always:
-                return true;
-            case MultiThreadPolicy::Optional:
-            default: {
-                if (rules <= 0) {
-                    return false;
-                }
-                size_t difficulty = elements * std::ceil(std::log2(static_cast<double>(rules)));
-                return difficulty >= minimum_rule_difficulty;
-            }
-        }
+    bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules) noexcept {
+        const size_t difficulty = (rules <= 0) ? std::numeric_limits<size_t>::max()
+                                               : elements * std::ceil(std::log2(static_cast<double>(rules)));
+        return should_multithread(policy, minimum_rule_difficulty, difficulty);
     }
 
     bool should_multithread_group_rep_generation(MultiThreadPolicy policy,
-                                                 const size_t raw_dim, const size_t group_elements) {
-        switch (policy) {
-            case MultiThreadPolicy::Never:
-                return false;
-            case MultiThreadPolicy::Always:
-                return true;
-            case MultiThreadPolicy::Optional:
-            default: {
-                if (group_elements <= 1) {
-                    return false;
-                }
-                return (raw_dim * raw_dim * group_elements) >= minimum_group_rep_difficulty;
-            }
-        }
+                                                 const size_t raw_dim, const size_t group_elements) noexcept {
+        const size_t difficulty = group_elements <= 1 ? std::numeric_limits<size_t>::max()
+                                                      : (raw_dim * raw_dim * group_elements);
+        return should_multithread(policy, minimum_group_rep_difficulty, difficulty);
     }
 
-    bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements) {
-        switch (policy) {
-            case MultiThreadPolicy::Never:
-                return false;
-            case MultiThreadPolicy::Always:
-                return true;
-            case MultiThreadPolicy::Optional:
-            default:
-                return potential_elements >= minimum_osg_element_count;
-        }
+    bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements) noexcept {
+        return should_multithread(policy, minimum_osg_element_count, potential_elements);
     }
 
 }

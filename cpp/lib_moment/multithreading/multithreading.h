@@ -54,19 +54,45 @@ namespace Moment::Multithreading {
      */
     [[nodiscard]] size_t get_max_worker_threads();
 
-    /** Should the matrix creation be multithreaded ? */
-    [[nodiscard]] bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements);
+    /**
+     * Should we multithread a task? Generic multithread three-way switch, resolving 'optional' case on difficulty.
+     * @param policy The multithreading policy.
+     * @param optional_threshold The triggering threshold, above which multithreading is used.
+     * @param actual The actual task difficulty estimate, to compare against optional_threshold. */
+    [[nodiscard]] inline constexpr bool should_multithread(MultiThreadPolicy policy,
+                                                           size_t optional_threshold, size_t actual) noexcept {
+        switch(policy) {
+            case MultiThreadPolicy::Never:
+                return false;
+            case MultiThreadPolicy::Always:
+                return true;
+            default:
+            case MultiThreadPolicy::Optional:
+                return actual >= optional_threshold;
+        }
+    }
 
-    /** Should the matrix multiplication be multithreaded ? */
-    [[nodiscard]] bool should_multithread_matrix_multiplication(MultiThreadPolicy policy, size_t elements);
+    /**
+     * Should the matrix creation be multithreaded?
+     */
+    [[nodiscard]] bool should_multithread_matrix_creation(MultiThreadPolicy policy, size_t elements) noexcept;
 
-    /** Should the rule application be multithreaded ? */
-    [[nodiscard]] bool should_multithread_rule_application(MultiThreadPolicy policy, size_t elements, size_t rules);
+    /**
+     * Should the rule application be multithreaded?
+     */
+    [[nodiscard]] bool should_multithread_rule_application(MultiThreadPolicy policy,
+                                                           size_t elements, size_t rules) noexcept;
 
-    /** Should the rule application be multithreaded ? */
+    /**
+     * Should the rule application be multithreaded?
+     */
     [[nodiscard]] bool should_multithread_group_rep_generation(MultiThreadPolicy policy,
-                                                               size_t raw_dim, size_t group_elements);
+                                                               size_t raw_dim, size_t group_elements) noexcept;
 
-    [[nodiscard]] bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements);
+    /**
+     * Should the operator sequence generation be multithreaded?
+     * (NB: Currently not implemented!)
+     */
+    [[nodiscard]] bool should_multithread_osg(MultiThreadPolicy policy, size_t potential_elements) noexcept;
 
 }

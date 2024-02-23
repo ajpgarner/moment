@@ -33,29 +33,41 @@ namespace Moment::Multithreading {
 
         const size_t dimension;
 
-        const elem_functor_t &functor;
+        const elem_functor_t& functor;
+
+        /** First exception encountered during computation... */
+        std::exception_ptr exception;
+
+    public:
 
         matrix_transformation_worker(const size_t dimension,
-                                 const input_elem_t *const input_data,
-                                 output_elem_t *const output_data,
+                                 const input_elem_t * const input_data,
+                                 output_elem_t * const output_data,
                                  const size_t worker_id,
                                  const size_t max_workers,
-                                 const elem_functor_t &the_functor)
+                                 const elem_functor_t& the_functor)
                 : input_ptr{input_data}, output_ptr{output_data},
                   worker_id{worker_id}, max_workers{max_workers}, dimension{dimension},
                   functor{the_functor} {
             assert(worker_id < max_workers);
             assert(max_workers != 0);
+            // Launch thread
             this->the_thread = std::thread(
-                    &matrix_transformation_worker<input_elem_t, output_elem_t, elem_functor_t>::execute, this);
+                &matrix_transformation_worker<input_elem_t, output_elem_t, elem_functor_t>::execute, this
+            );
         }
 
         void execute() {
-            for (size_t col_idx = worker_id; col_idx < dimension; col_idx += max_workers) {
-                for (size_t row_idx = 0; row_idx < dimension; ++row_idx) {
-                    const size_t offset = (col_idx*dimension) + row_idx;
-                    output_ptr[offset] = functor(this->input_ptr[offset]);
+            try {
+                for (size_t col_idx = worker_id; col_idx < dimension; col_idx += max_workers) {
+                    for (size_t row_idx = 0; row_idx < dimension; ++row_idx) {
+                        const size_t offset = (col_idx * dimension) + row_idx;
+                        output_ptr[offset] = functor(this->input_ptr[offset]);
+                    }
                 }
+            } catch (...) {
+                this->exception = std::current_exception();
+                // ~join
             }
         }
 
@@ -69,7 +81,7 @@ namespace Moment::Multithreading {
     void transform_matrix_data(const size_t dimension,
                                const input_elem_t * const input_data,
                                output_elem_t * const output_data,
-                               const elem_functor_t &the_functor) {
+                               const elem_functor_t& the_functor) {
 
         // Determine degree of parallelization
         const size_t num_threads = std::min(Multithreading::get_max_worker_threads(), dimension);
@@ -80,12 +92,19 @@ namespace Moment::Multithreading {
         std::vector<worker_t> workers;
         workers.reserve(num_threads);
         for (size_t index = 0; index < num_threads; ++index) {
+            // Once created, worker will immediately begin computing (perhaps before other workers are even initiated).
             workers.emplace_back(dimension, input_data, output_data, index, num_threads, the_functor);
         }
 
-        // Wait for threads to finish...
+        // Wait for all threads to finish...
         for (auto &worker: workers) {
             worker.join();
+            // If worker had an exception, propagate it to main thread:
+            if constexpr(!noexcept(the_functor)) {
+                if (worker.exception) {
+                    std::rethrow_exception(worker.exception);
+                }
+            }
         }
     }
 }
