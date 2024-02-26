@@ -36,8 +36,7 @@ namespace Moment::mex::functions {
                 break;
 
             default:
-                throw_error(matlabEngine, errors::bad_param,
-                            "Unsupported input format for (anti)commutator...");
+                throw BadParameter{"Unsupported input format for (anti)commutator..."};
 
         }
     }

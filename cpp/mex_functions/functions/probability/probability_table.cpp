@@ -42,9 +42,9 @@ namespace Moment::mex::functions {
                 try {
                     return std::pair<ProbabilityTensorRange, const MaintainsTensors&>(pt.measurement_to_range(free_mmts, fixed_mmts), *lmsPtr);
                 } catch (const Moment::errors::BadPTError& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                    throw BadParameter{pte.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
@@ -59,13 +59,13 @@ namespace Moment::mex::functions {
                 try {
                     return {pt.measurement_to_range(free_mmts, fixed_mmts), *imsPtr};
                 } catch (const Moment::errors::BadPTError& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                    throw BadParameter{pte.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
-            throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
+            throw BadParameter{"Matrix system must be a locality or inflation system."};
         }
     }
 
@@ -140,7 +140,7 @@ namespace Moment::mex::functions {
                                                MatrixSystem& system) {
         auto* ptSystemPtr = dynamic_cast<MaintainsTensors*>(&system);
         if (nullptr == ptSystemPtr) {
-            throw_error(this->matlabEngine, errors::bad_param, "MatrixSystem does not maintain a probability tensor.");
+            throw BadParameter{"MatrixSystem does not maintain a probability tensor."};
         }
         auto lock = ptSystemPtr->get_read_lock();
         ptSystemPtr->RefreshProbabilityTensor(lock);
@@ -158,7 +158,7 @@ namespace Moment::mex::functions {
                 output[0] = exporter.symbols(tensor);
                 break;
             default:
-                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+                throw InternalError{"Unknown output mode."};
         }
     }
 
@@ -182,7 +182,7 @@ namespace Moment::mex::functions {
                 output[0] = exporter.symbols(slice);
                 break;
             default:
-                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+                throw InternalError{"Unknown output mode."};
         }
     }
 
@@ -196,7 +196,7 @@ namespace Moment::mex::functions {
         // Check there is one element referred to.
         auto iter = slice.begin();
         if (iter == slice.end()) {
-            throw_error(matlabEngine, errors::internal_error, "Invalid measurement.");
+            throw InternalError{"Invalid measurement."};
         }
 
         matlab::data::CellArray one_by_one = exporter.factory.createCellArray({1, 1});
@@ -214,7 +214,7 @@ namespace Moment::mex::functions {
                 case ProbabilityTableParams::OutputMode::Symbols:
                     return exporter.symbol(*iter);
                 default:
-                    throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+                    throw InternalError{"Unknown output mode."};
             }
         }(system);
         output[0] = std::move(one_by_one);

@@ -13,7 +13,7 @@
 #include "symbolic/symbol_table.h"
 #include "symbolic/polynomial_factory.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/read_as_vector.h"
@@ -58,7 +58,7 @@ namespace Moment::mex {
             if (op >= op_count) {
                 std::stringstream errSS;
                 errSS << "Operator '" << op << "' in " << name << ", position #" << (seq_idx+1) << " is out of range.";
-                throw_error(engine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
         }
         this->resolved_sequence.emplace(std::move(this->raw_sequence), context);
@@ -74,7 +74,7 @@ namespace Moment::mex {
             errSS << "Sequence \"" << this->resolved_sequence.value().formatted_string() << "\""
                   <<  " in " << name
                   << " does not correspond to a known symbol, and automatic creation was disabled.";
-            throw_error(engine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         this->symbol_id = where->Id();
         this->is_aliased = where.is_aliased;
@@ -123,7 +123,7 @@ namespace Moment::mex {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << name << " must be a cell array.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Get size, and prepare stage
@@ -141,7 +141,7 @@ namespace Moment::mex {
             if (polynomial_cell[elem_index].getType() != matlab::data::ArrayType::CELL) {
                 std::stringstream errSS;
                 errSS << name << " element #" << (elem_index+1) << " must be a cell array.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             // Check symbol expression cell has 1 or 2 elements
@@ -151,7 +151,7 @@ namespace Moment::mex {
                 std::stringstream errSS;
                 errSS << name << " element #" << (elem_index+1) << " must be a cell array "
                       << "containing an operator sequence and optionally a factor.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             // Finally, attempt to read operators
@@ -181,7 +181,7 @@ namespace Moment::mex {
             } catch (const std::exception& e) {
                 std::stringstream errSS;
                 errSS << "Error reading " << name << " element #" << (elem_index+1) << ": " << e.what();
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
         }
     }
@@ -207,7 +207,7 @@ namespace Moment::mex {
                 std::stringstream errSS;
                 errSS << "RawPolynomial cannot be formed before sequences have been been resolved, but "
                       << this->name << " element #" << (index + 1) << " is missing.";
-                throw_error(this->matlabEngine, errors::internal_error, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             output.emplace_back(this->data[index].resolved_sequence.value(), this->data[index].factor);
         }

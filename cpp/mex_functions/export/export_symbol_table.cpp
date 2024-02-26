@@ -6,7 +6,7 @@
  */
 #include "export_symbol_table.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "environmental_variables.h"
 
 #include "symbolic/symbol_table.h"
@@ -149,8 +149,7 @@ namespace Moment::mex {
         while (symbolIter != this->symbols.end()) {
             const auto& symbol = *symbolIter;
             if (write_iter == outputStruct.end()) {
-                throw_error(engine, errors::internal_error,
-                            "Unexpectedly many sequences in export_symbol_table_struct.");
+                throw InternalError{"Unexpectedly many sequences in export_symbol_table_struct."};
             }
 
             this->do_row_write(write_iter, symbol, std::nullopt, std::nullopt);
@@ -167,8 +166,7 @@ namespace Moment::mex {
 
         const size_t expected_length = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies());
         if (expected_length != symbol_info.size()) {
-            throw_error(engine, errors::internal_error,
-                        "Number of symbol IDs requested does not match the desired output shape.");
+            throw InternalError{"Number of symbol IDs requested does not match the desired output shape."};
         }
 
         // Construct structure array

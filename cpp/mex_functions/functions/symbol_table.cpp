@@ -5,6 +5,8 @@
  * @author Andrew J. P. Garner
  */
 #include "symbol_table.h"
+
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
@@ -32,8 +34,8 @@ namespace Moment::mex::functions {
                                                                  fromIter->second, 0);
             this->output_mode = OutputMode::FromId;
             if (this->inputs.size() > 1) {
-                throw_error(matlabEngine, errors::too_many_inputs,
-                            "Only the MatrixSystem reference should be provided as input when \"from\" is used.");
+                throw InputCountException{"symbol_table", 0, 1, this->inputs.size(),
+                     "Only the MatrixSystem reference should be provided as input when \"from\" is used."};
             }
             return;
         }
@@ -159,7 +161,7 @@ namespace Moment::mex::functions {
                 output[0] = find_and_return_symbol_array(input, exporter);
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode.");
+                throw InternalError{"Unknown output mode."};
 
         }
 

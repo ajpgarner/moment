@@ -149,10 +149,7 @@ namespace Moment::mex {
     matlab::data::Array& SortedInputs::find_or_throw(const ParamNameStr& paramName) {
         auto param_iter = this->params.find(paramName);
         if (param_iter == this->params.end()) {
-            std::stringstream ss;
-            ss << "Parameter '" << UTF16toUTF8Convertor::convert_as_ascii(paramName)
-               << "' should be specified.";
-            throw errors::BadInput(errors::missing_param, ss.str());
+            throw MissingParamException{UTF16toUTF8Convertor::convert_as_ascii(paramName)};
         }
         return param_iter->second;
     }
@@ -199,5 +196,10 @@ namespace Moment::mex {
         return ss.str();
     }
 
+    std::string MissingParamException::make_msg(const std::string& missing_name) {
+        std::stringstream ss;
+        ss << "Parameter '" << missing_name << "' should be specified to function \"" << missing_name << "\".";
+        return ss.str();
+    }
 
 }

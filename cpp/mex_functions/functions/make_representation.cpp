@@ -6,6 +6,7 @@
  */
 #include "make_representation.h"
 
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "multithreading/multithreading.h"
@@ -47,8 +48,7 @@ namespace Moment::mex::functions {
         // Cast to symmetrized system
         auto *smsPtr = dynamic_cast<SymmetrizedMatrixSystem*>(msPtr.get());
         if (nullptr == smsPtr) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "Matrix system reference was not to a symmetrized matrix system.");
+            throw BadParameter{"Matrix system reference was not to a symmetrized matrix system."};
         }
         auto& symmetrizedMatrixSystem = *smsPtr;
 

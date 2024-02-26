@@ -7,6 +7,8 @@
 
 #include "moment_rules.h"
 
+#include "errors.h"
+
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
@@ -59,7 +61,7 @@ namespace Moment::mex::functions {
                         break;
                 }
             } catch (const Moment::mex::errors::invalid_choice& ice) {
-                throw_error(this->matlabEngine, errors::bad_param, ice.what());
+                throw BadParameter{ice.what()};
             }
         } // otherwise, will have default value of output_mode, as specified in header file.
     }
@@ -78,8 +80,8 @@ namespace Moment::mex::functions {
 
         // Validate output count
         if ((output.size() > 1) && (input.output_mode != MomentRulesParams::OutputMode::RulebookInfo)) {
-            throw_error(this->matlabEngine, errors::too_many_outputs,
-                        "Only the 'info' output mode produces two outputs.");
+            throw OutputCountException{"moment_rules", 1, 1, output.size(),
+                                       "Only the 'info' output mode produces two outputs."};
         }
 
         // Get stored matrix system
@@ -94,7 +96,7 @@ namespace Moment::mex::functions {
            try {
                return msPtr->Rulebook(input.rulebook_index);
            } catch (const Moment::errors::missing_component& mce) {
-               throw_error(this->matlabEngine, errors::bad_param, mce.what());
+               throw BadParameter{mce.what()};
            }
         }();
 
@@ -146,7 +148,7 @@ namespace Moment::mex::functions {
                 }
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown output mode!");
+                throw InternalError{"Unknown output mode!"};
         }
     }
 }

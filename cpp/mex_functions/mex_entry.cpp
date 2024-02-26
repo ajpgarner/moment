@@ -14,6 +14,8 @@
 #include "storage_manager.h"
 #include "logging/in_memory_logger.h"
 
+#include <stdexcept>
+
 /**
  * MexFunction lifetime is effectively static (from first invocation of mtk, until 'clear mtk').
  */

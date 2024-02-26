@@ -6,7 +6,7 @@
  */
 #include "export_eigen_dense.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "utilities/reporting.h"
 
 namespace Moment::mex {

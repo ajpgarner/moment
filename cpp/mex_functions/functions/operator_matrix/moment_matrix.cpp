@@ -69,7 +69,7 @@ namespace Moment::mex::functions {
         if (input.extra_data.nearest_neighbours > 0) {
             auto* pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system);
             if (pms_ptr == nullptr) {
-                throw_error(matlabEngine, errors::bad_param, "Nearest neighbours can only be set in Pauli scenario.");
+                throw BadParameter{"Nearest neighbours can only be set in Pauli scenario."};
             }
             return pms_ptr->PauliMomentMatrices.create(
                     Pauli::MomentMatrixIndex{input.hierarchy_level, input.extra_data.nearest_neighbours},

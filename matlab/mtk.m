@@ -1,5 +1,5 @@
 %% MTK - Moment (Tool Kit).
-% (c) 2022-2023 Austrian Academy of Sciences
+% (c) 2022-2024 Austrian Academy of Sciences
 %  Author: Andrew J. P. Garner
 %
 % This mex file contains Moment's C++ library.

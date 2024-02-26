@@ -54,7 +54,7 @@ namespace Moment::mex {
                            FullMonomialSpecification::FullWriteFunctor{this->factory, this->symbols});
 
         } catch (const FullMonomialSpecification::missing_symbol_error& mse) {
-            throw_error(this->engine, errors::internal_error, std::string("Cannot export word list: ") + mse.what());
+            throw InternalError{std::string("Cannot export word list: ") + mse.what()};
         }
         monomial.move_to_output(output);
     }

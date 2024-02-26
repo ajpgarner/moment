@@ -11,6 +11,8 @@
 
 #include "binary_operation.h"
 
+#include "errors.h"
+
 #include "export/export_polynomial.h"
 #include "export/full_monomial_specification.h"
 
@@ -57,7 +59,7 @@ namespace Moment::mex::functions {
             }
         } catch (const BinaryOperationException& boe) {
             // Forward error to MATLAB
-            throw_error(this->matlabEngine, errors::internal_error, std::string{boe.what()});
+            throw InternalError{std::string{boe.what()}};
         }
 
         // ~matrix_system_ptr
@@ -96,7 +98,7 @@ namespace Moment::mex::functions {
                 std::copy(input.lhs.shape.cbegin(), input.lhs.shape.cend(), std::back_inserter(output_shape));
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unexpected product type.");
+                throw InternalError{"Unexpected product type."};
         }
 
         // Check if output is monomial (true, if every entry is monomial)

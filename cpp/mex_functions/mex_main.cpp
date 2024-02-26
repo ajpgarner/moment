@@ -20,6 +20,8 @@
 
 #include <chrono>
 #include <sstream>
+#include <stdexcept>
+#include <string>
 
 namespace Moment::mex {
 
@@ -28,13 +30,13 @@ namespace Moment::mex {
         /** RAII Log wrapper */
         class LogTrigger {
         private:
-            Logger &logger;
+            Logger& logger;
             std::optional<LogEvent> event;
             std::chrono::time_point<std::chrono::high_resolution_clock> precision_start;
 
         public:
 
-            LogTrigger(Logger &logger,
+            LogTrigger(Logger& logger,
                        functions::MTKEntryPointID function_id,
                        size_t num_in, size_t num_out)
                     : logger{logger} {
@@ -48,7 +50,7 @@ namespace Moment::mex {
                               std::chrono::system_clock::now());
             }
 
-            ~LogTrigger()  {
+            ~LogTrigger() {
                 try {
                     this->reset();
                 } catch (...) {
@@ -78,8 +80,8 @@ namespace Moment::mex {
                 this->event->additional_info = std::move(reason);
             }
         };
-    }
 
+    }
 
     MexMain::MexMain(std::shared_ptr <matlab::engine::MATLABEngine> matlab_engine, StorageManager& storage)
         : matlabPtr(std::move(matlab_engine)), persistentStorage{storage} {
@@ -106,7 +108,7 @@ namespace Moment::mex {
                                                                                                 function_id,
                                                                                                 persistentStorage);
             if (!the_function) {
-                throw_error(*matlabPtr, errors::bad_function, u"Internal error: could not create function object.");
+                throw InternalError{"Internal error: could not create function object."};
             }
 
             // Get named parameters & flags
@@ -145,9 +147,21 @@ namespace Moment::mex {
 
             (*the_function)(outputs, std::move(processed_inputs));
             log_entry.report_success();
-        } catch (std::exception& e) {
+        } catch (const MomentMEXException& me) { // Errors that we expect to pass to MATLAB.
+            log_entry.report_failure(me.what());
+
+            // Rethrow (using MATLAB engine)
+            me.throw_to_MATLAB(*this->matlabPtr);
+        } catch (const std::exception& e) { // Errors that we don't expect to pass to MATLAB, but will pass anyway.
             log_entry.report_failure(e.what());
-            throw;
+
+            // Convert error to MATLAB's tagged format
+            std::stringstream errWhat;
+            errWhat << "An unhandled C++ exception was encountered: " << e.what();
+            InternalError err{errWhat.str()};
+
+            // Rethrow (using MATLAB engine)
+            err.throw_to_MATLAB(*this->matlabPtr);
         }
 
         // ~the_function, ~log_entry
@@ -159,15 +173,16 @@ namespace Moment::mex {
         }
 
         auto command_arg = read_as_utf8(inputs.pop_front());
+
+        // Error if we cannot read function name:
         if (!command_arg.has_value()) {
-            throw_error(*matlabPtr, errors::bad_function,
-                        "First argument must be a single function name (i.e. one string).");
+            throw BadFunctionException{};
         }
 
         auto entry_id = functions::which_entrypoint(command_arg.value());
+        // Error if we cannot find function matching name:
         if (entry_id == functions::MTKEntryPointID::Unknown) {
-            throw_error(*matlabPtr, errors::bad_function,
-                        "Function \"" + command_arg.value() + "\" is not in the Moment library.");
+            throw BadFunctionException{command_arg.value()};
         }
 
         return entry_id;
@@ -200,9 +215,11 @@ namespace Moment::mex {
                 // First, is input a parameter?
                 if (param_names.contains(param_flag_str)) {
                     if ((cursor+1) >= inputs.size()) {
-                        throw_error(*this->matlabPtr, errors::bad_param,
-                                                      u"Named parameter \"" + param_flag_str + u"\" was used,"
-                                                      + u" but next argument (with data) is missing.");
+                        UTF16toUTF8Convertor convertor{};
+                        std::stringstream errSS;
+                        errSS << "Named parameter \"" << UTF16toUTF8Convertor::convert_as_ascii(param_flag_str) << "\""
+                              << " was used, but next argument (with data) is missing.";
+                        throw BadParameter{errSS.str()};
                     } else {
                         ++input_iter;
                         auto& data = *input_iter;
@@ -233,40 +250,16 @@ namespace Moment::mex {
         // First check number of inputs is okay
         auto [min, max] = func.NumInputs();
         if ((inputs.inputs.size() > max) || (inputs.inputs.size() < min)) {
-            // Build error message:
-            std::stringstream ss;
-            ss << "Function \"" << functions::which_function_name(func.function_id) << "\" ";
-            if (min != max) {
-                ss << "requires between " << min << " and " << max << " input parameters.";
-            } else {
-                if (min == 0) {
-                    ss << "does not take an input.";
-                } else {
-                    ss << "requires " << min;
-                    if (min != 1) {
-                        ss << " input parameters.";
-                    } else {
-                        ss << " input parameter.";
-                    }
-                }
-            }
-
-            if (inputs.inputs.size() > max) {
-                throw_error(*matlabPtr, errors::too_many_inputs, ss.str());
-            } else {
-                throw_error(*matlabPtr, errors::too_few_inputs, ss.str());
-            }
+            throw InputCountException{functions::which_function_name(func.function_id),
+                                      min, max, inputs.inputs.size()};
         }
 
         // Next, check for mutual exclusion
         auto mutex_params = func.check_for_mutex(inputs);
         if (mutex_params.has_value()) {
             UTF16toUTF8Convertor convertor;
-            std::stringstream bss;
-            bss << "Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
-                << "Cannot specify mutually exclusive parameters \"" << convertor(mutex_params->first) << "\""
-                << " and \"" << convertor(mutex_params->second) << "\".";
-            throw_error(*matlabPtr, errors::mutex_param, bss.str());
+            throw MutexParamException{functions::which_function_name(func.function_id),
+                                      convertor(mutex_params->first), convertor(mutex_params->second)};
         }
 
     }
@@ -275,30 +268,8 @@ namespace Moment::mex {
                                    const IOArgumentRange &outputs,  const SortedInputs &inputs) {
         auto [min, max] = func.NumOutputs();
         if ((outputs.size() > max) || (outputs.size() < min)) {
-
-            // Build error message:
-            std::stringstream ss;
-            ss << "Function \"" << functions::which_function_name(func.function_id) << "\" ";
-            if (min != max) {
-                ss << "requires between " << min << " and " << max << " outputs.";
-            } else {
-                if (min == 0) {
-                    ss << "does not have an output.";
-                } else {
-                    ss << "requires " << min;
-                    if (min != 1) {
-                        ss << " outputs.";
-                    } else {
-                        ss << " output.";
-                    }
-                }
-            }
-
-            if (outputs.size() > max) {
-                throw_error(*matlabPtr, errors::too_many_outputs, ss.str());
-            } else {
-                throw_error(*matlabPtr, errors::too_few_outputs, ss.str());
-            }
+            throw OutputCountException{functions::which_function_name(func.function_id) ,
+                                       min, max, outputs.size()};
         }
 
         // Function-specific validation
@@ -311,12 +282,12 @@ namespace Moment::mex {
         try {
             // Call function's own custom validator
             return func.transform_inputs(std::move(inputs));
-
-        } catch (const errors::BadInput& bie) {
+        } catch (const BadParameter& bpe) {
+            // Throw new version of exception, tagged with function name prefix:
             std::stringstream errSS;
             errSS << "Invalid argument to function \"" << functions::which_function_name(func.function_id) << "\": "
-                << bie.what();
-            throw_error(*matlabPtr, bie.errCode, errSS.str());
+                  << bpe.what();
+            throw BadParameter{errSS.str()};
         }
     }
 

@@ -45,13 +45,12 @@ namespace Moment::mex::functions {
         if (set_any_param) {
             // No extra inputs
             if (!inputs.empty()) {
-                throw errors::BadInput{errors::bad_param,
-                                       "Input arguments should be exclusively named, or exclusively unnamed."};
+                throw BadParameter{"Input arguments should be exclusively named, or exclusively unnamed."};
             }
             this->getFromParams();
         } else {
             if (this->inputs.size() < 3) {
-                throw errors::BadInput{errors::too_few_inputs,
+                throw InputCountException{"inflation_matrix_system", 3, 3, this->inputs.size(),
                    "Input should be in the form: [outcomes per observable], [list of sources], inflation level."};
             }
             this->getFromInputs();
@@ -61,17 +60,17 @@ namespace Moment::mex::functions {
     void InflationMatrixSystemParams::getFromParams() {
         auto obsIter = this->params.find(u"observables");
         if (obsIter == this->params.cend()) {
-            throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"observables\" should be set."};
+            throw BadParameter{"If parameters are set, \"observables\" should be set."};
         }
 
         auto sourceIter = this->params.find(u"sources");
         if (sourceIter == this->params.cend()) {
-            throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"sources\" should be set."};
+            throw BadParameter{"If parameters are set, \"sources\" should be set."};
         }
 
         auto inflationIter = this->params.find(u"inflation_level");
         if (inflationIter == this->params.cend()) {
-            throw errors::BadInput{errors::too_few_inputs, "If parameters are set, \"inflation\" should be set."};
+            throw BadParameter{"If parameters are set, \"inflation\" should be set."};
         }
 
         this->outcomes_per_observable = read_positive_integer_array<size_t>(matlabEngine, "Parameter \"observables\"",
@@ -94,8 +93,9 @@ namespace Moment::mex::functions {
     void InflationMatrixSystemParams::readSourceCell(const size_t num_observables,
                                                      const matlab::data::Array &input) {
         if (input.getType() != matlab::data::ArrayType::CELL) {
-            throw errors::BadInput{errors::bad_param,
-               "Source list should be provided as a cell array of arrays indicating connected observables."};
+            throw BadParameter{
+                "Source list should be provided as a cell array of arrays indicating connected observables."
+            };
         }
         const matlab::data::CellArray cellInput = input;
         this->source_init_list.reserve(input.getNumberOfElements());
@@ -108,7 +108,7 @@ namespace Moment::mex::functions {
                 if (x > num_observables) {
                     std::stringstream errSS;
                     errSS << "Observable \"" << x << "\" out of bounds in source list.";
-                    throw errors::BadInput{errors::bad_param, errSS.str()};
+                    throw BadParameter{errSS.str()};
                 }
                 targetSet.emplace(static_cast<oper_name_t>(x-1));
             }

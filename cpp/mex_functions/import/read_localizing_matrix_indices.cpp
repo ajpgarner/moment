@@ -13,7 +13,7 @@
 #include "utilities/read_as_scalar.h"
 
 #include "utilities/reporting.h"
-#include "error_codes.h"
+#include "errors.h"
 #include "utilities/read_as_vector.h"
 
 namespace Moment::mex {
@@ -50,8 +50,7 @@ namespace Moment::mex {
                 if (ExpressionType::Unknown == this->expression_type) {
                     this->expression_type = ExpressionType::OperatorSequence;
                 } else if (ExpressionType::OperatorSequence != this->expression_type) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "Cell input specified, but operator sequence supplied.");
+                    throw BadParameter{"Cell input specified, but operator sequence supplied."};
                 }
                 // Read operator sequence
                 this->localizing_expression.emplace<0>(read_integer_array<oper_name_t>(matlabEngine,
@@ -61,8 +60,7 @@ namespace Moment::mex {
                     auto& raw_expr = std::get<0>(this->localizing_expression);
                     for (auto& o: raw_expr) {
                         if (0 == o) {
-                            throw_error(matlabEngine, errors::bad_param,
-                                        "Operator with index 0 in localizing word is out of range.");
+                            throw BadParameter{"Operator with index 0 in localizing word is out of range."};
                         }
                         o -= 1;
                     }
@@ -75,8 +73,7 @@ namespace Moment::mex {
                 if (ExpressionType::Unknown == this->expression_type) {
                     this->expression_type = ExpressionType::OperatorCell;
                 } else if (ExpressionType::OperatorSequence == this->expression_type) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "Operator sequence specified, but cell array supplied.");
+                    throw BadParameter{"Operator sequence specified, but cell array supplied."};
                 }
                 if (ExpressionType::SymbolCell == this->expression_type) {
                     this->localizing_expression.emplace<1>(
@@ -88,8 +85,7 @@ namespace Moment::mex {
                 break;
             default:
             case matlab::data::ArrayType::UNKNOWN:
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Localizing expression must be an operator sequence, or a polynomial cell definition.");
+                throw BadParameter{"Localizing expression must be an operator sequence, or a polynomial cell definition."};
         }
     }
 
@@ -98,11 +94,10 @@ namespace Moment::mex {
         // Check mode
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
-                throw_error(matlabEngine, errors::internal_error, "MatrixSystem not linked.");
+                throw InternalError{"MatrixSystem not linked."};
             }
             if (ExpressionType::OperatorCell != this->expression_type) {
-                throw_error(matlabEngine, errors::internal_error,
-                            "No operator cell is defined by this LocalizingMatrixIndex.");
+                throw InternalError{"No operator cell is defined by this LocalizingMatrixIndex."};
             }
         }
 
@@ -112,8 +107,7 @@ namespace Moment::mex {
         if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(this->matrix_system); dms_ptr != nullptr) {
             if constexpr (debug_mode) {
                 if (!dms_ptr->base_system().is_locked_read_lock(rlock)) {
-                    throw_error(matlabEngine, errors::internal_error,
-                                "Incorrect read lock held for symbol read (expected base system lock).");
+                    throw InternalError{"Incorrect read lock held for symbol read (expected base system lock)."};
                 }
             }
             staging_poly.supply_context(dms_ptr->base_system().Context());
@@ -122,7 +116,7 @@ namespace Moment::mex {
 
         if constexpr (debug_mode) {
             if (!this->matrix_system->is_locked_read_lock(rlock)) {
-                throw_error(matlabEngine, errors::internal_error, "Incorrect read lock held for symbol read.");
+                throw InternalError{"Incorrect read lock held for symbol read."};
             }
         }
         staging_poly.supply_context(this->matrix_system->Context());
@@ -134,11 +128,10 @@ namespace Moment::mex {
         // Check mode
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
-                throw_error(matlabEngine, errors::internal_error, "MatrixSystem not linked.");
+                throw InternalError{"MatrixSystem not linked."};
             }
             if (ExpressionType::OperatorCell != this->expression_type) {
-                throw_error(matlabEngine, errors::internal_error,
-                            "No operator cell is defined by this LocalizingMatrixIndex.");
+                throw InternalError{"No operator cell is defined by this LocalizingMatrixIndex."};
             }
         }
 
@@ -148,15 +141,14 @@ namespace Moment::mex {
         if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(this->matrix_system); dms_ptr != nullptr) {
             if constexpr (debug_mode) {
                 if (!dms_ptr->base_system().is_locked_read_lock(rlock)) {
-                    throw_error(matlabEngine, errors::internal_error,
-                                "Incorrect read lock held for symbol read (expected base system lock).");
+                    throw InternalError{"Incorrect read lock held for symbol read (expected base system lock)."};
                 }
             }
             staging_poly.supply_context(dms_ptr->base_system().Context());
         } else {
             if constexpr (debug_mode) {
                 if (!this->matrix_system->is_locked_read_lock(rlock)) {
-                    throw_error(matlabEngine, errors::internal_error, "Incorrect read lock held for symbol read.");
+                    throw InternalError{"Incorrect read lock held for symbol read."};
                 }
             }
 
@@ -170,8 +162,7 @@ namespace Moment::mex {
         if (auto dms_ptr = dynamic_cast<Derived::DerivedMatrixSystem*>(this->matrix_system); dms_ptr != nullptr) {
             if constexpr (debug_mode) {
                 if (!dms_ptr->base_system().is_locked_write_lock(wlock)) {
-                    throw_error(matlabEngine, errors::internal_error,
-                                "Incorrect write lock held for symbol write (expected base system lock).");
+                    throw InternalError{"Incorrect write lock held for symbol write (expected base system lock)."};
                 }
             }
             staging_poly.find_or_register_symbols(dms_ptr->base_system().Symbols());
@@ -179,8 +170,7 @@ namespace Moment::mex {
         }
         if constexpr (debug_mode) {
             if (!this->matrix_system->is_locked_write_lock(wlock)) {
-                throw_error(matlabEngine, errors::internal_error,
-                            "Incorrect write lock held for symbol write.");
+                throw InternalError{"Incorrect write lock held for symbol write."};
             }
         }
         staging_poly.find_or_register_symbols(this->matrix_system->Symbols());
@@ -192,10 +182,10 @@ namespace Moment::mex {
         // Check mode
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
-                throw_error(matlabEngine, errors::internal_error, "MatrixSystem not linked.");
+                throw InternalError{"MatrixSystem not linked."};
             }
             if (ExpressionType::OperatorSequence != this->expression_type) {
-                throw_error(matlabEngine, errors::internal_error, "No monomial is defined by this LocalizingMatrixIndex.");
+                throw InternalError{"No monomial is defined by this LocalizingMatrixIndex."};
             }
         }
 
@@ -220,7 +210,7 @@ namespace Moment::mex {
                 errSS << "Operator " << (this->matlab_indexing ? o + 1 : o) << " at index ";
                 errSS << (oper_copy.size() + 1);
                 errSS << " is out of range.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             oper_copy.emplace_back(o);
         }
@@ -234,7 +224,7 @@ namespace Moment::mex {
         // Check
         if constexpr (debug_mode) {
             if (this->matrix_system == nullptr) {
-                throw_error(matlabEngine, errors::internal_error, "MatrixSystem not linked.");
+                throw InternalError{"MatrixSystem not linked."};
             }
         }
 
@@ -255,14 +245,12 @@ namespace Moment::mex {
             case ExpressionType::OperatorCell: {
                 const auto& staging_poly = *std::get<2>(this->localizing_expression);
                 if (!staging_poly.ready()) {
-                    throw_error(matlabEngine, errors::internal_error,
-                                "OperatorCell polynomial has not yet been resolved into symbols.");
+                    throw InternalError{"OperatorCell polynomial has not yet been resolved into symbols."};
                 }
                 return ::Moment::PolynomialLocalizingMatrixIndex{this->hierarchy_level, staging_poly.to_polynomial(factory)};
             }
             default:
-                throw_error(matlabEngine, errors::internal_error,
-                            "Localizing expression was not given as symbol cell array.");
+                throw InternalError{"Localizing expression was not given as symbol cell array."};
         }
     }
 
@@ -271,8 +259,7 @@ namespace Moment::mex {
     LocalizingMatrixIndexImporter::to_raw_polynomial_index() const {
 
         if (this->expression_type != ExpressionType::OperatorCell) {
-            throw_error(this->matlabEngine, errors::internal_error,
-                        "RawPolynomial only results from operator cell input.");
+            throw InternalError{"RawPolynomial only results from operator cell input."};
         }
 
         const auto& staging_poly = *std::get<2>(this->localizing_expression);
@@ -302,8 +289,7 @@ namespace Moment::mex {
     LocalizingMatrixIndexImporter::to_pauli_raw_polynomial_index() const {
         using namespace Pauli;
         if (this->expression_type != ExpressionType::OperatorCell) {
-            throw_error(this->matlabEngine, errors::internal_error,
-                        "RawPolynomial only results from operator cell input.");
+            throw InternalError{"RawPolynomial only results from operator cell input."};
         }
 
         const auto& staging_poly = *std::get<2>(this->localizing_expression);

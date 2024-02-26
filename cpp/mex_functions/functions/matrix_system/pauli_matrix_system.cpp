@@ -7,6 +7,8 @@
 
 #include "pauli_matrix_system.h"
 
+#include "errors.h"
+
 #include "scenarios/pauli/pauli_context.h"
 #include "scenarios/pauli/pauli_matrix_system.h"
 
@@ -45,7 +47,7 @@ namespace Moment::mex::functions {
         this->find_and_parse(u"tolerance", [this](matlab::data::Array& tol_param) {
             this->zero_tolerance = read_as_double(this->matlabEngine, tol_param);
             if (this->zero_tolerance < 0) {
-                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
+                throw BadParameter{"Tolerance must be non-negative value."};
             }
         });
 
@@ -68,8 +70,7 @@ namespace Moment::mex::functions {
         } else if (2 == input.getNumberOfElements()) {
             auto lattice_dims = read_positive_integer_array(matlabEngine, "Lattice dimensions", input, 1);
             if (2 != lattice_dims.size()) [[unlikely]] {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Qubit parameter to lattice should be 2-dimensional.");
+                throw BadParameter{"Qubit parameter to lattice should be 2-dimensional."};
             }
             this->col_height = lattice_dims[0];
             this->row_width = lattice_dims[1];
@@ -77,8 +78,7 @@ namespace Moment::mex::functions {
             this->qubit_count = this->col_height * this->row_width;
             this->lattice_mode = true;
         } else {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "Qubit size parameter should be 1 or 2 dimensional.");
+            throw BadParameter{"Qubit size parameter should be 1 or 2 dimensional."};
         }
     }
 
@@ -99,7 +99,7 @@ namespace Moment::mex::functions {
         // Input to context:
         std::unique_ptr<Pauli::PauliContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
-            throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
+            throw InternalError{"Context object could not be created."};
         }
 
         // Output context in verbose mode

@@ -45,9 +45,9 @@ namespace Moment::mex::functions  {
                 try {
                     return cg.measurement_to_range(free_mmts, fixed_mmts);
                 } catch (const Moment::errors::BadCGError& cge) {
-                    throw_error(matlabEngine, errors::bad_param, cge.what());
+                    throw BadParameter{cge.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
@@ -62,13 +62,13 @@ namespace Moment::mex::functions  {
                 try {
                     return cg.measurement_to_range(free_mmts, fixed_mmts);
                 } catch (const Moment::errors::BadCGError& cge) {
-                    throw_error(matlabEngine, errors::bad_param, cge.what());
+                    throw BadParameter{cge.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
-            throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
+            throw BadParameter{"Matrix system must be a locality or inflation system."};
         }
     }
 
@@ -140,43 +140,37 @@ namespace Moment::mex::functions  {
         switch (input.output_type) {
             case CollinsGisinParams::OutputType::Sequences:
                 if (output.size() != 2) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "'sequences' mode expects two outputs [sequences, hashes].");
+                    throw OutputCountException{"collins_gisin", 2, 2, output.size(),
+                                               "'sequences' mode expects two outputs [sequences, hashes]."};
                 }
                 break;
             case CollinsGisinParams::OutputType::SequencesWithSymbolInfo:
                 if ((output.size() != 4) && (output.size() != 5)) {
 
                     if (allow_aliases) {
-                        throw_error(this->matlabEngine,
-                                    output.size() > 5 ? errors::too_many_outputs : errors::too_few_outputs,
-                                    "'full_sequences' mode expects five outputs [sequences, hashes, symbol ID, real basis elem, is aliased].");
+                        throw OutputCountException{"collins_gisin", 5, 5, output.size(),
+                            "'full_sequences' mode expects five outputs [sequences, hashes, symbol ID, real basis elem, is aliased]."};
                     } else {
-                        throw_error(this->matlabEngine,
-                                    output.size() > 4 ? errors::too_many_outputs : errors::too_few_outputs,
-                                    "'full_sequences' mode expects four outputs [sequences, hashes, symbol ID, real basis elem].");
+                        throw OutputCountException{"collins_gisin", 4, 4, output.size(),
+                            "'full_sequences' mode expects four outputs [sequences, hashes, symbol ID, real basis elem]."};
                     }
                 }
                 break;
             case CollinsGisinParams::OutputType::SymbolIds:
                 if ((output.size() != 2) && (output.size() != 3)) {
                     if (allow_aliases) {
-                        throw_error(this->matlabEngine,
-                                    output.size() > 3 ? errors::too_many_outputs : errors::too_few_outputs,
-                                    "'symbols' mode expects two outputs [symbol IDs, basis elements, alias status].");
+                        throw OutputCountException{"collins_gisin", 3, 3, output.size(),
+                            "'symbols' mode expects three outputs [symbol IDs, basis elements, alias status]."};
                     } else {
-                        throw_error(this->matlabEngine,
-                                    output.size() > 2 ? errors::too_many_outputs : errors::too_few_outputs,
-                                    "'symbols' mode expects two outputs [symbol IDs, basis elements].");
+                        throw OutputCountException{"collins_gisin", 2, 2, output.size(),
+                            "'symbols' mode expects two outputs [symbol IDs, basis elements]."};
                     }
                 }
                 break;
             case CollinsGisinParams::OutputType::SequenceStrings:
                 if (output.size() != 1) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 1 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "'strings' mode expects one output.");
+                    throw OutputCountException{"collins_gisin", 1, 1, output.size(),
+                                               "'strings' mode expects one output."};
                 }
                 break;
         }
@@ -205,15 +199,14 @@ namespace Moment::mex::functions  {
             try {
                 auto* mtPtr = dynamic_cast<MaintainsTensors*>(&system);
                 if (nullptr == mtPtr) {
-                    throw_error(this->matlabEngine, errors::bad_param,
-                                "Matrix system must be a locality or inflation system.");
+                    throw BadParameter{"Matrix system must be a locality or inflation system."};
                 }
                 mtPtr->RefreshCollinsGisin(lock);
                 return mtPtr->CollinsGisin();
             } catch (const Moment::errors::missing_component& mce) {
-                throw_error(this->matlabEngine, errors::missing_cg, mce.what());
+                throw InternalError{mce.what()};
             } catch (const Moment::errors::BadCGError& cge) {
-                throw_error(this->matlabEngine, errors::missing_cg, cge.what());
+                throw InternalError{cge.what()};
             }
         }();
 
@@ -252,10 +245,10 @@ namespace Moment::mex::functions  {
                 }
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                    throw InternalError{"Unknown output type."};
             }
         } catch (const Moment::errors::BadCGError& cge) {
-            throw_error(this->matlabEngine, errors::missing_cg, cge.what());
+            throw InternalError{cge.what()};
         }
     }
 
@@ -298,10 +291,10 @@ namespace Moment::mex::functions  {
                 }
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                    throw InternalError{"Unknown output type."};
             }
         } catch (const Moment::errors::BadCGError& cge) {
-            throw_error(this->matlabEngine, errors::missing_cg, cge.what());
+            throw InternalError{cge.what()};
         }
     }
 
@@ -314,7 +307,7 @@ namespace Moment::mex::functions  {
         // Check there is one element referred to.
         auto iter = slice.begin();
         if (iter == slice.end()) {
-            throw_error(matlabEngine, errors::internal_error, "Invalid measurement.");
+            throw InternalError{"Invalid measurement."};
         }
 
         CollinsGisinExporter cge{this->matlabEngine, system.Context(), system.Symbols()};
@@ -351,10 +344,10 @@ namespace Moment::mex::functions  {
                 }
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                    throw InternalError{"Unknown output type."};
             }
         } catch (const Moment::errors::BadCGError& cge) {
-            throw_error(this->matlabEngine, errors::missing_cg, cge.what());
+            throw InternalError{cge.what()};
         }
     }
 }

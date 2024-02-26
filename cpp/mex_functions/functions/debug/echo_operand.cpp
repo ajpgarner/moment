@@ -344,7 +344,7 @@ namespace Moment::mex::functions  {
                     output_numeric_array(engine, output, input.operand, print_output);
                     break;
                 default:
-                    throw_error(engine, errors::internal_error, "Unexpected input type.");
+                    throw InternalError{"Unexpected input type."};
             }
         }
     }
@@ -382,7 +382,7 @@ namespace Moment::mex::functions  {
 
             default: // Catch bad input cases
             case AlgebraicOperand::InputType::Unknown:
-                throw_error(matlabEngine, errors::bad_param, "Unknown algebraic operand!");
+                throw BadParameter{"Unknown algebraic operand!"};
         }
     }
 

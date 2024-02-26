@@ -53,9 +53,9 @@ namespace Moment::mex::functions {
                             pt.outcome_to_element(fixed_mmts),
                             *lmsPtr);
                 } catch (const Moment::errors::BadPTError& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                    throw BadParameter{pte.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
@@ -73,13 +73,13 @@ namespace Moment::mex::functions {
                             pt.outcome_to_element(fixed_mmts),
                             *imsPtr);
                 } catch (const Moment::errors::BadPTError& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                    throw BadParameter{pte.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
-            throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
+            throw BadParameter{"Matrix system must be a locality or inflation system."};
         }
 
 
@@ -120,7 +120,7 @@ namespace Moment::mex::functions {
                           << "simplified rules contained the following non-scalar defining polynomial: "
                           << poly;
 
-                    throw_error(exporter.engine, errors::internal_error, errSS.str());
+                    throw InternalError{errSS.str()};
                 }
                 *write_iter = make_sub_pair(factory, poly);
                 ++write_iter;
@@ -223,8 +223,7 @@ namespace Moment::mex::functions {
             try {
                 rulebook.complete();
             } catch (const Moment::errors::invalid_moment_rule& imr) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Cannot simplify probability distribution, because it is not self-consistent.");
+                throw BadParameter{"Cannot simplify probability distribution, because it is not self-consistent."};
             }
 
             std::vector<Polynomial> replacement_rules;
@@ -252,7 +251,7 @@ namespace Moment::mex::functions {
                 output[0] = exporter.sequence_cell_vector(rules, std::vector<size_t>{1, rules.size()}, true);
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                throw InternalError{"Unknown output type."};
         }
     }
 
@@ -261,42 +260,41 @@ namespace Moment::mex::functions {
         const bool can_be_normalized = input.is_conditional || input.fixed_indices.empty();
         const double zero_tolerance = system.polynomial_factory().zero_tolerance;
 
-            if (slice_size != value_size) {
-                // If we are a complete probability distribution, we can infer final value:
-                if (can_be_normalized && (slice_size == value_size + 1)) {
-                    const double all_but_one = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
-                    if (!quiet && definitely_greater_than(all_but_one, 1.0, zero_tolerance)) {
-                        std::stringstream warnSS;
-                        warnSS << "Supplied probabilities summed to " << all_but_one << ", which is larger than unity.";
-                        print_warning(matlabEngine, warnSS.str());
-                    }
-                    input.values.emplace_back(all_but_one);
-                } else {
-                    std::stringstream errSS;
-                    errSS << "Expected " << slice_size << " values to define ";
-                    if (!can_be_normalized) {
-                        errSS << "(possibly subnormal)";
-                    }
-                    errSS << " probability distribution, but only " << value_size << " were provided.";
-                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+        if (slice_size != value_size) {
+            // If we are a complete probability distribution, we can infer final value:
+            if (can_be_normalized && (slice_size == value_size + 1)) {
+                const double all_but_one = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
+                if (!quiet && definitely_greater_than(all_but_one, 1.0, zero_tolerance)) {
+                    std::stringstream warnSS;
+                    warnSS << "Supplied probabilities summed to " << all_but_one << ", which is larger than unity.";
+                    print_warning(matlabEngine, warnSS.str());
                 }
-            } else if (!quiet) {
-                const double total = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
+                input.values.emplace_back(all_but_one);
+            } else {
+                std::stringstream errSS;
+                errSS << "Expected " << slice_size << " values to define ";
+                if (!can_be_normalized) {
+                    errSS << "(possibly subnormal)";
+                }
+                errSS << " probability distribution, but only " << value_size << " were provided.";
+                throw BadParameter{errSS.str()};
+            }
+        } else if (!quiet) {
+            const double total = std::reduce(input.values.cbegin(), input.values.cend(), 0.0, std::plus{});
 
-                if (can_be_normalized) {
-                    if (!approximately_equal(total, 1.0, zero_tolerance)) {
-                        std::stringstream warnSS;
-                        warnSS << "Values of probability distribution add up to " << total << " (unity expected).";
-                        print_warning(matlabEngine, warnSS.str());
-                    }
-                } else {
-                    if (definitely_greater_than(total, 1.0, zero_tolerance)) {
-                        std::stringstream warnSS;
-                        warnSS << "Supplied probabilities summed to " << total << ", which is larger than unity.";
-                        print_warning(matlabEngine, warnSS.str());
-                    }
+            if (can_be_normalized) {
+                if (!approximately_equal(total, 1.0, zero_tolerance)) {
+                    std::stringstream warnSS;
+                    warnSS << "Values of probability distribution add up to " << total << " (unity expected).";
+                    print_warning(matlabEngine, warnSS.str());
+                }
+            } else {
+                if (definitely_greater_than(total, 1.0, zero_tolerance)) {
+                    std::stringstream warnSS;
+                    warnSS << "Supplied probabilities summed to " << total << ", which is larger than unity.";
+                    print_warning(matlabEngine, warnSS.str());
                 }
             }
-
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace Moment::mex::functions {
             return;
         }
 
-        throw errors::BadInput(errors::too_few_inputs, "Type of object to be deleted must be supplied.");
+        throw BadParameter{"Type of object to be deleted must be supplied."};
     }
 
     Release::Release(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
@@ -37,7 +37,7 @@ namespace Moment::mex::functions {
     void Release::extra_input_checks(ReleaseParams &input) const {
         if (input.type == ReleaseParams::StorableType::MatrixSystem) {
             if (!this->storageManager.MatrixSystems.check_signature(input.key)) {
-                throw errors::BadInput(errors::bad_param, "Object key is not to object of requested type.");
+                throw BadParameter{"Object key is not to object of requested type."};
             }
         }
     }
@@ -49,13 +49,13 @@ namespace Moment::mex::functions {
                 try {
                     this->storageManager.MatrixSystems.release(input.key);
                 } catch (const std::exception& e) {
-                    throw_error(this->matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
                 remainder = this->storageManager.MatrixSystems.size();
                 break;
             default:
             case ReleaseParams::StorableType::Unknown:
-                throw_error(this->matlabEngine, errors::internal_error, "Not implemented.");
+                throw InternalError{"Unknown object type to be released."};
         }
 
         // Return number of objects left in storage...

@@ -7,6 +7,7 @@
 
 #include "transform_symbols.h"
 
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "utilities/reporting.h"
@@ -63,7 +64,7 @@ namespace Moment::mex::functions {
                 break;
             case TransformSymbolsParams::OutputType::Unknown:
             default:
-                throw_error(matlabEngine, errors::internal_error, "Unknown output type.");
+                throw InternalError{"Unknown output type."};
 
             }
         }
@@ -109,7 +110,7 @@ namespace Moment::mex::functions {
                     this->input_type = InputType::SymbolCell;
                     break;
                 default:
-                    throw_error(matlabEngine, errors::bad_param, "Expected list of symbol IDs, or a symbol cell as input.");
+                    throw BadParameter{"Expected list of symbol IDs, or a symbol cell as input."};
             }
         }
 
@@ -125,7 +126,7 @@ namespace Moment::mex::functions {
                 this->read_basis(this->inputs[1], this->inputs[2]);
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown input type.");
+                throw InternalError{"Unknown input type."};
         }
 
         // Determine output choice
@@ -141,7 +142,7 @@ namespace Moment::mex::functions {
                     this->output_type = OutputType::Basis;
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                    throw InternalError{"Unknown output type."};
             }
         } else {
             // Default output type based off input choice.
@@ -155,7 +156,7 @@ namespace Moment::mex::functions {
                     break;
                 case InputType::Unknown:
                 default:
-                    throw_error(this->matlabEngine, errors::internal_error, "Unknown input type.");
+                    throw InternalError{"Unknown input type."};
                     break;
             }
         }
@@ -194,7 +195,7 @@ namespace Moment::mex::functions {
     void TransformSymbolsParams::read_basis(matlab::data::Array& raw_real, matlab::data::Array& raw_imaginary) {
         const auto& re_dims = raw_real.getDimensions();
 
-        throw_error(matlabEngine, errors::bad_param, "TransformSymbolsParams::read_basis not implemented.");
+        throw InternalError{"TransformSymbolsParams::read_basis not implemented."};
     }
 
     TransformSymbols::TransformSymbols(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
@@ -211,11 +212,13 @@ namespace Moment::mex::functions {
         // Check output count.
         if (input.output_type == TransformSymbolsParams::OutputType::Basis) {
             if (output.size() != 2) {
-                throw_error(matlabEngine, errors::too_few_outputs, "Basis export requires two outputs (real & imaginary).");
+                throw OutputCountException{"transform_symbols", 2, 2, output.size(),
+                                           "Basis export requires two outputs (real & imaginary)."};
             }
         } else {
             if (output.size() != 1) {
-                throw_error(matlabEngine, errors::too_many_outputs, "Only basis export requires two outputs.");
+                throw OutputCountException{"transform_symbols", 1, 1, output.size(),
+                                           "Only basis export requires two outputs."};
             }
         }
 
@@ -230,7 +233,7 @@ namespace Moment::mex::functions {
             std::stringstream errSS;
             errSS << "MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec
                   << " was not a derived matrix system.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }();
 
         // Get read locks on source and target systems
@@ -249,7 +252,7 @@ namespace Moment::mex::functions {
                 break;
             case TransformSymbolsParams::InputType::Unknown:
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown input type.");
+                throw InternalError{"Unknown input type."};
         }
     }
 
@@ -267,7 +270,7 @@ namespace Moment::mex::functions {
             if ((id < 0) || (id >= sourceSymbols.size())) {
                 std::stringstream errSS;
                 errSS << "Symbol " << id << " not defined in source matrix system.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             input_poly.emplace_back(Monomial{id, 1.0});
         }

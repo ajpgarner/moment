@@ -43,7 +43,7 @@ namespace Moment::mex::functions {
                 this->matrix_mode = MatrixMode::Complex;
                 break;
             default:
-                throw_error(this->matlabEngine, errors::bad_param, u"Input type not supported");
+                throw BadParameter{"Input type not supported"};
         }
 
         // Allow for override of default output type
@@ -111,7 +111,7 @@ namespace Moment::mex::functions {
                 }
                 return;
             }
-            throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown MatrixMode.");
+            throw InternalError{"Unsupported/unknown MatrixMode."};
         }
 
         if (input.output_mode == EchoMatrixParams::OutputMode::Sparse) {
@@ -143,8 +143,8 @@ namespace Moment::mex::functions {
                 }
                 return;
             }
-            throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown MatrixMode.");
+            throw InternalError{"Unsupported/unknown MatrixMode."};
         }
-        throw_error(this->matlabEngine, errors::internal_error, "Unsupported/unknown OutputMode.");
+        throw InternalError{"Unsupported/unknown OutputMode."};
     }
 }

@@ -16,25 +16,24 @@
 
 namespace Moment::mex {
 
-    namespace errors {
-        void throw_not_castable_to_vector(const std::string& paramName) {
-            std::stringstream ss;
-            ss << paramName << " should be a vector of positive integers.";
-            throw errors::BadInput{errors::bad_param, ss.str()};
-        }
+    void throw_unreadable_vector(const std::string &paramName, const unreadable_vector& urv) {
+        std::stringstream ss;
+        ss << paramName << " could not be read: " << urv.what();
+        throw BadParameter{ss.str()};
+    }
 
-        void throw_unreadable_vector(const std::string &paramName, const unreadable_vector& urv) {
-            std::stringstream ss;
-            ss << paramName << " could not be read: " << urv.what();
-            throw errors::BadInput{urv.errCode, ss.str()};
-        }
 
-        void throw_under_min_vector(const std::string &paramName, uint64_t min_value) {
-            std::stringstream ss;
-            ss << "All elements of " << paramName << " must have a value of at least "
-               << min_value << ".";
-            throw errors::BadInput{errors::bad_param, ss.str()};
-        }
+    void throw_not_castable_to_vector(const std::string& paramName) {
+        std::stringstream ss;
+        ss << paramName << " should be a vector of positive integers.";
+        throw BadParameter{ss.str()};
+    }
+
+    void throw_under_min_vector(const std::string &paramName, uint64_t min_value) {
+        std::stringstream ss;
+        ss << "All elements of " << paramName << " must have a value of at least "
+           << min_value << ".";
+        throw BadParameter{ss.str()};
     }
 
     namespace {
@@ -63,7 +62,7 @@ namespace Moment::mex {
                                    ||  std::is_signed<datatype>::value)
                                   && (std::is_unsigned<value_type>::value)) {
                         if (val < 0) {
-                            throw errors::unreadable_vector{errors::negative_value, "Value unexpectedly negative."};
+                            throw unreadable_vector{errors::negative_value, "Value unexpectedly negative."};
                         }
                     }
                     output.emplace_back(static_cast<value_type>(val));
@@ -85,7 +84,7 @@ namespace Moment::mex {
                 for (const auto& str : data) {
 
                     if (!str.has_value()) {
-                        throw errors::unreadable_scalar{errors::empty_array, "Unexpected empty string."};
+                        throw unreadable_vector{errors::empty_array, "Unexpected empty string."};
                     }
 
                     try {
@@ -95,7 +94,7 @@ namespace Moment::mex {
                         // Ensure string is not negative.
                         if constexpr (std::is_unsigned<return_type>::value) {
                             if (!utf8str.empty() && utf8str[0] == '-') {
-                                throw errors::unreadable_vector{errors::negative_value, "Value unexpectedly negative."};
+                                throw unreadable_vector{errors::negative_value, "Value unexpectedly negative."};
                             }
                         }
 
@@ -105,14 +104,13 @@ namespace Moment::mex {
                         if (ss.fail()) {
                             std::stringstream errSS;
                             errSS << "Could not interpret string\"" << utf8str << "\" as integer.";
-                            throw errors::unreadable_vector{errors::could_not_convert, errSS.str()};
+                            throw unreadable_vector{errors::could_not_convert, errSS.str()};
                         }
                         output.emplace_back(read_buf);
-                    } catch (errors::unreadable_vector &urs) {
+                    } catch (unreadable_vector &urs) {
                         throw; // rethrow
                     } catch (std::exception &e) {
-                        throw errors::unreadable_vector{errors::could_not_convert,
-                                                        "Could not convert string to integer."};
+                        throw unreadable_vector{errors::could_not_convert, "Could not convert string to integer."};
                     }
                 }
                 return output;
@@ -175,14 +173,14 @@ namespace Moment::mex {
                         if (ss.fail()) {
                             std::stringstream errSS;
                             errSS << "Could not interpret string\"" << utf8str << "\" as floating point.";
-                            throw errors::unreadable_vector{errors::could_not_convert, errSS.str()};
+                            throw unreadable_vector{errors::could_not_convert, errSS.str()};
                         }
                         output.emplace_back(read_buf);
-                    } catch (errors::unreadable_vector &urs) {
+                    } catch (unreadable_vector &urs) {
                         throw; // rethrow
                     } catch (std::exception &e) {
-                        throw errors::unreadable_vector{errors::could_not_convert,
-                                                        "Could not convert string to floating point."};
+                        throw unreadable_vector{errors::could_not_convert,
+                                                "Could not convert string to floating point."};
                     }
                 }
                 return output;

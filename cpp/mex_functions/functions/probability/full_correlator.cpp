@@ -41,9 +41,9 @@ namespace Moment::mex::functions  {
                 try {
                     return fc.mmt_to_element(mmt_indices);
                 } catch (const Moment::errors::bad_tensor& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
+                    throw BadParameter{pte.what()};
                 } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
+                    throw InternalError{e.what()};
                 }
             }
 
@@ -54,17 +54,10 @@ namespace Moment::mex::functions  {
                 OVConvertor ovReader{matlabEngine, imsPtr->InflationContext(), true};
                 auto mmt_indices = ovReader.read_ov_index_list(input.measurementIndices);
 
-                try {
-                    //return fc.mmt_to_element(mmt_indices);
-                    throw_error(matlabEngine, errors::internal_error, "Not yet supported for inflation scenario.");
-                } catch (const Moment::errors::bad_tensor& pte) {
-                    throw_error(matlabEngine, errors::bad_param, pte.what());
-                } catch (const std::exception& e) {
-                    throw_error(matlabEngine, errors::internal_error, e.what());
-                }
+                throw InternalError{"Not yet supported for inflation scenario."};
             }
 
-            throw_error(matlabEngine, errors::bad_param, "Matrix system must be a locality or inflation system.");
+            throw BadParameter{"Matrix system must be a locality or inflation system."};
         }
     }
 
@@ -140,7 +133,7 @@ namespace Moment::mex::functions  {
                                              FullCorrelatorParams &input, MatrixSystem &system) {
         auto* ptSystemPtr = dynamic_cast<MaintainsTensors*>(&system);
         if (nullptr == ptSystemPtr) {
-            throw_error(this->matlabEngine, errors::bad_param, "MatrixSystem does not maintain a probability tensor.");
+            throw BadParameter{"MatrixSystem does not maintain a probability tensor."};
         }
         auto lock = ptSystemPtr->get_read_lock();
         ptSystemPtr->RefreshFullCorrelator(lock);
@@ -158,7 +151,7 @@ namespace Moment::mex::functions  {
                 output[0] = exporter.symbols(full_correlator);
                 break;
             default:
-                throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+                throw InternalError{"Unknown output mode."};
         }
     }
 
@@ -166,7 +159,7 @@ namespace Moment::mex::functions  {
                                                FullCorrelatorParams &input, MatrixSystem& raw_system) {
         auto* ptSystemPtr = dynamic_cast<MaintainsTensors*>(&raw_system);
         if (nullptr == ptSystemPtr) {
-            throw_error(this->matlabEngine, errors::bad_param, "MatrixSystem does not maintain a probability tensor.");
+            throw BadParameter{"MatrixSystem does not maintain a probability tensor."};
         }
         auto& system = *ptSystemPtr;
 
@@ -190,7 +183,7 @@ namespace Moment::mex::functions  {
                 case FullCorrelatorParams::OutputMode::Symbols:
                     return exporter.symbol(correlator);
                 default:
-                    throw_error(matlabEngine, errors::internal_error, "Unknown output mode.");
+                    throw InternalError{"Unknown output mode."};
             }
         }(system);
 

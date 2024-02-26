@@ -5,6 +5,7 @@
  * @author Andrew J. P. Garner
  */
 #include "generate_basis.h"
+#include "errors.h"
 
 #include "storage_manager.h"
 
@@ -28,7 +29,7 @@ namespace Moment::mex::functions {
             try {
                 return matrixSystem[index];
             } catch (const Moment::errors::missing_component& mce) {
-                throw_error(matlabEngine, errors::bad_param, mce.what());
+                throw BadParameter{mce.what()};
             }
         }
     }
@@ -67,7 +68,7 @@ namespace Moment::mex::functions {
     void GenerateBasisParams::read_symbol_cell(matlab::data::Array &raw_input) {
         this->input_type = InputType::SymbolCell;
         if (raw_input.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial mode expects symbol cell input.");
+            throw BadParameter{"Polynomial mode expects symbol cell input."};
         }
 
         const auto input_dims = raw_input.getDimensions();
@@ -127,7 +128,7 @@ namespace Moment::mex::functions {
             try {
                 return matrixSystem[input.matrix_index()];
             } catch (const Moment::errors::missing_component& mce) {
-                throw_error(matlabEngine, errors::bad_param, mce.what());
+                throw BadParameter{mce.what()};
             }
         }();
 

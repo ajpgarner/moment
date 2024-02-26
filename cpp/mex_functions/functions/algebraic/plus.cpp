@@ -6,6 +6,8 @@
  */
 
 #include "plus.h"
+
+#include "errors.h"
 #include "binary_operation_impl.h"
 
 #include "matrix/symbolic_matrix.h"
@@ -52,8 +54,7 @@ namespace Moment::mex::functions {
                            const SymbolicMatrix& rhs) {
         // Complain if matrices do not match
         if (lhs.Dimension() != rhs.Dimension()) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "When summands are matrices, their dimensions must match.");
+            throw BadParameter{"When summands are matrices, their dimensions must match."};
         }
 
         // Do addition

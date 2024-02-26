@@ -18,27 +18,27 @@ namespace Moment::mex {
         void throw_unreadable_scalar(const std::string &paramName, const unreadable_scalar& urs) {
             std::stringstream ss;
             ss << paramName << " could not be read: " << urs.what();
-            throw errors::BadInput{urs.errCode, ss.str()};
+            throw BadParameter{ss.str()};
         }
 
         void throw_not_castable_to_scalar(const std::string &paramName) {
             std::stringstream ss;
             ss << paramName << " should be a scalar positive integer.";
-            throw errors::BadInput{errors::bad_param, ss.str()};
+            throw BadParameter{ss.str()};
         }
 
         void throw_under_min_scalar(const std::string &paramName, int64_t min_value) {
             std::stringstream ss;
             ss << paramName << " must have a value of at least "
                << min_value << ".";
-            throw errors::BadInput{errors::bad_param, ss.str()};
+            throw BadParameter{ss.str()};
         }
 
         void throw_over_max_scalar(const std::string &paramName, uint64_t max_value) {
             std::stringstream ss;
             ss << paramName << " must have a value of at least "
                << max_value << ".";
-            throw errors::BadInput{errors::bad_param, ss.str()};
+            throw BadParameter{ss.str()};
         }
     }
 

@@ -43,10 +43,10 @@ namespace Moment::mex::functions {
                     break;
                 case 1:
                     this->input_format = InputFormat::OperatorCell;
-                    throw_error(this->matlabEngine, errors::bad_param, "Operator input mode not yet supported.");
+                    throw BadParameter{"Operator input mode not yet supported."};
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::bad_param, "Unknown input mode.");
+                    throw BadParameter{"Unknown input mode."};
             }
         }
 
@@ -64,14 +64,14 @@ namespace Moment::mex::functions {
                     this->output_format = OutputFormat::Polynomial;
                     break;
                 default:
-                    throw_error(this->matlabEngine, errors::bad_param, "Unknown output mode.");
+                    throw BadParameter{"Unknown output mode."};
             }
         }
     }
 
     void ApplyMomentRulesParams::read_symbol_cell_input(const matlab::data::Array &array) {
         if (array.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(this->matlabEngine, errors::bad_param, "Expected cell array input.");
+            throw BadParameter{"Expected cell array input."};
         }
 
         // Read dimensions
@@ -119,7 +119,7 @@ namespace Moment::mex::functions {
             } catch (const Moment::errors::missing_component& mce) {
                 std::stringstream errSS;
                 errSS << "Could not find rulebook at index " << input.rulebook_index << ".";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
         }();
         const auto& factory = rulebook.factory;
@@ -173,7 +173,7 @@ namespace Moment::mex::functions {
             }
                 break;
             default:
-                throw_error(this->matlabEngine, errors::bad_param, "Unknown output format.");
+                throw BadParameter{"Unknown output format."};
         }
 
     }

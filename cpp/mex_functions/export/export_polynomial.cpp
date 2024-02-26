@@ -24,7 +24,7 @@
 #include "eigen/export_eigen_sparse.h"
 
 
-#include "error_codes.h"
+#include "errors.h"
 
 namespace Moment::mex {
 
@@ -153,7 +153,7 @@ namespace Moment::mex {
             if ((term.id < 0) || (term.id >= symbols.size())) {
                 std::stringstream errSS;
                 errSS << "Could not resolve symbol '" << term.id << "' at index " << (idx+1) << ".";
-                throw_error(this->engine, errors::internal_error, errSS.str());
+                throw InternalError{errSS.str()};
             }
             const auto& symbol_info = symbols[term.id];
 
@@ -161,7 +161,7 @@ namespace Moment::mex {
             if (!symbol_info.has_sequence()) {
                 std::stringstream errSS;
                 errSS << "Symbol '" << term.id << "' at index " << (idx+1) << " is not associated with an operator sequence.";
-                throw_error(this->engine, errors::internal_error, errSS.str());
+                throw InternalError{errSS.str()};
             }
             const auto& op_seq = term.conjugated ? symbol_info.sequence_conj() : symbol_info.sequence();
 

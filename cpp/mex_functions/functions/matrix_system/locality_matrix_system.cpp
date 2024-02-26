@@ -40,8 +40,7 @@ namespace Moment::mex::functions {
         if (set_any_param) {
             // No extra inputs
             if (!inputs.empty()) {
-                throw errors::BadInput{errors::bad_param,
-                                       "Input arguments should be exclusively named, or exclusively unnamed."};
+                throw BadParameter{"Input arguments should be exclusively named, or exclusively unnamed."};
             }
             this->getFromParams();
         } else {
@@ -55,38 +54,34 @@ namespace Moment::mex::functions {
         if (tolerance_param_iter != this->params.cend()) {
             this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
             if (this->zero_tolerance < 0) {
-                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
+                throw BadParameter{"Tolerance must be non-negative value."};
             }
         }
     }
 
     void LocalityMatrixSystemParams::getFromParams() {
-        // Read and check number of parties, or default to 1
-        auto party_param = params.find(u"parties");
-        if (party_param != params.end()) {
+        // Read and check number of parties [default: 1 party]
+        if (!find_and_parse(u"parties", [this](matlab::data::Array& parties) {
             this->number_of_parties = read_positive_integer<size_t>(matlabEngine, "Parameter 'parties'",
-                                                                    party_param->second, 1);
-        } else {
+                                                                    parties, 1);
+        })) {
             this->number_of_parties = 1;
         }
 
         // Read and check measurements [default: 1 per party]
         this->mmts_per_party.reserve(number_of_parties);
-        auto mmt_param = params.find(u"measurements");
-        if (mmt_param != params.end()) {
-            this->readMeasurementSpecification(mmt_param->second, "Parameter 'measurements'");
-        } else {
+
+        if (!find_and_parse(u"measurements", [this](matlab::data::Array& mmts) {
+            this->readMeasurementSpecification(mmts, "Parameter 'measurements'");
+        })) {
             std::fill_n(std::back_inserter(this->mmts_per_party), number_of_parties, 1);
             this->total_measurements = number_of_parties;
         }
 
-        // Read outcomes per measurement
-        auto outcome_param = params.find(u"outcomes");
-        if (outcome_param == params.end()) {
-            throw errors::BadInput{errors::missing_param,
-                                   "Parameter 'outcomes' must be set."};
-        }
-        this->readOutcomeSpecification(outcome_param->second, "Parameter 'outcomes'");
+        // Read outcomes per measurement (MUST be specified)
+        find_and_parse_or_throw(u"outcomes", [this](matlab::data::Array& outcomes) {
+            this->readOutcomeSpecification(outcomes, "Parameter 'outcomes'");
+        });
     }
 
 
@@ -95,7 +90,8 @@ namespace Moment::mex::functions {
             std::string errStr{"Please supply either named inputs; or a list of integers in the form"};
             errStr += " \"number of parties, number of outcomes\",";
             errStr += " or \"number of parties, measurements per party, outcomes per measurement\".";
-            throw errors::BadInput{errors::too_few_inputs, errStr};
+            throw InputCountException{"locality_matrix_system", 2, 3, inputs.size(),
+                                      errStr};
         }
 
         // Get number of parties
@@ -128,8 +124,7 @@ namespace Moment::mex::functions {
             this->total_measurements = std::accumulate(mmts_per_party.cbegin(), mmts_per_party.cend(),
                                                        static_cast<uint64_t>(0));
         } else {
-            throw errors::BadInput{errors::bad_param,
-                                   paramName + " should either be a scalar, or an array with one value per party."};
+            throw BadParameter{paramName + " should either be a scalar, or an array with one value per party."};
         }
 
     }
@@ -146,8 +141,7 @@ namespace Moment::mex::functions {
         } else if (this->total_measurements == num_elems) {
             this->outcomes_per_mmt = read_positive_integer_array<size_t>(matlabEngine, paramName, input, 1);
         } else {
-            throw errors::BadInput{errors::bad_param,
-               paramName + " should either be a scalar, or an array with one value per measurement."};
+            throw BadParameter{paramName + " should either be a scalar, or an array with one value per measurement."};
         }
 
         // Count operators...
@@ -176,7 +170,7 @@ namespace Moment::mex::functions {
         // Input to context:
         std::unique_ptr<Locality::LocalityContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
-            throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
+            throw InternalError{"Context object could not be created."};
         }
 
         // Output context in verbose mode

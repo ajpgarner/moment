@@ -74,13 +74,11 @@ namespace Moment::mex::functions  {
         if (set_any_param) {
             // No extra inputs
             if (!inputs.empty()) {
-                throw errors::BadInput{errors::bad_param,
-                                       "Input arguments should be exclusively named, or exclusively unnamed."};
+                throw BadParameter{"Input arguments should be exclusively named, or exclusively unnamed."};
             }
 
             if (!reference_specified) {
-                throw errors::BadInput{errors::bad_param,
-                                       "Parameter 'reference_id' to the MatrixSystem must also be provided"};
+                throw BadParameter{"Parameter 'reference_id' to the MatrixSystem must also be provided"};
             }
 
             // Get ref id
@@ -98,12 +96,9 @@ namespace Moment::mex::functions  {
         // No named parameters... try to interpret inputs as Settings object + depth
         size_t needed = this->inputs_required();
 
-        if (this->inputs.size() < needed) {
-            throw errors::BadInput{errors::too_few_inputs,
-                                   "Input should be provided in form: " + this->input_format()};
-        } else if (this->inputs.size() > needed) {
-            throw errors::BadInput{errors::too_many_inputs,
-                                   "Input should be provided in form: " + this->input_format()};
+        if (this->inputs.size() != needed) {
+            throw InputCountException{"operator_matrix", needed, needed, this->inputs.size(),
+                                      "Input should be provided in form: " + this->input_format()};
         }
         this->matrix_system_key.parse_input(inputs[0]);
 
@@ -137,28 +132,28 @@ namespace Moment::mex::functions  {
         switch(input.output_mode) {
             case OperatorMatrixParams::OutputMode::Properties:
                 if (outputs > 4) {
-                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "At most four outputs should be provided for properties");
+                    throw OutputCountException{"operator_matrix", 1, 4, outputs,
+                                               "At most four outputs should be provided for properties"};
                 }
                 break;
             case OperatorMatrixParams::OutputMode::Name:
             case OperatorMatrixParams::OutputMode::SequenceStrings:
             case OperatorMatrixParams::OutputMode::SymbolStrings:
                 if (outputs > 1) {
-                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "Only one output should be provided for matrix string export.");
+                    throw OutputCountException{"operator_matrix", 1, 1, outputs,
+                                "Only one output should be provided for matrix string export."};
                 }
                 break;
             case OperatorMatrixParams::OutputMode::Masks:
                 if (outputs == 3) {
-                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                                "Either one, two or four outputs should be provided for index (and mask) export");
+                        throw OutputCountException{"operator_matrix", 1, 1, 0, // throw 'too few' by default
+                                "Either one, two or four outputs should be provided for index (and mask) export"};
                 }
                 break;
             case OperatorMatrixParams::OutputMode::Monomial:
                 if ((outputs != 1) && (outputs != 7)) {
-                    throw_error(this->omvb_matlabEngine, errors::too_many_outputs,
-                        "Either one or seven outputs should be provided for monomial export.");
+                    throw OutputCountException{"operator_matrix", 1, 1, 0, // throw 'too few' by default
+                        "Either one or seven outputs should be provided for monomial export."};
                 }
             case OperatorMatrixParams::OutputMode::Unknown:
             default:
@@ -200,8 +195,7 @@ namespace Moment::mex::functions  {
 
                 case OperatorMatrixParams::OutputMode::Monomial: {
                     if (!theMatrix.is_monomial()) {
-                        throw_error(omvb_matlabEngine, errors::bad_param,
-                                    "Cannot output non-monomial matrix in monomial format.");
+                        throw BadParameter{"Cannot output non-monomial matrix in monomial format."};
                     }
                     auto monomial = exporter.monomials(dynamic_cast<const MonomialMatrix &>(theMatrix));
                     if (output.size() == 1) {
@@ -234,7 +228,7 @@ namespace Moment::mex::functions  {
 
                 default:
                 case OperatorMatrixParams::OutputMode::Unknown:
-                    throw_error(omvb_matlabEngine, errors::internal_error, "Unknown output mode!");
+                    throw InternalError{"Unknown output mode!"};
             }
         }
     }
@@ -245,16 +239,14 @@ namespace Moment::mex::functions  {
             const auto &input = dynamic_cast<const RawOperatorMatrixParams &>(omp);
             auto lock = system.get_read_lock(); // release on return or throw
             if (input.matrix_index >= system.size()) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Could not find matrix with index " + std::to_string(input.matrix_index)
-                            + " in matrix system.");
+                throw BadParameter{"Could not find matrix with index " + std::to_string(input.matrix_index)
+                                   + " in matrix system."};
             }
             return {input.matrix_index, system[input.matrix_index]};
         } catch (const std::bad_cast& bce) {
-            throw_error(this->matlabEngine, errors::bad_cast,
-                        "Misconfigured operator matrix input parameter object.");
+            throw BadCastException{"Misconfigured operator matrix input parameter object."};
         } catch (const Moment::errors::missing_component& mce) {
-            throw_error(this->matlabEngine, errors::internal_error, mce.what());
+            throw InternalError{mce.what()};
         }
     }
 }

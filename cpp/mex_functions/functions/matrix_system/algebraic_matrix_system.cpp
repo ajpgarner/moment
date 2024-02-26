@@ -72,7 +72,7 @@ namespace Moment::mex::functions {
         if (tolerance_param_iter != this->params.cend()) {
             this->zero_tolerance = read_as_double(this->matlabEngine, tolerance_param_iter->second);
             if (this->zero_tolerance < 0) {
-                throw_error(this->matlabEngine, errors::bad_param, "Tolerance must be non-negative value.");
+                throw BadParameter{"Tolerance must be non-negative value."};
             }
         }
 
@@ -88,8 +88,7 @@ namespace Moment::mex::functions {
         if (set_any_param) {
             // No extra inputs
             if (!inputs.empty()) {
-                throw errors::BadInput{errors::bad_param,
-                                       "Input arguments should be exclusively named, or exclusively unnamed."};
+                throw BadParameter{"Input arguments should be exclusively named, or exclusively unnamed."};
             }
             this->getFromParams(matlabEngine);
         } else {
@@ -104,7 +103,7 @@ namespace Moment::mex::functions {
             std::string errStr{"Please supply either named parameters; "};
             errStr += " \"number of operators\",";
             errStr += " or \"number of operators, cell array of rules\".";
-            throw errors::BadInput{errors::too_few_inputs, errStr};
+            throw BadParameter{errStr};
         }
 
         this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
@@ -122,7 +121,7 @@ namespace Moment::mex::functions {
         // Read number of operators
         auto oper_param = params.find(u"operators");
         if (oper_param == params.end()) {
-            throw errors::BadInput{errors::too_few_inputs, "Missing \"operators\" parameter."};
+            throw BadParameter{"Missing \"operators\" parameter."};
         }
         this->readOperatorSpecification(matlabEngine, oper_param->second, "Parameter 'operators'");
 
@@ -201,7 +200,7 @@ namespace Moment::mex::functions {
         // Input to context:
         std::unique_ptr<Algebraic::AlgebraicContext> contextPtr{make_context(this->matlabEngine, input)};
         if (!contextPtr) {
-            throw_error(this->matlabEngine, errors::internal_error, "Context object could not be created.");
+            throw InternalError{"Context object could not be created."};
         }
 
         // Try to complete context, if requested

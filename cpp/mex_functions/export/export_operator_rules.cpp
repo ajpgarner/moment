@@ -9,7 +9,7 @@
 #include "scenarios/algebraic/operator_rulebook.h"
 
 #include "utilities/reporting.h"
-#include "error_codes.h"
+#include "errors.h"
 
 #include <algorithm>
 

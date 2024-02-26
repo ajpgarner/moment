@@ -50,7 +50,7 @@ namespace Moment::mex::functions {
                             break;
                     }
                 } catch (const Moment::mex::errors::invalid_choice &ice) {
-                    throw_error(this->matlabEngine, errors::bad_param, ice.what());
+                    throw BadParameter{ice.what()};
                 }
             }
         }
@@ -63,12 +63,12 @@ namespace Moment::mex::functions {
                 || this->params.contains(u"tolerance")
                 || this->flags.contains(u"no_factors")
                 || this->flags.contains(u"no_new_symbols")) {
-                throw_error(matlabEngine, errors::mutex_param,
-                            "No additional creation parameters can be set when in 'info' mode.");
+                throw BadParameter{"No additional creation parameters can be set when in 'info' mode."};
             }
             if (this->params.contains(u"rulebook")) {
-                throw_error(matlabEngine, errors::mutex_param,
-                    "In 'info' mode, rulebook should be provided as the function argument, not as a named parameter.");
+                throw BadParameter{
+                    "In 'info' mode, rulebook should be provided as the function argument, not as a named parameter."
+                };
             }
 
             // Attempt to read last param as rulebook key.
@@ -83,7 +83,7 @@ namespace Moment::mex::functions {
             if (maybe_str.has_value()) {
                 this->human_readable_name = std::move(maybe_str.value());
             } else {
-                throw_error(matlabEngine, errors::bad_param, "If 'label' is set, it cannot be empty.");
+                throw BadParameter{"If 'label' is set, it cannot be empty."};
             }
         }
 
@@ -118,7 +118,7 @@ namespace Moment::mex::functions {
                 parse_as_op_seq_polynomials(this->inputs[1]);
                 break;
             default:
-                throw_error(this->matlabEngine, errors::bad_param, "Unknown input mode.");
+                throw BadParameter{"Unknown input mode."};
         }
     }
 
@@ -136,7 +136,7 @@ namespace Moment::mex::functions {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << "Substitution list should be provided as a cell array.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
@@ -149,13 +149,13 @@ namespace Moment::mex::functions {
             if (the_cell.getType() != matlab::data::ArrayType::CELL) {
                 std::stringstream errSS;
                 errSS << "Substitution list element " << (index+1) << " must be a cell array.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             const matlab::data::CellArray the_cell_as_cell = the_cell;
             if (the_cell_as_cell.getNumberOfElements() != 2) {
                 std::stringstream errSS;
                 errSS << "Substitution list element " << (index+1) << " must have two elements: {symbol id, value}.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             auto symbol_id = read_as_scalar<symbol_name_t>(this->matlabEngine, the_cell_as_cell[0]);
@@ -170,7 +170,7 @@ namespace Moment::mex::functions {
                 } else {
                     errSS << " cannot bind reserved symbol \"" << symbol_id << "\".";
                 }
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             this->sub_list.emplace(std::make_pair(symbol_id, value));
         }
@@ -188,7 +188,7 @@ namespace Moment::mex::functions {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << "Symbol polynomial list should be provided as a cell array.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
@@ -217,7 +217,7 @@ namespace Moment::mex::functions {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << "Operator polynomial list should be provided as a cell array.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Cast input to cell array [matlab says this kind of cast produces references, not copies. We can only hope...]
@@ -310,7 +310,7 @@ namespace Moment::mex::functions {
             } else {
                 // Register rulebook with matrix system
                 return system.Rulebook.add(std::move(rulebookPtr));
-            };
+            }
         }();
 
         // Prepare to write-out information
@@ -361,7 +361,7 @@ namespace Moment::mex::functions {
                 break;
             default:
             case CreateMomentRulesParams::InputMode::Unknown:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown rules input mode.");
+                throw InternalError{"Unknown rules input mode."};
         }
         assert(book);
 
@@ -381,7 +381,7 @@ namespace Moment::mex::functions {
             if (id >= symbols.size()) {
                 std::stringstream errSS;
                 errSS << "Symbol " << id << " not found (substitution list element " << (idx+1) << ")";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++idx;
         }
@@ -421,7 +421,7 @@ namespace Moment::mex::functions {
                     std::stringstream errSS;
                     errSS << "Symbol " << elem.symbol_id << " not found "
                           << "(rule #" << (idx+1) << ",  element " << (elem_idx+1) << ").";
-                    throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                    throw BadParameter{errSS.str()};
                 }
                 ++elem_idx;
             }

@@ -13,7 +13,7 @@
 #include "probability/probability_tensor.h"
 #include "probability/virtual_polynomial_view.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "export_operator_sequence.h"
 #include "export_polynomial.h"

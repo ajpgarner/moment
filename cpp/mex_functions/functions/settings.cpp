@@ -47,22 +47,19 @@ namespace Moment::mex::functions {
     void SettingsParams::getFromStruct() {
         // Check input is a struct
         if (inputs[0].getType() != matlab::data::ArrayType::STRUCT) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "Input to settings must be a struct. (Possible misspelled parameter supplied!)");
+            throw BadParameter{"Input to settings must be a struct. (Possible misspelled parameter supplied!)"};
         }
 
         // Test parameters are not set
         if (this->params.contains(u"locality_format") || this->params.contains(u"multithreading")) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "If structured input supplied, no settings parameters should be supplied.");
+            throw BadParameter{"If structured input supplied, no settings parameters should be supplied."};
         }
 
         // Check struct dimensions
         const matlab::data::StructArray structInput = inputs[0];
         auto dims = structInput.getDimensions();
         if ((dims.size() != 2) || (dims[0] != 1) || (dims[1] != 1)) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "Input struct array must contain only one row.");
+            throw BadParameter{"Input struct array must contain only one row."};
         }
 
 
@@ -94,9 +91,9 @@ namespace Moment::mex::functions {
                     break;
             }
         } catch (const errors::invalid_choice& ice) {
-            throw_error(matlabEngine, errors::bad_param, ice.what());
+            throw BadParameter{ice.what()};
         }
-        throw_error(matlabEngine, errors::bad_param, "Unknown locality formatter choice.");
+        throw BadParameter{"Unknown locality formatter choice."};
     }
 
 
@@ -116,9 +113,10 @@ namespace Moment::mex::functions {
                     break;
             }
         } catch (const errors::invalid_choice& ice) {
-            throw_error(matlabEngine, errors::bad_param, ice.what());
+            throw BadParameter{ice.what()};
         }
-        throw_error(matlabEngine, errors::bad_param, "Unknown multithreading choice.");
+
+        throw BadParameter{"Unknown multithreading choice."};
     }
 
     Settings::Settings(matlab::engine::MATLABEngine &matlabEngine, StorageManager &storage)
@@ -135,7 +133,7 @@ namespace Moment::mex::functions {
     void Settings::validate_output_count(size_t outputs, const SortedInputs &inputRaw) const {
         const auto& inputs = dynamic_cast<const SettingsParams&>(inputRaw);
         if (inputs.structured_output && (outputs != 1)) {
-            throw_error(this->matlabEngine, errors::too_few_outputs, "Structured output mode requires one output.");
+            throw OutputCountException{"settings", 1, 1, outputs, "Structured output mode requires one output."};
         }
     }
 

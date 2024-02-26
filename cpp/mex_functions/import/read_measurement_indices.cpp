@@ -52,14 +52,14 @@ namespace Moment::mex {
 
                 for (size_t row = 0; row < dims[0]; ++row) {
                     if (matrix[row][0] < 1) {
-                        throw_error(matlabEngine, errors::bad_param, make_bad_index_string(row+1, 1));
+                        throw BadParameter{make_bad_index_string(row+1, 1)};
                     }
                     if (matrix[row][1] < 1) {
-                        throw_error(matlabEngine, errors::bad_param, make_bad_index_string(row+1, 2));
+                        throw BadParameter{make_bad_index_string(row+1, 2)};
                     }
                     if constexpr (is_triplet) {
                         if (matrix[row][2] < 1) {
-                            throw_error(matlabEngine, errors::bad_param, make_bad_index_string(row+1, 2));
+                            throw BadParameter{make_bad_index_string(row+1, 2)};
                         }
                         output.emplace_back(static_cast<size_t>(matrix[row][0] - 1),
                                             static_cast<size_t>(matrix[row][1] - 1),
@@ -135,7 +135,7 @@ namespace Moment::mex {
         }
         auto onlyInputDims = only_array.getDimensions();
         if (onlyInputDims.size() != 2) {
-            throw_error(matlabEngine, errors::bad_param, "Measurement/outcome list should be a 2D array.");
+            throw BadParameter{"Measurement/outcome list should be a 2D array."};
         }
         if (onlyInputDims[1] == 2) {
             return std::make_pair(RawIndexPair::read_list(matlabEngine, only_array),
@@ -145,8 +145,7 @@ namespace Moment::mex {
             return std::make_pair(std::vector<RawIndexPair>{},
                                   RawIndexTriplet::read_list(matlabEngine, only_array));
         }
-        throw_error(matlabEngine, errors::bad_param,
-                    "Measurement list should be a Nx2 array, outcome list a Nx3 array.");
+        throw BadParameter{"Measurement list should be a Nx2 array, outcome list a Nx3 array."};
     }
 
     std::pair<std::vector<RawIndexPair>, std::vector<RawIndexTriplet>>
@@ -156,13 +155,13 @@ namespace Moment::mex {
         if (first_array.getNumberOfElements() != 0) {
             auto inputOneDims = first_array.getDimensions();
             if ((inputOneDims.size() != 2) || (inputOneDims[1] != 2)) {
-                throw_error(matlabEngine, errors::bad_param, "Measurement list should be a Nx2 array.");
+                throw BadParameter{"Measurement list should be a Nx2 array."};
             }
         }
         if (second_array.getNumberOfElements() != 0) {
             auto inputTwoDims = second_array.getDimensions();
             if ((inputTwoDims.size() != 2) || (inputTwoDims[1] != 3)) {
-                throw_error(matlabEngine, errors::bad_param, "Outcome list should be a Nx3 array.");
+                throw BadParameter{"Outcome list should be a Nx3 array."};
             }
         }
 
@@ -227,7 +226,7 @@ namespace Moment::mex {
             } catch (const bad_index_read& bir) {
                 std::stringstream errSS;
                 errSS << "Error reading row " << row_index << ": " << bir.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++row_index;
         }
@@ -244,7 +243,7 @@ namespace Moment::mex {
             } catch (const bad_index_read& bir) {
                 std::stringstream errSS;
                 errSS << "Error reading row " << row_index << ": " << bir.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++row_index;
         }
@@ -312,7 +311,7 @@ namespace Moment::mex {
             } catch (const bad_index_read& bir) {
                 std::stringstream errSS;
                 errSS << "Error reading row " << row_index << ": " << bir.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++row_index;
         }
@@ -329,7 +328,7 @@ namespace Moment::mex {
             } catch (const bad_index_read& bir) {
                 std::stringstream errSS;
                 errSS << "Error reading row " << row_index << ": " << bir.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++row_index;
         }

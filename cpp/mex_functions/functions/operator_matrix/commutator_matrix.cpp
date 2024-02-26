@@ -1,10 +1,12 @@
 /**
- * extended_matrix.cpp
+ * commutator_matrix.cpp
  * 
  * @copyright Copyright (c) 2023 Austrian Academy of Sciences
  * @author Andrew J. P. Garner
  */
 #include "commutator_matrix.h"
+
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "matrix/monomial_matrix.h"
@@ -282,7 +284,7 @@ namespace Moment::mex::functions {
         // Get Pauli matrix system
         auto * pauli_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system);
         if (nullptr == pauli_ptr) {
-            throw_error(this->matlabEngine, errors::bad_param, "Matrix system reference was not a Pauli scenario.");
+            throw BadParameter{"Matrix system reference was not a Pauli scenario."};
         }
         auto& pauli_system = *pauli_ptr;
 
@@ -328,11 +330,11 @@ namespace Moment::mex::functions {
                     }
                 default:
                 case LocalizingMatrixIndexImporter::ExpressionType::Unknown:
-                    throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");
+                    throw InternalError{"Unknown localizing expression type."};
             }
         } catch (std::exception& e) {
-            throw_error(matlabEngine, errors::internal_error,
-                        std::string("A problem occurred while retrieving/generating localizing matrix: ") + e.what());
+            throw InternalError{std::string("A problem occurred while retrieving/generating localizing matrix: ")
+                                + e.what()};
         }
     }
 

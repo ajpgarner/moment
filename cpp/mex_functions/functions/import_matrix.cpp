@@ -6,6 +6,7 @@
  */
 #include "import_matrix.h"
 
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "matrix/monomial_matrix.h"
@@ -27,7 +28,7 @@ namespace Moment::mex::functions {
         // Verify form of second argument...!
         auto dimensions = this->inputMatrix.getDimensions();
         if ((dimensions.size() != 2) || (dimensions[0] != dimensions[1])) {
-            throw errors::BadInput{errors::bad_param, "Input must be square matrix."};
+            throw BadParameter{"Input must be square matrix."};
         }
 
         // Check explicitly requested type
@@ -69,7 +70,7 @@ namespace Moment::mex::functions {
             std::stringstream errSS;
             errSS << "MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec
                   << " was not a valid ImportedMatrixSystem.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         Imported::ImportedMatrixSystem& ims = *imsPtr;
 
@@ -95,7 +96,7 @@ namespace Moment::mex::functions {
             try {
                 return ims.import_matrix(std::move(raw_sym_mat), input.matrix_is_complex, input.matrix_is_hermitian);
             } catch (Imported::errors::bad_import_matrix &e) {
-                throw_error(this->matlabEngine, errors::bad_param, e.what());
+                throw BadParameter{e.what()};
             }
         }();
 

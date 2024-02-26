@@ -43,8 +43,7 @@ namespace Moment::mex::functions {
                     auto id = static_cast<size_t>(*read_iter); // NOLINT(cert-str34-c)
                     if (!zero_index) {
                         if (id < 1) {
-                            throw_error(this->the_engine, errors::bad_param,
-                                        "Index 0 out of bounds. Did you mean to use 'zero_index' flag?");
+                            throw BadParameter{"Index 0 out of bounds. Did you mean to use 'zero_index' flag?"};
                         }
                         id -= 1;
                     }
@@ -77,7 +76,7 @@ namespace Moment::mex::functions {
             case matlab::data::ArrayType::UINT64:
                 break;
             default:
-                throw errors::BadInput{errors::bad_param, "Matrix type must be real numeric."};
+                throw BadParameter{"Matrix type must be real numeric."};
         }
     }
 
@@ -105,8 +104,7 @@ namespace Moment::mex::functions {
             auto id = read_positive_integer<uint64_t>(this->matlabEngine, "Input", input.inputs[0]);
             if (!input.zero_index) {
                 if (id < 1) {
-                    throw_error(this->matlabEngine, errors::bad_param,
-                                "Index 0 out of bounds. Did you mean to use 'zero_index' flag?");
+                    throw BadParameter{"Index 0 out of bounds. Did you mean to use 'zero_index' flag?"};
                 }
                 --id;
             }

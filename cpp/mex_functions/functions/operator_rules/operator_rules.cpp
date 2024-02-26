@@ -36,8 +36,7 @@ namespace Moment::mex::functions {
         // Attempt to cast to algebraic matrix system
         auto * amsPtr = dynamic_cast<Algebraic::AlgebraicMatrixSystem*>(matrixSystemPtr.get());
         if (nullptr == amsPtr) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "MatrixSystem was not an AlgebraicMatrixSystem");
+            throw BadParameter{"MatrixSystem was not an AlgebraicMatrixSystem"};
         }
         const auto& ams = *amsPtr;
 

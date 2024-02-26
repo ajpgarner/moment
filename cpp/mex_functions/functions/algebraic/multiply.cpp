@@ -7,6 +7,7 @@
 
 #include "multiply.h"
 #include "binary_operation_impl.h"
+#include "errors.h"
 
 #include "environmental_variables.h"
 
@@ -30,8 +31,7 @@ namespace Moment::mex::functions {
             case ProductType::MatrixToOne:
                 break;
             default:
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Currently, multiply is only supported for array inputs, or scalar/matrix products");
+                throw BadParameter{"Currently, multiply is only supported for array inputs, or scalar/matrix products"};
         }
     }
 

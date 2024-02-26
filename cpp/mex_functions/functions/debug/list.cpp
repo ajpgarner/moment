@@ -125,7 +125,7 @@ namespace Moment::mex::functions {
     void List::extra_input_checks(ListParams &input) const {
         if ((input.output_type == ListParams::OutputType::OneSystem)
             && (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key))) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+            throw BadParameter{"Invalid or expired reference to MomentMatrix."};
         }
     }
 

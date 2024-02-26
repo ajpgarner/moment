@@ -6,7 +6,7 @@
  */
 #include "read_operator_names.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "utilities/reporting.h"
 
 #include "utilities/utf_conversion.h"
@@ -35,7 +35,7 @@ namespace Moment::mex {
             } catch (const std::invalid_argument& iae) {
                 std::stringstream errSS;
                 errSS << paramName << " could not be parsed: " << iae.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             return output;
         }
@@ -60,14 +60,14 @@ namespace Moment::mex {
             } catch (const std::invalid_argument& iae) {
                 std::stringstream errSS;
                 errSS << paramName << " could not be parsed: " << iae.what();
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             return output;
         }
 
         std::stringstream errSS;
         errSS << paramName << " could not be parsed: name table must be char array or string array.";
-        throw_error(matlabEngine, errors::bad_param, errSS.str());
+        throw BadParameter{errSS.str()};
     }
 
     size_t get_name_table_length(matlab::engine::MATLABEngine &matlabEngine, const std::string &paramName,
@@ -87,6 +87,6 @@ namespace Moment::mex {
         // Otherwise, error
         std::stringstream errSS;
         errSS << paramName << " could not be parsed: name table must be char array or string array.";
-        throw_error(matlabEngine, errors::bad_param, errSS.str());
+        throw BadParameter{errSS.str()};
     }
 }

@@ -7,12 +7,12 @@
 
 #include "matrix_system_id.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "utilities/reporting.h"
-
 #include "utilities/read_as_scalar.h"
+
 #include "MatlabDataArray.hpp"
 
 #include <ostream>
@@ -27,7 +27,7 @@ namespace Moment::mex {
         if (!PersistentStorageBase::check_signature(StorageManager::matrix_system_signature, this->key)) {
             std::stringstream errSS;
             errSS << this->param_name << " was not the key to a valid matrix system.";
-            throw_error(this->matlabEngine, errors::bad_signature, errSS.str());
+            throw StorageManagerError{errSS.str()};
         }
 
         return this->key;
@@ -40,12 +40,12 @@ namespace Moment::mex {
             // Report error to MATLAB if matrix system does not exist
             std::stringstream errSS;
             errSS << this->param_name << " was not the key to a valid matrix system.";
-            throw_error(this->matlabEngine, errors::bad_signature, errSS.str());
+            throw StorageManagerError{errSS.str()};
         } catch (Moment::errors::persistent_object_error& poe) {
             // Report error to MATLAB if matrix system does not exist
             std::stringstream errSS;
             errSS << this->param_name << " was not the key to a valid matrix system: " << poe.what();
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw StorageManagerError{errSS.str()};
         }
     }
 

@@ -10,30 +10,15 @@
  */
 #pragma once
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include <concepts>
 #include <stdexcept>
 
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
-#include "cppmex/mexException.hpp"
-#include "cppmex/detail/mexExceptionImpl.hpp"
 
 namespace Moment::mex {
-
-    namespace errors {
-        constexpr char bad_visit[] = "bad_visit";
-
-        /**
-         * Exception thrown when the VisitDispatcher cannot handle the requested array type.
-         */
-        class bad_visitor : public matlab::engine::MATLABException {
-        public:
-            explicit bad_visitor(const std::u16string &what)
-            : matlab::engine::MATLABException(errors::applyPrefix(bad_visit), what) { };
-        };
-    }
 
     namespace concepts {
 
@@ -156,7 +141,6 @@ namespace Moment::mex {
         };
     }
 
-
     /**
      * Dispatch class, bound to a functor.
      * @tparam functor_t The function to apply to the supplied array inputs.
@@ -278,7 +262,7 @@ namespace Moment::mex {
                 }
             }
 
-            throw errors::bad_visitor{u"Unexpected type."};
+            throw BadVisitorException{"Unexpected type."};
         }
 
         template<typename matrix_t>
@@ -309,7 +293,7 @@ namespace Moment::mex {
                 default:
                     break;
             }
-            throw errors::bad_visitor{u"Unexpected array type (real, dense)."};
+            throw BadVisitorException{"Unexpected array type (real, dense)."};
         }
 
         template<typename matrix_t>
@@ -346,7 +330,7 @@ namespace Moment::mex {
                 default:
                     break;
             }
-            throw errors::bad_visitor{u"Unexpected array type (complex, dense)."};
+            throw BadVisitorException{"Unexpected array type (complex, dense)."};
         }
 
         template<typename matrix_t>
@@ -380,7 +364,7 @@ namespace Moment::mex {
                 default:
                     break;
             }
-            throw errors::bad_visitor{u"Unexpected array type (string)."};
+            throw BadVisitorException{"Unexpected array type (string)."};
         }
 
 

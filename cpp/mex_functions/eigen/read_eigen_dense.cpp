@@ -6,7 +6,7 @@
  */
 #include "read_eigen_dense.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "utilities/reporting.h"
 #include "utilities/visitor.h"
 #include "utilities/read_as_scalar.h"

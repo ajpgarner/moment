@@ -130,8 +130,7 @@ namespace Moment::mex::functions {
                                                              MatrixSystem& system) {
             auto* pms_ptr = dynamic_cast<Pauli::PauliMatrixSystem*>(&system);
             if (pms_ptr == nullptr) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Nearest neighbours can only be set in Pauli scenario.");
+                throw BadParameter{"Nearest neighbours can only be set in Pauli scenario."};
             }
             return *pms_ptr;
         }
@@ -348,11 +347,11 @@ namespace Moment::mex::functions {
                     }
                 default:
                 case LocalizingMatrixIndexImporter::ExpressionType::Unknown:
-                    throw_error(matlabEngine, errors::internal_error, "Unknown localizing expression type.");
+                    throw InternalError{"Unknown localizing expression type."};
             }
         } catch (std::exception& e) {
-            throw_error(matlabEngine, errors::internal_error,
-                        std::string("A problem occurred while retrieving/generating localizing matrix: ") + e.what());
+            throw InternalError{std::string("A problem occurred while retrieving/generating localizing matrix: ")
+                                + e.what()};
         }
 
     }

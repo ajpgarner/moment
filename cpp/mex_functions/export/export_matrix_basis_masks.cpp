@@ -12,7 +12,7 @@
 #include "symbolic/symbol_table.h"
 #include "symbolic/symbol_table.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "mex.hpp"
 

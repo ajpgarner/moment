@@ -71,7 +71,7 @@ namespace Moment::mex::functions {
             if (params.extra_data.nearest_neighbours != 0) {
                 const auto* pauli_dict_ptr = dynamic_cast<const Pauli::PauliDictionary*>(&dictionary);
                 if (nullptr == pauli_dict_ptr) {
-                    throw_error(engine, errors::bad_param, "Only Pauli scenarios support nearest neighbours.");
+                    throw BadParameter{"Only PauliScenario supports nearest neighbours."};
                 }
 
                 Pauli::NearestNeighbourIndex nni{params.word_length, params.extra_data.nearest_neighbours};
@@ -87,22 +87,20 @@ namespace Moment::mex::functions {
         switch (input.output_type) {
             case WordListParams::OutputType::OperatorCell:
                 if (output.size() != 1) {
-                    throw_error(this->matlabEngine, errors::too_many_outputs,
-                                "Operators cell export expects one output.");
+                    throw OutputCountException{"word_list", 1, 1, output.size(),
+                                               "Operators cell export expects one output."};
                 }
                 break;
             case WordListParams::OutputType::Monomial:
                 if (output.size() != 3) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 3 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "Monomial export expects three outputs.");
+                    throw OutputCountException{"word_list", 3, 3, output.size(),
+                                               "Monomial export expects three outputs."};
                 }
                 break;
             case WordListParams::OutputType::FullMonomial:
                 if (output.size() != 7) {
-                    throw_error(this->matlabEngine,
-                                output.size() > 7 ? errors::too_many_outputs : errors::too_few_outputs,
-                                "Full monomial export expects seven outputs.");
+                    throw OutputCountException{"word_list", 7, 7, output.size(),
+                                "Full monomial export expects seven outputs."};
                 }
                 break;
         }
@@ -137,7 +135,7 @@ namespace Moment::mex::functions {
                 exporter.sequences_with_symbol_info(output, osg);
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown output type.");
+                throw InternalError{"Unknown output type."};
         }
     }
 }

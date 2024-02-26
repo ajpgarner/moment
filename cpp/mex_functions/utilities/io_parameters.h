@@ -14,7 +14,7 @@
 #include <optional>
 #include <string>
 
-#include "error_codes.h"
+#include "errors.h"
 
 namespace matlab::engine {
     class MATLABEngine;
@@ -60,6 +60,7 @@ namespace Moment::mex {
         [[nodiscard]] std::optional<std::pair<ParamNameStr, ParamNameStr>> validate(const NameSet& flags,
                                                                                     const NamedParameter& params) const;
     };
+
 
     /**
      * Due to matlab's weird usage of templates, matlab::mex::ArgumentList can seemingly only be used in one file
@@ -107,15 +108,6 @@ namespace Moment::mex {
         }
     };
 
-    namespace errors {
-        struct BadInput : std::runtime_error {
-        public:
-            std::string errCode;
-
-            BadInput(std::string errCode, const std::string& what)
-                    : std::runtime_error{what}, errCode{std::move(errCode)} { }
-        };
-    }
 
     /**
      * Pre-processed inputs to functions
@@ -165,6 +157,17 @@ namespace Moment::mex {
             action(found_param);
         }
 
+    };
+
+    /** Error code: thrown when a named parameter should be present, but is not. */
+    class MissingParamException : public MomentMEXException {
+    public:
+        const std::string missing_parameter;
+
+        explicit MissingParamException(const std::string& missing_name)
+            : MomentMEXException{"missing_param", make_msg( missing_name)}, missing_parameter{missing_name} { }
+
+        [[nodiscard]] static std::string make_msg(const std::string& missing_name);
     };
 
 }

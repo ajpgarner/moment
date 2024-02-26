@@ -27,7 +27,7 @@ namespace Moment::mex::functions {
 
         // Read generators
         if (this->inputs[1].getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Second argument must be a cell array of group generators.");
+            throw BadParameter{"Second argument must be a cell array of group generators."};
         }
 
 
@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
                 default:{
                     std::stringstream errSS;
                     errSS << "Error reading element " << (cell_index+1) << ": element could not be parsed as a real matrix.";
-                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                    throw BadParameter{errSS.str()};
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Moment::mex::functions {
             if ((dims.size() != 2) || (dims[0] != dims[1])) {
                 std::stringstream errSS;
                 errSS << "Error reading element " << (cell_index+1) << ": element was not a square matrix.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             // Check dimensions
@@ -72,7 +72,7 @@ namespace Moment::mex::functions {
                 std::stringstream errSS;
                 errSS << "Error reading element " << (cell_index+1) << ": expected a "
                       << expected_dimension << " x " << expected_dimension << " matrix, to match first generator dimensions.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             ++cell_index;
@@ -81,8 +81,7 @@ namespace Moment::mex::functions {
         // Is maximum word length set?
         if (auto maxWLiter = this->params.find(u"max_word_length"); maxWLiter != this->params.end()) {
             if (!castable_to_scalar_int(maxWLiter->second)) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Maximum word length, if provided, must be a scalar non-negative integer.");
+                throw BadParameter{"Maximum word length, if provided, must be a scalar non-negative integer."};
             }
             this->max_word_length = read_as_uint64(this->matlabEngine, maxWLiter->second);
         }
@@ -155,7 +154,7 @@ namespace Moment::mex::functions {
         } catch (std::runtime_error& rte) {
             std::stringstream errSS;
             errSS << "Error creating symmetry group: " << rte.what();
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Check input matrix system has required symbols. [Write-locks source matrix system].
@@ -175,7 +174,7 @@ namespace Moment::mex::functions {
             errSS << "Maximum operator word length for map could not be automatically deduced.\n"
                  << "Either first create a moment matrix of the desired maximum size in the base system, "
                  << "or manually supply the size of the longest operator string to be mapped.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Now, create new matrix system with group
@@ -202,7 +201,7 @@ namespace Moment::mex::functions {
 
     void SymmetrizedMatrixSystem::extra_input_checks(SymmetrizedMatrixSystemParams &input) const {
         if (!this->storageManager.MatrixSystems.check_signature(input.matrix_system_key)) {
-            throw errors::BadInput{errors::bad_param, "Invalid or expired reference to MomentMatrix."};
+            throw StorageManagerError{"Invalid or expired reference to MomentMatrix."};
         }
 
         ParameterizedMTKFunction::extra_input_checks(input);

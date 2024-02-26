@@ -7,6 +7,7 @@
 
 #include "simplify.h"
 
+#include "errors.h"
 #include "storage_manager.h"
 
 #include "scenarios/context.h"
@@ -30,8 +31,7 @@ namespace Moment::mex::functions {
             if (input.input_type == SimplifyParams::InputType::String) {
                 const auto * acPtr = dynamic_cast<const Algebraic::AlgebraicContext*>(&context);
                 if (nullptr == acPtr) {
-                    throw_error(engine, errors::bad_param,
-                                "String-based operator input is only supported for algebraic scenarios.");
+                    throw BadParameter{"String-based operator input is only supported for algebraic scenarios."};
                 }
                 assert(acPtr);
                 const auto& names = acPtr->names();
@@ -45,7 +45,7 @@ namespace Moment::mex::functions {
                     } catch (const std::invalid_argument& iae) {
                         std::stringstream errSS;
                         errSS << "Could not parse operator \"" << opStr << "\" at index " << idx << ".";
-                        throw_error(engine, errors::bad_param, errSS.str());
+                        throw BadParameter{errSS.str()};
                     }
                     ++idx;
                 }
@@ -53,7 +53,7 @@ namespace Moment::mex::functions {
                         || (input.input_type == SimplifyParams::InputType::NumbersArray)) {
 
                 if (input.scalar_input() && (input.operator_string.size() != 1)) {
-                    throw_error(engine, errors::internal_error, "Missing operator string.");
+                    throw InternalError{"Missing operator string."};
                 }
 
                 size_t elem_idx = 1; // MATLAB 1-indexing
@@ -67,7 +67,7 @@ namespace Moment::mex::functions {
                                 errSS << " in index " << elem_idx;
                             }
                             errSS << " is out of range.";
-                            throw_error(engine, errors::bad_param, errSS.str());
+                            throw BadParameter{errSS.str()};
                         }
                         ++idx;
                     }
@@ -75,7 +75,7 @@ namespace Moment::mex::functions {
                 }
 
             } else {
-                throw_error(engine, errors::internal_error, "Unknown input type.");
+                throw InternalError{"Unknown input type."};
             }
         }
     }
@@ -100,7 +100,7 @@ namespace Moment::mex::functions {
     void SimplifyParams::parse_as_polynomial() {
         this->input_type = SimplifyParams::InputType::SymbolCell;
         if (inputs[1].getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, "Polynomial mode expects symbol cell input.");
+            throw BadParameter{"Polynomial mode expects symbol cell input."};
         }
 
         const auto input_dims = inputs[1].getDimensions();
@@ -152,7 +152,7 @@ namespace Moment::mex::functions {
             this->operator_string.emplace_back(read_integer_array<oper_name_t>(matlabEngine, "Operator string", inputs[1]));
             for (auto &op: this->operator_string.back()) {
                 if (op < 1) {
-                    throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
+                    throw BadParameter{"Operator must be a positive integer."};
                 }
                 op -= 1;
             }
@@ -169,7 +169,7 @@ namespace Moment::mex::functions {
                         read_integer_array<oper_name_t>(matlabEngine, "Operator string", str));
                 for (auto &op: this->operator_string.back()) {
                     if (op < 1) {
-                        throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
+                        throw BadParameter{"Operator must be a positive integer."};
                     }
                     op -= 1;
                 }
@@ -198,7 +198,7 @@ namespace Moment::mex::functions {
             }
 
         } else {
-            throw_error(matlabEngine, errors::bad_param, "Operator sequence must be an array of numbers or of (string) names.");
+            throw BadParameter{"Operator sequence must be an array of numbers or of (string) names."};
         }
     }
 
@@ -319,7 +319,8 @@ namespace Moment::mex::functions {
                                         const MatrixSystem &matrixSystem) {
         // Check outputs
         if (output.size() != 1) {
-            throw_error(matlabEngine, errors::too_many_outputs, "Polynomial simplification expects single output.");
+            throw OutputCountException{"simplify", 1, 1, output.size(),
+                                       "Polynomial simplification expects single output."};
         }
 
         const auto& poly_factory = matrixSystem.polynomial_factory();

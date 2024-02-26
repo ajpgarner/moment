@@ -6,6 +6,7 @@
  */
 
 #include "transform_matrix.h"
+#include "errors.h"
 
 #include "scenarios/derived/derived_matrix_system.h"
 
@@ -45,7 +46,7 @@ namespace Moment::mex::functions {
             std::stringstream errSS;
             errSS << "MatrixSystem with reference 0x" << std::hex << input.target_system_key << std::dec
                   << " was not a derived matrix system.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }();
 
         // Now, get source system, and check matrix is okay
@@ -54,7 +55,7 @@ namespace Moment::mex::functions {
         if (input.matrix_id >= base_system.size()) {
             std::stringstream errSS;
             errSS << "No matrix with index " << input.matrix_id << " was found in the source system.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // TODO See if matrix already exists
@@ -62,9 +63,7 @@ namespace Moment::mex::functions {
         // Otherwise, get write lock onto derived system and trigger its creation
         auto write_lock = target_system.get_write_lock();
 
-
-
-
-        throw_error(this->matlabEngine, errors::internal_error, "TransformMatrix::operator() not implemented.");
+        // XXX: Is this an orphaned mtk function?
+        throw BadParameter{"TransformMatrix::operator() not implemented."};
     }
 }

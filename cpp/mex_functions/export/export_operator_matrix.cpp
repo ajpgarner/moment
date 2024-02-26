@@ -20,7 +20,7 @@
 
 #include "utilities/utf_conversion.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "utilities/reporting.h"
 
 
@@ -162,8 +162,7 @@ namespace Moment::mex {
         FullMonomialSpecification output{this->factory, OperatorMatrixExporter::matrix_dimensions(matrix), true};
 
         if (!matrix.has_aliased_operator_matrix()) {
-            throw_error(this->engine, errors::internal_error,
-                        "Cannot convert matrix to monomials, if underlying operator sequences are not defined.");
+            throw InternalError{"Cannot convert matrix to monomials, if underlying operator sequences are not defined."};
         }
 
         auto read_iter = IterTuple{matrix.SymbolMatrix().begin(),

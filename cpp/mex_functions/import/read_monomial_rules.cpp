@@ -7,7 +7,7 @@
 
 #include "read_monomial_rules.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "utilities/io_parameters.h"
 #include "utilities/read_as_vector.h"
@@ -39,7 +39,7 @@ namespace Moment::mex {
                 if (!mlStr.has_value()) {
                     std::stringstream err;
                     err << field_name << " cannot be parsed as an operator sequence, as it contains an empty string.";
-                    throw errors::BadInput{errors::bad_param, err.str()};
+                    throw BadParameter{err.str()};
                 }
 
                 try {
@@ -50,7 +50,7 @@ namespace Moment::mex {
                 } catch (const std::invalid_argument& iae) {
                     std::stringstream err;
                     err << field_name << " cannot be parsed: " << iae.what();
-                    throw errors::BadInput{errors::bad_param, err.str()};
+                    throw BadParameter{err.str()};
                 }
             }
             return output;
@@ -67,7 +67,7 @@ namespace Moment::mex {
                 std::stringstream err;
                 err << field_name
                     << " can only be parsed as a char array when every operator name is a single character.";
-                throw errors::BadInput{errors::bad_param, err.str()};
+                throw BadParameter{err.str()};
             }
 
             auto asString = input.toAscii();
@@ -81,7 +81,7 @@ namespace Moment::mex {
                 } catch (const std::invalid_argument& iae) {
                     std::stringstream err;
                     err << field_name << " cannot be parsed:" << iae.what();
-                    throw errors::BadInput{errors::bad_param, err.str()};
+                    throw BadParameter{err.str()};
                 }
             }
 
@@ -110,7 +110,7 @@ namespace Moment::mex {
                 if ((x < 0) || ((apc.num_operators != 0) && (x >= apc.num_operators))) {
                     std::stringstream err;
                     err << field_name << " contains an operator with out of bounds value \"" << x << "\"";
-                    throw errors::BadInput{errors::bad_param, err.str()};
+                    throw BadParameter{err.str()};
                 }
             }
             return {output, false};
@@ -152,12 +152,12 @@ namespace Moment::mex {
         if (this->LHS.size() > max_strlen) {
             std::stringstream errSS;
             errSS << "Error with rule #" + std::to_string(rule_index+1) + ": LHS too long.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         if (this->RHS.size() > max_strlen) {
             std::stringstream errSS;
             errSS << "Error with rule #" + std::to_string(rule_index+1) + ": RHS too long.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         const auto lhs_hash = apc.hasher.hash(this->LHS);
@@ -183,7 +183,7 @@ namespace Moment::mex {
         } catch (Moment::Algebraic::errors::invalid_rule& ire) {
             std::stringstream errSS;
             errSS << "Error with rule #" + std::to_string(rule_index+1) + ": " << ire.what();
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
     }
 
@@ -194,7 +194,7 @@ namespace Moment::mex {
                                                      const Algebraic::NameTable& names) {
 
         if (input.getType() != matlab::data::ArrayType::CELL) {
-            throw_error(matlabEngine, errors::bad_param, paramName + " must be specified as a cell array.");
+            throw BadParameter{paramName + " must be specified as a cell array."};
         }
         const auto cell_input = static_cast<matlab::data::CellArray>(input);
         const size_t rule_count =  cell_input.getNumberOfElements();
@@ -207,8 +207,8 @@ namespace Moment::mex {
         size_t rule_index = 0;
         for (auto elem : cell_input) {
             if (elem.getType() != matlab::data::ArrayType::CELL) {
-                throw_error(matlabEngine, errors::bad_param,
-                            paramName + " must be specified as a cell array of cell arrays (each with two elements).");
+                throw BadParameter{paramName
+                    + " must be specified as a cell array of cell arrays (each with two elements)."};
             }
 
             const auto rule_cell = static_cast<matlab::data::CellArray>(elem);
@@ -232,19 +232,21 @@ namespace Moment::mex {
                             std::stringstream errSS;
                             errSS << "Each rule must be specified as a cell array of the form {[LHS], [RHS]} or "
                                   << "{[LHS], [sign], [RHS]} where [sign] is one of '+', '-', 'i', '-i'.";
-                                    throw_error(matlabEngine, errors::bad_param, errSS.str());
+                            throw BadParameter{errSS.str()};
                         }
                     }
                     break;
                     default:
-                        throw_error(matlabEngine, errors::bad_param,
-                                    std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
-                                    + "{[LHS], '-', [RHS]}; but the middle element provided was not a character array.");
+                        throw BadParameter{
+                            std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
+                            + "{[LHS], '-', [RHS]}; but the middle element provided was not a character array."
+                        };
                 }
             } else if (elem.getNumberOfElements() != 2) {
-                throw_error(matlabEngine, errors::bad_param,
-                            std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
-                                      + "{[LHS], '-', [RHS]}");
+                throw BadParameter{
+                    std::string("Each rule must be specified as a cell array of the form {[LHS], [RHS]} or ")
+                    + "{[LHS], '-', [RHS]}"
+                };
             }
 
             auto lhs = rule_cell[0];
@@ -252,8 +254,7 @@ namespace Moment::mex {
                                              lhs, apc, names, matlabIndices);
 
             if (lhs_zero) {
-                throw_error(matlabEngine, errors::bad_param,
-                            std::string("The LHS of a rule should not be zero."));
+                throw BadParameter{"The LHS of a rule should not be zero."};
             }
 
             auto rhs = rule_cell[elem.getNumberOfElements() - 1];
@@ -274,8 +275,7 @@ namespace Moment::mex {
                           const std::vector<oper_name_t>& vec, size_t n, const std::string& lhs_or_rhs) {
         std::stringstream ss;
         ss << "Rule number #" << n << " " << lhs_or_rhs << " is too long.";
-
-        throw_error(matlabEngine, errors::bad_param, ss.str());
+        throw BadParameter{ss.str()};
     }
 
     void check_rule_length(matlab::engine::MATLABEngine &matlabEngine,

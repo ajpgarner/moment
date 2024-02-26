@@ -30,7 +30,7 @@ namespace Moment::mex::functions {
         this->matrix_system_key.parse_input(this->inputs[0]);
 
         if (this->inputs[1].isEmpty() || (this->inputs[1].getType() != matlab::data::ArrayType::CELL)) {
-            throw_error(this->matlabEngine, errors::bad_param, "Argument must be an operator cell.");
+            throw BadParameter{"Argument must be an operator cell."};
         }
         const matlab::data::CellArray as_cell = inputs[1];
         assert(!as_cell.isEmpty());
@@ -55,14 +55,14 @@ namespace Moment::mex::functions {
             errSS << "`lattice_symmetrize` can only be called for objects in the Pauli scenario:\n"
                   << "MatrixSystem with reference 0x" << std::hex << input.matrix_system_key << std::dec
                   << " was not a valid PauliMatrixSystem.";
-            throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         Pauli::PauliMatrixSystem& pms = *pmsPtr;
 
         // Check if PMS has any symmetry
         const auto& context = pms.pauliContext;
         if (context.translational_symmetry != Pauli::SymmetryType::Translational) {
-            throw_error(this->matlabEngine, errors::bad_param, "The Pauli scenario has no translational symmetry.");
+            throw BadParameter{"This Pauli scenario has no translational symmetry."};
         }
 
         // Stage polynomial input, and convert to operator sequences

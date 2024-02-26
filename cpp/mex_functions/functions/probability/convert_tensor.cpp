@@ -38,8 +38,7 @@ namespace Moment::mex::functions {
         std::transform(input_dims.cbegin(), input_dims.cend(), std::back_inserter(this->mmts_per_party),
                        [this](size_t dim) {
             if (dim <= 1) {
-                throw_error(this->matlabEngine, errors::bad_param,
-                            "Tensor must implicitly define at least one measurement per party.");
+                throw BadParameter{"Tensor must implicitly define at least one measurement per party."};
             }
             return dim - 1;
         });

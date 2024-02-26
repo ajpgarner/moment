@@ -24,17 +24,15 @@ namespace Moment::mex::functions  {
                 try {
                     return dynamic_cast<const MonomialMatrix &>(matrixSystem[index]);
                 } catch (const Moment::errors::missing_component &mce) {
-                    throw_error(matlabEngine, errors::bad_param, mce.what());
+                    throw BadParameter{mce.what()};
                 } catch (const std::bad_cast &bce) {
-                    throw_error(matlabEngine, errors::bad_param,
-                                "Currently extensions can only be suggested for monomial matrices.");
+                    throw BadParameter{"Currently extensions can only be suggested for monomial matrices."};
                 }
             }();
 
             const auto* mmPtr = MomentMatrix::to_operator_matrix_ptr(matrix);
             if (mmPtr == nullptr) {
-                throw_error(matlabEngine, errors::bad_param,
-                            "Currently extensions can only be suggested for moment matrices.");
+                throw BadParameter{"Currently extensions can only be suggested for moment matrices."};
             }
             return {matrix, *mmPtr};
         }
@@ -60,8 +58,7 @@ namespace Moment::mex::functions  {
         const MatrixSystem& matrixSystem = *matrixSystemPtr;
         const auto* imsPtr = dynamic_cast<const Inflation::InflationMatrixSystem*>(&matrixSystem);
         if (imsPtr == nullptr) {
-            throw_error(matlabEngine, errors::bad_param,
-                        "Supplied system key was not to an inflation matrix system.");
+            throw BadParameter{"Supplied system key was not to an inflation matrix system."};
         }
         const auto& inflationMatrixSystem = *imsPtr;
 

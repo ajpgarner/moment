@@ -9,7 +9,7 @@
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "function_list.h"
 
 #include "utilities/io_parameters.h"
@@ -84,4 +84,7 @@ namespace Moment::mex {
                               const IOArgumentRange& outputs,
                               const SortedInputs& inputs);
     };
+
+
+
 }

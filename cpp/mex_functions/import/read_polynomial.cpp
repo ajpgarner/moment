@@ -7,7 +7,7 @@
 
 #include "read_polynomial.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "symbolic/polynomial_factory.h"
 #include "symbolic/symbol_table.h"
@@ -24,7 +24,7 @@ namespace Moment::mex {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << fieldName << " should be provided as a cell array.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
@@ -33,7 +33,7 @@ namespace Moment::mex {
         if ((num_elems < 1) || (num_elems > 3)) {
             std::stringstream errSS;
             errSS << fieldName << " should have 1, 2 or 3 elements.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         raw_sc_data output;
@@ -61,7 +61,7 @@ namespace Moment::mex {
         if (input.getType() != matlab::data::ArrayType::CELL) {
             std::stringstream errSS;
             errSS << fieldName << " should be provided as a cell array.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
 
         // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
@@ -91,7 +91,7 @@ namespace Moment::mex {
                 std::stringstream elemSS;
                 elemSS << "Polynomial element #" << (idx + 1) << " contains symbol '" << datum.symbol_id
                        << "', which is out of range.";
-                throw_error(matlabEngine, errors::bad_param, elemSS.str());
+                throw BadParameter{elemSS.str()};
             }
         }
         ++idx;

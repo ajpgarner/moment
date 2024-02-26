@@ -69,7 +69,7 @@ namespace Moment::mex::functions {
             if (!(asString.value() == u"auto")) {
                 std::stringstream errSS;
                 errSS << paramName << " must either be an array of symbol IDs, or the string 'auto'.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             } else {
                 this->extensions.clear();
                 this->extension_type = ExtensionType::Automatic;
@@ -111,7 +111,7 @@ namespace Moment::mex::functions {
         // Get inflation matrix system
         auto * inflationSystemPtr = dynamic_cast<Inflation::InflationMatrixSystem*>(&system);
         if (nullptr == inflationSystemPtr) {
-            throw_error(this->matlabEngine, errors::bad_param, "Matrix system reference was not an inflation scenario");
+            throw BadParameter{"Matrix system reference was not an inflation scenario"};
         }
         auto& inflationSystem = *inflationSystemPtr;
 
@@ -129,7 +129,7 @@ namespace Moment::mex::functions {
                 if (sym_id >= symbol_count) {
                     std::stringstream errSS;
                     errSS << "Symbol with ID \"" << sym_id << "\" was not found in matrix system's symbol table.";
-                    throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                    throw BadParameter{errSS.str()};
                 }
             }
 

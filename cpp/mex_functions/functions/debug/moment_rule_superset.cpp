@@ -43,13 +43,13 @@ namespace Moment::mex::functions  {
         const auto& rulebook_A = [&]() -> const MomentRulebook& {
             try { return matrixSystem.Rulebook(input.ruleset_A_index); }
             catch (const Moment::errors::missing_component& mce) {
-                throw_error(this->matlabEngine, errors::bad_param, "Rulebook A not found.");
+                throw BadParameter{"Rulebook A not found."};
             }
         }();
         const auto& rulebook_B = [&]() -> const MomentRulebook& {
             try { return matrixSystem.Rulebook(input.ruleset_B_index); }
             catch (const Moment::errors::missing_component& mce) {
-                throw_error(this->matlabEngine, errors::bad_param, "Rulebook B not found.");
+                throw BadParameter{"Rulebook B not found."};
             }
         }();
 

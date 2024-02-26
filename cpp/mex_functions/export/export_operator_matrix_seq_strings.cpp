@@ -29,7 +29,7 @@
 #include "utilities/format_factor.h"
 #include "utilities/utf_conversion.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "mex.hpp"
 
@@ -223,12 +223,10 @@ namespace Moment::mex {
                 ++readIter;
             }
             if (writeIter != outputArray.end()) {
-                throw_error(engine, errors::internal_error,
-                            "export_symbol_matrix index count mismatch: too few input elements.");
+                throw InternalError{"export_symbol_matrix index count mismatch: too few input elements."};
             }
             if (readIter != formatView.end()) {
-                throw_error(engine, errors::internal_error,
-                            "export_symbol_matrix index count mismatch: too many input elements.");
+                throw InternalError{"export_symbol_matrix index count mismatch: too many input elements."};
             }
 
             return outputArray;

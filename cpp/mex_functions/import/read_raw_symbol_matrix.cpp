@@ -51,7 +51,7 @@ namespace Moment::mex {
 
                 for (size_t col = 0; col < matrix_dimension; ++col) {
                     for (size_t row = 0; row < matrix_dimension; ++row) {
-                        data.push_back(read_symbol_or_fail(this->engine, input_matrix, row, col));
+                        data.push_back(read_symbol_or_fail(input_matrix, row, col));
                     }
                 }
 

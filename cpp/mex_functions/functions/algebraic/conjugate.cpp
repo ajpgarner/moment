@@ -38,7 +38,7 @@ namespace Moment::mex::functions {
                         read_integer_array<oper_name_t>(matlabEngine, "Operator string", str));
                 for (auto &op: this->operator_string.back()) {
                     if (op < 1) {
-                        throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
+                        throw BadParameter{"Operator must be a positive integer."};
                     }
                     op -= 1;
                 }
@@ -49,7 +49,7 @@ namespace Moment::mex::functions {
                     read_integer_array<oper_name_t>(matlabEngine, "Operator string", inputs[1]));
             for (auto &op: this->operator_string.back()) {
                 if (op < 1) {
-                    throw_error(matlabEngine, errors::bad_param, "Operator must be a positive integer.");
+                    throw BadParameter{"Operator must be a positive integer."};
                 }
                 op -= 1;
             }
@@ -167,7 +167,7 @@ namespace Moment::mex::functions {
                     errSS << " of entry " << index;
                 }
                 errSS << " is out of range.";
-                throw_error(this->matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
             ++idx;
         }

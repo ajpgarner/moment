@@ -55,7 +55,7 @@ namespace Moment::mex::functions {
 
         const size_t index_count = this->indices.size();
         if (index_count > this->dimensions.size()) {
-            throw_error(matlabEngine, errors::bad_param, "Cannot specify more index arrays than object dimensions.");
+            throw BadParameter{"Cannot specify more index arrays than object dimensions."};
         }
 
         // Final index can act as a partial offset
@@ -73,7 +73,7 @@ namespace Moment::mex::functions {
                     if  (x >= max_val) {
                         std::stringstream errSS;
                         errSS << "Index '" << x << "' in dimension " << (dim+1) << " is out of range";
-                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                        throw BadParameter{errSS.str()};
                     }
                 }
             }
@@ -86,7 +86,7 @@ namespace Moment::mex::functions {
                     if ((x < 1) || (x > max_val)) {
                         std::stringstream errSS;
                         errSS << "Index '" << x << "' in dimension " << (dim+1) << " is out of range";
-                        throw_error(matlabEngine, errors::bad_param, errSS.str());
+                        throw BadParameter{errSS.str()};
                     }
                     x -= 1;
                 }

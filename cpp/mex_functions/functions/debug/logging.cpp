@@ -36,10 +36,10 @@ namespace Moment::mex::functions {
         switch (this->instruction) {
             case Instruction::SetFile: {
                 if (this->inputs.size() != 2) {
-                    throw_error(matlabEngine, errors::too_few_inputs, "Log file must be specified.");
+                    throw InputCountException{"logging", 2, 2, this->inputs.size(),
+                                              "Log file must be specified."};
                 }
                 this->filename = this->read_filename(this->inputs[1]);
-
                 break;
             }
             case Instruction::Output:
@@ -54,7 +54,7 @@ namespace Moment::mex::functions {
     std::string LoggingParams::read_filename(const matlab::data::Array& input) {
         auto maybe_fn = read_as_utf8(input);
         if (!maybe_fn.has_value()) {
-            throw_error(matlabEngine, errors::bad_param, "Log filename must be given as a string.");
+            throw BadParameter{"Log filename must be given as a string."};
         }
         return maybe_fn.value();
     }
@@ -74,8 +74,8 @@ namespace Moment::mex::functions {
                 case LoggingParams::Instruction::Off:
                 case LoggingParams::Instruction::SetFile:
                 case LoggingParams::Instruction::SetMemory:
-                    throw_error(this->matlabEngine, errors::too_many_outputs,
-                                "Output only available for info and output subfunctions.");
+                    throw OutputCountException{"logging", 0, 0, output.size(),
+                                               "Output only available for info and output subfunctions."};
                 default:
                     break;
             }
@@ -105,7 +105,7 @@ namespace Moment::mex::functions {
                 this->clear();
                 break;
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Unknown logging instruction.");
+                throw InternalError{"Unknown logging instruction."};
         }
     }
 
@@ -161,13 +161,14 @@ namespace Moment::mex::functions {
 
     void Logging::output_to_file(IOArgumentRange& output, const std::string& filename) {
         if (output.size() > 0) {
-            throw_error(matlabEngine, errors::too_many_outputs, "No output is returned to matlab if a filename is provided.");
+            throw OutputCountException{"logging", 0, 0, output.size(),
+                                       "No output is returned to matlab if a filename is provided."};
         }
 
         // Get current logger
         auto log_ptr = this->storageManager.Logger.get();
         if (log_ptr->is_trivial()) {
-            throw_error(matlabEngine, errors::bad_param, "Logging is not enabled.");
+            throw InternalError{"Logging is not enabled."};
         }
 
         // Do write to file

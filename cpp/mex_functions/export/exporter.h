@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "errors.h"
+
 #include "MatlabDataArray.hpp"
 
 namespace matlab::engine {
@@ -42,10 +44,13 @@ namespace Moment::mex {
         }
 
     private:
-        [[noreturn]] void report_too_small_output() const;
+        [[noreturn]] static void report_too_small_output() {
+            throw InternalError{"End of output unexpectedly encountered before read was finished."};
+        }
 
-        [[noreturn]] void report_too_small_input() const;
-
+        [[noreturn]] static void report_too_small_input() {
+            throw InternalError{"End of input unexpectedly encountered before write was finished."};
+        }
     };
 
     class ExporterWithFactory : public Exporter {

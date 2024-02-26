@@ -7,7 +7,7 @@
 
 #include "algebraic_operand.h"
 
-#include "error_codes.h"
+#include "errors.h"
 #include "eigen/read_eigen_dense.h"
 
 #include "matrix/value_matrix.h"
@@ -49,7 +49,7 @@ namespace Moment::mex {
             case matlab::data::ArrayType::UNKNOWN: {
                 std::stringstream ss;
                 ss << name << " was not a valid operand.";
-                throw_error(matlabEngine, errors::bad_param, ss.str());
+                throw BadParameter{ss.str()};
             }
             return;
         }
@@ -73,7 +73,7 @@ namespace Moment::mex {
         this->shape.reserve(dimensions.size());
         std::copy(dimensions.cbegin(), dimensions.cend(), std::back_inserter(this->shape));
         if (this->shape.size() != 2) {
-            throw_error(this->matlabEngine, errors::bad_param, "Numeric data input must be scalar or matrix.");
+            throw BadParameter{"Numeric data input must be scalar or matrix."};
         }
 
         // Real, or complex?
@@ -124,7 +124,7 @@ namespace Moment::mex {
             if ((contained_object.getType() != matlab::data::ArrayType::CELL)) {
                 std::stringstream errSS;
                 errSS << name << " element " << (outer_index+1) << " was not a cell array.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
 
             // Try to guess type from this object, if not yet determined.
@@ -151,7 +151,7 @@ namespace Moment::mex {
                 this->parse_as_operator_cell(cell_input);
                 break;
             default:
-                throw_error(matlabEngine, errors::internal_error, "Bad deduced format.");
+                throw InternalError{"Bad deduced format."};
         }
     }
 
@@ -168,7 +168,7 @@ namespace Moment::mex {
             std::stringstream errSS;
             errSS << name << " element " << (outer_index+1)
                   << ", sub-element 1 should be a non-empty cell array.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         matlab::data::CellArray leading_as_cell = leading_element;
 
@@ -181,7 +181,7 @@ namespace Moment::mex {
             default: {
                 std::stringstream errSS;
                 errSS << name << "{" << (outer_index+1) << "}{1}{1} must be either int64 or uint64.";
-                throw_error(matlabEngine, errors::bad_param, errSS.str());
+                throw BadParameter{errSS.str()};
             }
         }
     }
@@ -233,7 +233,7 @@ namespace Moment::mex {
 
         const size_t expected_elements = input.getNumberOfElements();
         if (expected_elements == 0) {
-            throw_error(matlabEngine, errors::bad_param, "Operand was empty, but non-empty operand was expected.");
+            throw BadParameter{"Operand was empty, but non-empty operand was expected."};
         }
 
         // Prepare Polynomial object with data
@@ -286,7 +286,7 @@ namespace Moment::mex {
 
     const SymbolicMatrix& AlgebraicOperand::to_matrix(const MatrixSystem& matrixSystem) const {
         if (this->type != InputType::MatrixID) {
-            throw_error(matlabEngine, errors::internal_error, "Operand was not a matrix ID.");
+            throw InternalError{"Operand was not a matrix ID."};
         }
 
         // Get matrix, or throw
@@ -294,7 +294,7 @@ namespace Moment::mex {
         if (matrixSystem.size() <= matrix_id) {
             std::stringstream errSS;
             errSS << "Matrix with ID '" << matrix_id << "' is out of range.";
-            throw_error(matlabEngine, errors::bad_param, errSS.str());
+            throw BadParameter{errSS.str()};
         }
         return matrixSystem[matrix_id];
     }
@@ -332,7 +332,7 @@ namespace Moment::mex {
                 // Error if no data
                 const auto& polys = this->raw_symbol_cell_data();
                 if (polys.empty()) {
-                    throw_error(matlabEngine, errors::bad_param, "Polynomial input array was empty.");
+                    throw BadParameter{"Polynomial input array was empty."};
                 }
                 const auto& first_poly_raw = polys.front();
 
@@ -347,7 +347,7 @@ namespace Moment::mex {
                 // Error if no data:
                 auto& staging_polys = this->raw_operator_cell_data();
                 if (staging_polys.empty()) {
-                    throw_error(matlabEngine, errors::internal_error, "Polynomial input array was empty.");
+                    throw InternalError{"Polynomial input array was empty."};
                 }
 
                 auto& the_poly = staging_polys.front();
@@ -379,7 +379,7 @@ namespace Moment::mex {
             case 5: {
                 const auto& matrix = std::get<5>(this->raw);
                 if (matrix.size() < 1) {
-                    throw_error(matlabEngine, errors::internal_error, "Input array was unexpectedly empty.");
+                    throw InternalError{"Input array was unexpectedly empty."};
                 }
                 auto val = matrix.coeff(0, 0);
                 return scalar_poly(val, poly_factory.zero_tolerance);
@@ -389,14 +389,14 @@ namespace Moment::mex {
             case 6: {
                 const auto& matrix = std::get<6>(this->raw);
                 if (matrix.size() < 1) {
-                    throw_error(matlabEngine, errors::internal_error, "Input array was unexpectedly empty.");
+                    throw InternalError{"Input array was unexpectedly empty."};
                 }
                 auto val = matrix.coeff(0, 0);
                 return scalar_poly(val, poly_factory.zero_tolerance);
             }
 
             default:
-                throw_error(matlabEngine, errors::internal_error, "Operand cannot be interpreted as a polynomial.");
+                throw InternalError{"Operand cannot be interpreted as a polynomial."};
         }
     }
 
@@ -465,7 +465,7 @@ namespace Moment::mex {
             } break;
 
         default:
-            throw_error(matlabEngine, errors::internal_error, "Operand cannot be interpreted as a polynomial array.");
+            throw InternalError{"Operand cannot be interpreted as a polynomial array."};
         }
 
         return output;
@@ -481,7 +481,7 @@ namespace Moment::mex {
                 // Error if no data
                 const auto& polys = this->raw_symbol_cell_data();
                 if (polys.empty()) {
-                    throw_error(matlabEngine, errors::bad_param, "Polynomial input array was empty.");
+                    throw InternalError{"Polynomial input array was empty."};
                 }
                 const auto& first_poly_raw = polys.front();
 
@@ -494,7 +494,7 @@ namespace Moment::mex {
                 // Error if no data:
                 auto& staging_polys = this->raw_operator_cell_data();
                 if (staging_polys.empty()) {
-                    throw_error(matlabEngine, errors::internal_error, "Polynomial input array was empty.");
+                    throw InternalError{"Polynomial input array was empty."};
                 }
 
                 auto& the_poly = staging_polys.front();
@@ -519,7 +519,7 @@ namespace Moment::mex {
             case 5: {
                 const auto& matrix = std::get<5>(this->raw);
                 if (matrix.size() < 1) {
-                    throw_error(matlabEngine, errors::internal_error, "Input array was unexpectedly empty.");
+                    throw InternalError{"Input array was unexpectedly empty."};
                 }
                 auto val = matrix.coeff(0, 0);
                 return scalar_raw_poly(context, val, poly_factory.zero_tolerance);
@@ -529,14 +529,14 @@ namespace Moment::mex {
             case 6: {
                 const auto& matrix = std::get<6>(this->raw);
                 if (matrix.size() < 1) {
-                    throw_error(matlabEngine, errors::internal_error, "Input array was unexpectedly empty.");
+                    throw InternalError{"Input array was unexpectedly empty."};
                 }
                 auto val = matrix.coeff(0, 0);
                 return scalar_raw_poly(context, val, poly_factory.zero_tolerance);
             }
 
             default:
-                throw_error(matlabEngine, errors::internal_error, "Operand cannot be interpreted as a raw polynomial.");
+                throw InternalError{"Operand cannot be interpreted as a raw polynomial."};
         }
     }
 
@@ -600,7 +600,7 @@ namespace Moment::mex {
             } break;
 
         default:
-            throw_error(matlabEngine, errors::internal_error, "Operand cannot be interpreted as a raw polynomial.");
+            throw InternalError{"Operand cannot be interpreted as a raw polynomial."};
         }
 
         return output;
@@ -634,8 +634,7 @@ namespace Moment::mex {
                 return std::make_unique<ValueMatrix>(context, symbols, poly_factory.zero_tolerance,
                                                      std::get<6>(this->raw), desc);
             default:
-                throw_error(this->matlabEngine, errors::internal_error,
-                            "Only numeric input data can be parsed into a value matrix.");
+                throw InternalError{"Only numeric input data can be parsed into a value matrix."};
         }
     }
 

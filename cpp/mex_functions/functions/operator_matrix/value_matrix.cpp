@@ -57,7 +57,7 @@ namespace Moment::mex::functions  {
     void ValueMatrixParams::load_numeric_array(const matlab::data::Array& input) {
         // Ensure data is matrix
         if (input.getDimensions().size() != 2) {
-            throw_error(this->matlabEngine, errors::bad_param, "Data was not a matrix.");
+            throw BadParameter{"Data was not a matrix."};
         }
 
         // Ensure data is numeric
@@ -70,7 +70,7 @@ namespace Moment::mex::functions  {
             case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE:
                 break; // ok
             default:
-                throw_error(this->matlabEngine, errors::bad_param, "Data was not numeric.");
+                throw BadParameter{"Data was not numeric."};
         }
 
         // Load data
@@ -84,7 +84,7 @@ namespace Moment::mex::functions  {
             case AlgebraicOperand::InputType::ComplexNumberArray:
                 break; // ok
             default:
-                throw_error(this->matlabEngine, errors::internal_error, "Numeric data was not correctly parsed!");
+                throw InternalError{"Numeric data was not correctly parsed!"};
         }
 
     }

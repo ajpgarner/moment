@@ -6,7 +6,7 @@
  */
 #include "export_eigen_sparse.h"
 
-#include "error_codes.h"
+#include "errors.h"
 
 #include "utilities/make_sparse_matrix.h"
 #include "utilities/reporting.h"

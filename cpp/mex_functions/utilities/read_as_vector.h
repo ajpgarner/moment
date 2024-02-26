@@ -15,23 +15,19 @@
 
 namespace Moment::mex {
 
-    namespace errors {
-        /** Exception thrown by failed read_as_[...] functions */
-        class unreadable_vector : public std::runtime_error {
-        public:
-            std::string errCode;
-        public:
-            explicit unreadable_vector(std::string errCode, const std::string &what)
-                    : std::runtime_error(what), errCode{std::move(errCode)} {}
-        };
+    class unreadable_vector : public std::runtime_error {
+    public:
+        std::string errCode;
+    public:
+        explicit unreadable_vector(std::string errCode, const std::string &what)
+                : std::runtime_error(what), errCode{std::move(errCode)} {}
+    };
 
-        [[noreturn]] void throw_unreadable_vector(const std::string &paramName,
-                                                         const unreadable_vector& urv);
+    [[noreturn]] void throw_unreadable_vector(const std::string &paramName, const unreadable_vector& urv);
 
-        [[noreturn]] void throw_not_castable_to_vector(const std::string& paramName);
+    [[noreturn]] void throw_not_castable_to_vector(const std::string& paramName);
 
-        [[noreturn]] void throw_under_min_vector(const std::string &paramName, uint64_t min_value);
-    }
+    [[noreturn]] void throw_under_min_vector(const std::string &paramName, uint64_t min_value);
 
     [[nodiscard]] std::vector<int16_t> read_as_int16_vector(matlab::engine::MATLABEngine& engine,
                                                               const matlab::data::Array& input);
@@ -127,19 +123,19 @@ namespace Moment::mex {
                                                    const std::string& paramName, const matlab::data::Array& array,
                                                    int_t min_value = 0)  {
         if (!castable_to_vector_int(array)) {
-            errors::throw_not_castable_to_vector(paramName);
+            throw_not_castable_to_vector(paramName);
         }
 
         try {
             auto vec = read_as_vector<int_t>(matlabEngine, array);
             for (const auto& val : vec) {
                 if (val < min_value) {
-                    errors::throw_under_min_vector(paramName, min_value);
+                    throw_under_min_vector(paramName, min_value);
                 }
             }
             return vec;
-        } catch (const errors::unreadable_vector& use) {
-            errors::throw_unreadable_vector(paramName, use);
+        } catch (const unreadable_vector& use) {
+            throw_unreadable_vector(paramName, use);
         }
     }
 
@@ -149,19 +145,19 @@ namespace Moment::mex {
                                                                    const matlab::data::Array& array,
                                                                    size_t min_value)  {
         if (!castable_to_vector_int(array)) {
-            errors::throw_not_castable_to_vector(paramName);
+            throw_not_castable_to_vector(paramName);
         }
 
         try {
             std::vector<size_t> vec = read_as_size_t_vector(matlabEngine, array);
             for (const size_t val : vec) {
                 if (val < min_value) {
-                    errors::throw_under_min_vector(paramName, min_value);
+                    throw_under_min_vector(paramName, min_value);
                 }
             }
             return vec;
-        } catch (const errors::unreadable_vector& use) {
-            errors::throw_unreadable_vector(paramName, use);
+        } catch (const unreadable_vector& use) {
+            throw_unreadable_vector(paramName, use);
         }
     }
 
@@ -178,12 +174,12 @@ namespace Moment::mex {
                                                  const std::string& paramName, const matlab::data::Array& array) {
 
         if (!castable_to_vector_int(array)) {
-            errors::throw_not_castable_to_vector(paramName);
+            throw_not_castable_to_vector(paramName);
         }
         try {
             return read_as_vector<int_t>(matlabEngine, array);
-        } catch (const errors::unreadable_vector& use) {
-            errors::throw_unreadable_vector(paramName, use);
+        } catch (const unreadable_vector& use) {
+            throw_unreadable_vector(paramName, use);
         }
     }
 

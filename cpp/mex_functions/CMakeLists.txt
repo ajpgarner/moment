@@ -8,6 +8,7 @@ include_directories(${Moment_SOURCE_DIR}/cpp/mex_functions)
 matlab_add_mex(NAME moment_mex
         SRC
             environmental_variables.cpp
+            errors.cpp
             function_list.cpp
             mex_entry.cpp
             mtk_function.cpp
@@ -30,7 +31,6 @@ matlab_add_mex(NAME moment_mex
             export/export_polynomial_tensor.cpp
             export/export_probability_tensor.cpp
             export/export_symbol_table.cpp
-            export/exporter.cpp
             export/full_monomial_specification.cpp
             import/algebraic_operand.cpp
             import/matrix_system_id.cpp

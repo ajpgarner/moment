@@ -6,6 +6,8 @@
  */
 #include "complete.h"
 
+#include "errors.h"
+
 #include "scenarios/algebraic/algebraic_precontext.h"
 #include "scenarios/algebraic/name_table.h"
 #include "scenarios/algebraic/operator_rulebook.h"
@@ -101,8 +103,7 @@ namespace Moment::mex::functions {
 
         // Check we have positive number of operators in our system
         if (this->max_operators == 0) {
-            throw_error(this->matlabEngine, errors::bad_param,
-                        "Cannot automatically infer operator count.");
+            throw BadParameter{"Cannot automatically infer operator count."};
         }
         assert(this->apc);
 
@@ -165,7 +166,7 @@ namespace Moment::mex::functions {
             try {
                 return rules.complete(input.max_attempts, logger.get());
             } catch (std::exception& e) {
-                throw_error(this->matlabEngine, errors::bad_param, e.what());
+                throw BadParameter{e.what()};
             }
         }();
 
