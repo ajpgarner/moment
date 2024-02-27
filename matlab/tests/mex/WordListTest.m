@@ -53,7 +53,7 @@ classdef WordListTest < MTKTestBase
                 ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('word_list', ms_id+1, 5);
             end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+            testCase.verifyError(@() no_in(), 'mtk:storage_error');
         end
     end
 end

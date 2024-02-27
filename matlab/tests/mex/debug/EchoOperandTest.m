@@ -149,14 +149,14 @@ classdef EchoOperandTest < MTKTestBase
             function bad_echo()
                 [~] = mtk('echo_operand', 1234, 13);
             end
-            testCase.verifyError(@() bad_echo(), 'mtk:bad_signature');
+            testCase.verifyError(@() bad_echo(), 'mtk:storage_error');
         end
         function Error_BadMatrixKey3(testCase)
             ref_id = mtk('algebraic_matrix_system', 2);
             function bad_echo()
                 [~] = mtk('echo_operand', ref_id+1, 13);
             end
-            testCase.verifyError(@() bad_echo(), 'mtk:bad_param');
+            testCase.verifyError(@() bad_echo(), 'mtk:storage_error');
         end
     end
 end

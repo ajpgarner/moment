@@ -84,7 +84,7 @@
                               'reference_id', system_id, ...
                               'level', -1);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
         end
       
         function Error_BadLevel3(testCase)
@@ -104,7 +104,7 @@
                               'reference_id', system_id, ...
                               'level', "-1");
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
         end
         
         function Error_TooManyInputs(testCase)

@@ -231,7 +231,7 @@ classdef CreateMomentRulesTest < MTKTestBase
                 ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~] = mtk('create_moment_rules', ref_id+1, {});
             end
-            testCase.verifyError(@() bad_call(), 'mtk:bad_param');
+            testCase.verifyError(@() bad_call(), 'mtk:storage_error');
         end
         
         function Error_SymbolNotFound_SubList(testCase)

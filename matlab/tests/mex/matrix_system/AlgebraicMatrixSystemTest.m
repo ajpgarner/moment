@@ -101,7 +101,7 @@ classdef AlgebraicMatrixSystemTest < MTKTestBase
                 ref_id = mtk('algebraic_matrix_system', ...
                     -1, {{[1 1], 1}});
             end
-            testCase.verifyError(@() no_in(), 'mtk:negative_value');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadOpCount2(testCase)

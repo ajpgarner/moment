@@ -60,7 +60,7 @@ classdef InflationMatrixSystemTest < MTKTestBase
                 ref_id = mtk('inflation_matrix_system', ...
                             [2 -1], {[1 2]}, 1);
             end
-            testCase.verifyError(@() no_in(), 'mtk:negative_value');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadObservable2(testCase)
@@ -68,7 +68,7 @@ classdef InflationMatrixSystemTest < MTKTestBase
                 ref_id = mtk('inflation_matrix_system', ...
                             ["Bad", "Source"], {[1 2]}, 1);
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
          
         function Error_BadSource1(testCase)
@@ -76,7 +76,7 @@ classdef InflationMatrixSystemTest < MTKTestBase
                 ref_id = mtk('inflation_matrix_system', ...
                             [2 2], {["Bad"]}, 1);
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
       
         function Error_BadSource2(testCase)

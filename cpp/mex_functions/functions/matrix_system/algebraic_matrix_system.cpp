@@ -103,7 +103,7 @@ namespace Moment::mex::functions {
             std::string errStr{"Please supply either named parameters; "};
             errStr += " \"number of operators\",";
             errStr += " or \"number of operators, cell array of rules\".";
-            throw BadParameter{errStr};
+            throw InputCountException{"algebraic_matrix_system", 1, 3, 0, errStr};
         }
 
         this->readOperatorSpecification(matlabEngine, inputs[0], "Number of operators");
@@ -119,23 +119,19 @@ namespace Moment::mex::functions {
 
     void AlgebraicMatrixSystemParams::getFromParams(matlab::engine::MATLABEngine &matlabEngine) {
         // Read number of operators
-        auto oper_param = params.find(u"operators");
-        if (oper_param == params.end()) {
-            throw BadParameter{"Missing \"operators\" parameter."};
-        }
-        this->readOperatorSpecification(matlabEngine, oper_param->second, "Parameter 'operators'");
+        this->find_and_parse_or_throw(u"operators", [this, &matlabEngine](matlab::data::Array& operator_param) {
+            this->readOperatorSpecification(matlabEngine, operator_param, "Parameter 'operators'");
+        });
 
-        auto rules_param = params.find(u"rules");
-        if (rules_param == params.end()) {
-            return;
-        }
+        // Read supplied rules
+        this->find_and_parse(u"rules", [this, &matlabEngine](matlab::data::Array& rules_param) {
+            assert(this->names);
+            assert(this->apc);
 
-        assert(this->names);
-        assert(this->apc);
-
-        this->rules = read_monomial_rules(matlabEngine, rules_param->second,
-                                          "Parameter 'rules'", true, *this->apc, *this->names);
-        check_rule_length(matlabEngine, apc->hasher, this->rules);
+            this->rules = read_monomial_rules(matlabEngine, rules_param,
+                                              "Parameter 'rules'", true, *this->apc, *this->names);
+            check_rule_length(matlabEngine, apc->hasher, this->rules);
+        });
     }
 
     void AlgebraicMatrixSystemParams::readOperatorSpecification(matlab::engine::MATLABEngine &matlabEngine,

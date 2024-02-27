@@ -125,14 +125,14 @@ classdef SymbolTableTest < MTKTestBase
             function no_in()
                 [~] = mtk('symbol_table', "ugh");
             end
-            testCase.verifyError(@() no_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() no_in(), 'mtk:bad_param');
         end
         
         function Error_BadMatrixSystem2(testCase)
             function no_in()
                 [~] = mtk('symbol_table', 10);
             end
-            testCase.verifyError(@() no_in(), 'mtk:bad_signature');
+            testCase.verifyError(@() no_in(), 'mtk:storage_error');
         end
        
         function Error_BadMatrixSystem3(testCase)
@@ -140,7 +140,7 @@ classdef SymbolTableTest < MTKTestBase
                 ref_id = mtk('locality_matrix_system', 2, 2, 2);
                 [~] = mtk('symbol_table', ref_id+1);
             end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+            testCase.verifyError(@() no_in(), 'mtk:storage_error');
         end    
     end
 end

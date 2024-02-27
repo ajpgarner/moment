@@ -38,7 +38,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
                               'parties', -1, ...
                               'outcomes', 3);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
         end
         
         function Error_BadParties3(testCase)
@@ -75,7 +75,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
                               'measurements', "ab", ...
                               'outcomes', 3);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:could_not_convert');           
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');           
          end
         
          function Error_MissingOperators1(testCase)
@@ -125,7 +125,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
                               'parties', 2, ...
                               'outcomes', -3);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
          end
                 
          function Error_BadOperators2(testCase)
@@ -134,7 +134,7 @@ classdef LocalityMatrixSystemTest < MTKTestBase
                               'parties', 2, ...
                               'outcomes', "cd");
             end
-            testCase.verifyError(@() bad_in(), 'mtk:could_not_convert');
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
          end
                     
          function Error_BadInputsMix(testCase)
@@ -150,21 +150,21 @@ classdef LocalityMatrixSystemTest < MTKTestBase
             function bad_in()             
                ref_id = mtk('locality_matrix_system', -1, 1);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
          end
                    
          function Error_BadInputs2(testCase)
             function bad_in()             
                ref_id = mtk('locality_matrix_system', 1, -1);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
          end
          
          function Error_BadInputs3(testCase)
             function bad_in()             
                ref_id = mtk('locality_matrix_system', 1, 1, -1);
             end
-            testCase.verifyError(@() bad_in(), 'mtk:negative_value');
+            testCase.verifyError(@() bad_in(), 'mtk:bad_param');
          end
          
          function Error_TooManyInputs(testCase)

@@ -243,7 +243,7 @@ classdef GenerateBasisTest < MTKTestBase
                 
                 [~, ~] = mtk('generate_basis', sys_id+1, m_id);
             end
-            testCase.verifyError(@() bad_call(), 'mtk:bad_param');
+            testCase.verifyError(@() bad_call(), 'mtk:storage_error');
         end
         
         

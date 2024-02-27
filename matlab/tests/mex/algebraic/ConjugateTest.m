@@ -66,7 +66,7 @@ classdef ConjugateTest < MTKTestBase
                 ms_id = mtk('algebraic_matrix_system', 2);
                 [~] = mtk('conjugate', ms_id+1, [1 2]);
             end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');
+            testCase.verifyError(@() no_in(), 'mtk:storage_error');
         end
     end
 end

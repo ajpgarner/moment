@@ -66,7 +66,7 @@ classdef ApplyMomentRulesTest < MTKTestBase
                             ref_id, op_rules);
                [~] = mtk('apply_moment_rules', ref_id+1, rules_index, {});
             end
-            testCase.verifyError(@() no_in(), 'mtk:bad_param');           
+            testCase.verifyError(@() no_in(), 'mtk:storage_error');           
         end
    
         function Error_BadRules(testCase)
