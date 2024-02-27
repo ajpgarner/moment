@@ -34,6 +34,7 @@ namespace Moment::Tests {
 
             const auto &actual_seq = theMM(std::array<size_t,2>{row, col});
             EXPECT_EQ(actual_seq, ref_seq) << prefix << ", row = " << row << ", col = " << col;
+            EXPECT_TRUE(actual_seq.is_same_context(ref_seq)) << ", row = " << row << ", col = " << col;
             ++col;
             if (col >= dimension) {
                 col = 0;

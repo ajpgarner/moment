@@ -205,6 +205,9 @@ namespace Moment {
         }
 
         void generate_aliased_operator_sequence_matrix_generic() {
+            assert(this->bundle.os_data_ptr != nullptr);
+            assert(this->bundle.alias_data_ptr != nullptr);
+
             // Reset non-Hermitian information
             this->non_hermitian.reset();
 
@@ -214,7 +217,7 @@ namespace Moment {
 
                 // Diagonal element
                 const size_t diag_idx = (col_idx * row_length) + col_idx;
-                this->bundle.os_data_ptr[diag_idx] =
+                this->bundle.alias_data_ptr[diag_idx] =
                         context.simplify_as_moment(this->bundle.os_data_ptr[diag_idx]);
 
                 // Check for Hermiticity if not yet non-hermitian
@@ -229,7 +232,7 @@ namespace Moment {
                 for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
                     const size_t total_idx = (col_idx * row_length) + row_idx;
                     const size_t conj_idx  = (row_idx * row_length) + col_idx;
-                    // TODO: Avoid copy
+
                     this->bundle.alias_data_ptr[total_idx] =
                             context.simplify_as_moment(this->bundle.os_data_ptr[total_idx]);
                     this->bundle.alias_data_ptr[conj_idx] =
@@ -251,6 +254,7 @@ namespace Moment {
 
         void generate_aliased_operator_sequence_matrix_hermitian() {
             assert(this->bundle.os_data_ptr != nullptr);
+            assert(this->bundle.alias_data_ptr != nullptr);
 
             const auto& context = bundle.factory.context;
 
@@ -260,7 +264,7 @@ namespace Moment {
 
                 // Diagonal element
                 const size_t diag_idx = (col_idx * row_length) + col_idx;
-                this->bundle.os_data_ptr[diag_idx] =
+                this->bundle.alias_data_ptr[diag_idx] =
                         context.simplify_as_moment(this->bundle.os_data_ptr[diag_idx]);
 
                 for (size_t row_idx = col_idx+1; row_idx < row_length; ++row_idx) {
@@ -395,6 +399,7 @@ namespace Moment {
             if (this->factory.context.can_have_aliases()) {
                 aliased_data = OperatorSequence::create_uninitialized_vector(numel);
                 this->alias_data_ptr = aliased_data.data();
+                std::atomic_thread_fence(std::memory_order_release);
                 this->generate_aliased_operator_sequence_matrix();
 
                 auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension,

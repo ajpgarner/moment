@@ -115,6 +115,13 @@ namespace Moment {
         }
 
         /**
+         * True if supplied context matches
+         */
+        [[nodiscard]] inline bool is_same_context(const OperatorSequence& rhs) const noexcept {
+            return this->context == rhs.context;
+        }
+
+        /**
          * Adds a list of operators to the end of the sequence, then simplifies to canonical form.
          * Effectively, a type of multiplication.
          * @tparam iter_t Input iterator type

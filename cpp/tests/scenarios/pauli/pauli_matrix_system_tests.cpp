@@ -142,6 +142,51 @@ namespace Moment::Tests {
                                Monomial{sZ, 1.0}, Monomial{sY, i},   Monomial{sX, -i},  Monomial{1, 1.0}});
     }
 
+
+    TEST(Scenarios_Pauli_MatrixSystem, MomentMatrix_AliasedQubitMT) {
+        PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1, WrapType::None, SymmetryType::Translational)};
+        const auto& context = system.pauliContext;
+        ASSERT_EQ(context.wrap, WrapType::None);
+        ASSERT_EQ(context.translational_symmetry, SymmetryType::Translational);
+
+        const auto& mm1 = system.MomentMatrix(1, Multithreading::MultiThreadPolicy::Always);
+
+        EXPECT_EQ(mm1.Dimension(), 4);
+        ASSERT_TRUE(mm1.has_unaliased_operator_matrix());
+        const auto& mm_unaliased = mm1.unaliased_operator_matrix();
+        ASSERT_TRUE(mm1.has_aliased_operator_matrix());
+        const auto& mm_aliased = mm1.aliased_operator_matrix();
+        ASSERT_NE(&mm_unaliased, &mm_aliased);
+
+
+        // Utility functions, for defining operator matrix:
+        auto e = context.identity();
+        auto i = context.identity(SequenceSignType::Imaginary);
+        auto mi = context.identity(SequenceSignType::NegativeImaginary);
+        auto x =   [&context](oper_name_t n) { return context.sigmaX(n); };
+        auto y =   [&context](oper_name_t n) { return context.sigmaY(n); };
+        auto z =   [&context](oper_name_t n) { return context.sigmaZ(n); };
+        auto ix =  [&context](oper_name_t n) { return context.sigmaX(n, SequenceSignType::Imaginary); };
+        auto iy =  [&context](oper_name_t n) { return context.sigmaY(n, SequenceSignType::Imaginary); };
+        auto iz =  [&context](oper_name_t n) { return context.sigmaZ(n, SequenceSignType::Imaginary); };
+
+        // Check unaliased multiplication
+        compare_os_matrix("MM, Unaliased", mm_unaliased, 4,
+                          {e,     x(0),  y(0), z(0),
+                           x(0),     e, iz(0), -iy(0),
+                           y(0),-iz(0),     e, ix(0),
+                           z(0), iy(0),-ix(0), e});
+
+        // Check aliased multiplication
+        compare_os_matrix("MM, Aliased", mm_aliased, 4,
+                          {e,     x(0),  y(0), z(0),
+                           x(0),     e, iz(0), -iy(0),
+                           y(0),-iz(0),     e, ix(0),
+                           z(0), iy(0),-ix(0), e});
+
+    }
+
+
     TEST(Scenarios_Pauli_MatrixSystem, FiveQubitSymbolTable) {
         // Test replicating weird bug found by Mateus whereby anti-Hermitian symbols are erroneously generated.
 
@@ -269,6 +314,8 @@ namespace Moment::Tests {
                      Moment::errors::missing_component);
     }
 
+
+
     TEST(Scenarios_Pauli_MatrixSystem, Aliased_PolyLocalizingMatrix) {
         PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(4, WrapType::None, SymmetryType::Translational)};
         const auto& context = system.pauliContext;
@@ -353,13 +400,13 @@ namespace Moment::Tests {
         auto e = context.identity();
         auto i = context.identity(SequenceSignType::Imaginary);
         auto mi = context.identity(SequenceSignType::NegativeImaginary);
-        auto x =   [&context](size_t n) { return context.sigmaX(n); };
-        auto y =   [&context](size_t n) { return context.sigmaY(n); };
-        auto z =   [&context](size_t n) { return context.sigmaZ(n); };
-        auto my =  [&context](size_t n) { return context.sigmaY(n, SequenceSignType::Negative); };
-        auto mz =  [&context](size_t n) { return context.sigmaZ(n, SequenceSignType::Negative); };
-        auto iz =  [&context](size_t n) { return context.sigmaZ(n, SequenceSignType::Imaginary); };
-        auto miy = [&context](size_t n) { return context.sigmaY(n, SequenceSignType::NegativeImaginary); };
+        auto x =   [&context](oper_name_t n) { return context.sigmaX(n); };
+        auto y =   [&context](oper_name_t n) { return context.sigmaY(n); };
+        auto z =   [&context](oper_name_t n) { return context.sigmaZ(n); };
+        auto my =  [&context](oper_name_t n) { return context.sigmaY(n, SequenceSignType::Negative); };
+        auto mz =  [&context](oper_name_t n) { return context.sigmaZ(n, SequenceSignType::Negative); };
+        auto iz =  [&context](oper_name_t n) { return context.sigmaZ(n, SequenceSignType::Imaginary); };
+        auto miy = [&context](oper_name_t n) { return context.sigmaY(n, SequenceSignType::NegativeImaginary); };
 
         // Check unaliased multiplication
         compare_os_matrix("X0*MM, Unaliased", x0_mm_unaliased, 7, {
