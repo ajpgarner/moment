@@ -44,10 +44,10 @@ namespace Moment::mex {
                     return;
                 }
 
-                precision_start = std::chrono::high_resolution_clock::now();
-                event.emplace(functions::which_function_name(function_id),
-                              num_in, num_out,
-                              std::chrono::system_clock::now());
+                this->precision_start = std::chrono::high_resolution_clock::now();
+                this->event.emplace(functions::which_function_name(function_id),
+                                    num_in, num_out,
+                                    std::chrono::system_clock::now());
             }
 
             ~LogTrigger() {
@@ -59,7 +59,7 @@ namespace Moment::mex {
             }
 
             void reset() noexcept {
-                if (this->event.has_value()) {
+                if (!logger.is_trivial() && this->event.has_value()) {
                     this->end_timer();
                     logger.report_event(std::move(this->event.value()));
                     this->event.reset();
@@ -67,17 +67,25 @@ namespace Moment::mex {
             }
 
             void end_timer() {
+                if (logger.is_trivial() || !this->event.has_value()) {
+                    return;
+                }
+
                 auto precision_end = std::chrono::high_resolution_clock::now();
                 this->event->execution_time = precision_end - precision_start;
             }
 
             void report_success() noexcept {
-                this->event->success = true;
+                if (this->event.has_value()) {
+                    this->event->success = true;
+                }
             }
 
             void report_failure(std::string reason = "") noexcept {
-                this->event->success = false;
-                this->event->additional_info = std::move(reason);
+                if (this->event.has_value()) {
+                    this->event->success = false;
+                    this->event->additional_info = std::move(reason);
+                }
             }
         };
 
@@ -95,7 +103,7 @@ namespace Moment::mex {
 
         // Read and pop function name...
         functions::MTKEntryPointID function_id = get_function_id(inputs);
-        assert(function_id != functions::MTKEntryPointID::Unknown);
+        assert(function_id != functions::MTKEntryPointID::Unknown); // ^- will have thrown already...
 
         auto log_entry = LogTrigger{*this->logger,
                                     function_id, inputs.size(), outputs.size()};
@@ -147,6 +155,7 @@ namespace Moment::mex {
 
             (*the_function)(outputs, std::move(processed_inputs));
             log_entry.report_success();
+            // ~the_function
         } catch (const MomentMEXException& me) { // Errors that we expect to pass to MATLAB.
             log_entry.report_failure(me.what());
 
@@ -166,7 +175,7 @@ namespace Moment::mex {
             err.throw_to_MATLAB(*this->matlabPtr);
         }
 
-        // ~the_function, ~log_entry
+        // ~log_entry
     }
 
     functions::MTKEntryPointID MexMain::get_function_id(IOArgumentRange& inputs) {

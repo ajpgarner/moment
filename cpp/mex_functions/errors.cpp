@@ -118,7 +118,7 @@ namespace Moment::mex {
         std::vector<matlab::data::Array> errParams;
         errParams.emplace_back(factory.createScalar(this->error_code));
         errParams.emplace_back(factory.createScalar(this->error_msg));
-        engine.feval(u"error", 0, std::move(errParams));
+        engine.feval(u"error", 0, errParams);
 
         std::terminate(); // hint for compiler, should be unreachable.
     }
