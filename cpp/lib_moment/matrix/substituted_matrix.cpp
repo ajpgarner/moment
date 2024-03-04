@@ -75,7 +75,7 @@ namespace Moment {
     PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                                              const MonomialMatrix& the_source,
                                                              const Multithreading::MultiThreadPolicy mt_policy)
-         : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
+         : PolynomialMatrix{the_source.context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix(), mt_policy)},
            SubstitutedMatrix{the_source, msrb}  {
         this->description = this->make_name();
@@ -84,7 +84,7 @@ namespace Moment {
     PolynomialSubstitutedMatrix::PolynomialSubstitutedMatrix(SymbolTable& symbols, const MomentRulebook& msrb,
                                                              const PolynomialMatrix& the_source,
                                                              const Multithreading::MultiThreadPolicy mt_policy)
-         : PolynomialMatrix{context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
+         : PolynomialMatrix{the_source.context, assert_symbols(symbols, the_source), msrb.factory.zero_tolerance,
                             PolynomialSubstitutedMatrix::reduce(msrb, the_source.SymbolMatrix(), mt_policy)},
            SubstitutedMatrix{the_source, msrb} {
         this->description = this->make_name();
