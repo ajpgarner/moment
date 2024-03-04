@@ -33,8 +33,9 @@ namespace Moment::mex {
          * @param code Error identifier (without prefix).
          * @param what Error message.
          */
-        MomentMEXException(const std::string& code, const std::string& what)
-            : std::exception{what.c_str()}, error_code{apply_prefix(code)}, error_msg{what} { }
+        MomentMEXException(const std::string& code, std::string err_msg)
+            : std::exception{}, error_code{apply_prefix(code)}, error_msg{std::move(err_msg)} {
+        }
 
         /** Rethrow exception as MATLAB error, to be handled within MATLAB. */
         [[noreturn]] void throw_to_MATLAB(matlab::engine::MATLABEngine& engine) const;
@@ -42,6 +43,10 @@ namespace Moment::mex {
         /** Applies prefix to error code */
         [[nodiscard]] constexpr static std::string apply_prefix(const std::string& errCode) {
             return std::string(prefix) + errCode;
+        }
+
+        [[nodiscard]] const char* what() const noexcept final {
+            return this->error_msg.c_str();
         }
 
     };
