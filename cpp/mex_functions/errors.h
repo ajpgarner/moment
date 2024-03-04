@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <exception>
 #include <stdexcept>
 #include <string>
 
@@ -24,13 +25,16 @@ namespace Moment::mex {
         /** Error identifier */
         const std::string error_code;
 
+        /** Error message */
+        const std::string error_msg;
+
         /**
          * Exception, to be ultimately passed to MATLAB.
          * @param code Error identifier (without prefix).
          * @param what Error message.
          */
         MomentMEXException(const std::string& code, const std::string& what)
-            : std::exception{what.c_str()}, error_code{apply_prefix(code)} { }
+            : std::exception{what.c_str()}, error_code{apply_prefix(code)}, error_msg{what} { }
 
         /** Rethrow exception as MATLAB error, to be handled within MATLAB. */
         [[noreturn]] void throw_to_MATLAB(matlab::engine::MATLABEngine& engine) const;

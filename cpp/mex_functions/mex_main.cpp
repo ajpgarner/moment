@@ -151,6 +151,7 @@ namespace Moment::mex {
             log_entry.report_failure(me.what());
 
             // Rethrow (using MATLAB engine)
+            assert(this->matlabPtr);
             me.throw_to_MATLAB(*this->matlabPtr);
         } catch (const std::exception& e) { // Errors that we don't expect to pass to MATLAB, but will pass anyway.
             log_entry.report_failure(e.what());
@@ -161,6 +162,7 @@ namespace Moment::mex {
             InternalError err{errWhat.str()};
 
             // Rethrow (using MATLAB engine)
+            assert(this->matlabPtr);
             err.throw_to_MATLAB(*this->matlabPtr);
         }
 

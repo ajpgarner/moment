@@ -115,9 +115,10 @@ namespace Moment::mex {
 
     void MomentMEXException::throw_to_MATLAB(matlab::engine::MATLABEngine& engine) const {
         matlab::data::ArrayFactory factory;
-        engine.feval(u"error", 0,
-                     std::vector<matlab::data::Array>({factory.createScalar(this->error_code),
-                                                       factory.createScalar(this->what())}));
+        std::vector<matlab::data::Array> errParams;
+        errParams.emplace_back(factory.createScalar(this->error_code));
+        errParams.emplace_back(factory.createScalar(this->error_msg));
+        engine.feval(u"error", 0, std::move(errParams));
 
         std::terminate(); // hint for compiler, should be unreachable.
     }

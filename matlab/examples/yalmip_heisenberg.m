@@ -33,7 +33,7 @@ raw_am_H = setting.AnticommutatorMatrix(-0.5*H, lm_level, neighbours);
 raw_gamma = raw_lm_H + raw_am_H;
 
 % Get commutating constraints...
-monomials = setting.WordList(so_level);
+monomials = setting.WordList(so_level, neighbours);
 linear = commutator(monomials, H);
 
 moment_rules = MomentRulebook(setting, "Commutator constraints");
