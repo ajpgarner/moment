@@ -10,15 +10,18 @@ properties(GetAccess = public, SetAccess = protected)
 end
 
 properties(Dependent, GetAccess = public, SetAccess = private)
+    RuleCount       % Number of rules in book.
     SymbolCell      % Rules as cell array of symbol substitutions.
     Polynomials     % Rules as polynomials.
-    Strings         % Rules as strings    
+    Strings         % Rules as strings.
 end
 
 properties(Access=private)
+    cache_count
     cache_symbol_cell
     cache_polys
-    cache_strs;   
+    cache_strs;
+    has_count = false;
     has_symbol_cell = false;
     has_polys = false;
     has_strs = false;
@@ -79,6 +82,16 @@ end
 
 %% Getter methods
 methods
+    function val = get.RuleCount(obj)
+        if ~obj.has_count
+            [~, obj.cache_count] = ...
+                mtk('moment_rules', obj.Scenario.System.RefId, ...
+                    obj.Id, 'info');
+            obj.has_count = true;
+        end
+        val = obj.cache_count;
+    end
+    
     function val = get.SymbolCell(obj)
         if ~obj.has_symbol_cell
             obj.cache_symbol_cell = ...
@@ -110,10 +123,13 @@ methods
         val = obj.cache_strs;
     end
     
+    
     function invalidate_cached_rules(obj)
+         obj.cache_count = uint64.empty(1,0);
          obj.cache_symbol_cell = cell.empty(0, 1);
          obj.cache_polys = MTKPolynomial.empty(0, 1);
          obj.cache_strs = string.empty(0, 1);
+         obj.has_count = false;
          obj.has_symbol_cell = false;
          obj.has_polys = false;
          obj.cache_strs = false;
