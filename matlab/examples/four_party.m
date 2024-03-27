@@ -18,10 +18,11 @@ disp(setting.Symbols);
 disp(matrix.SymbolStrings);
 disp(matrix.SequenceStrings);
  
-a11 = setting.get([1, 1, 1]);
-b11 = setting.get([2, 1, 1]);
-c11 = setting.get([3, 1, 1]);
-d11 = setting.get([4, 1, 1]);
+% Show how to get various operators in locality scenario
+a11 = setting.getPMO([1, 1, 1]);
+b11 = setting.getPMO([2, 1, 1]);
+c11 = setting.getPMO([3, 1, 1]);
+d11 = setting.getPMO([4, 1, 1]);
 
 a11b11 = a11*b11;
 c11d11 = c11*d11;
@@ -31,8 +32,8 @@ b11d11 = b11*d11;
 a11b11c11d11_one = a11b11 * c11d11;
 a11b11c11d11_two = a11c11 * b11d11;
 
-small_joint = setting.get([[1 1]; [2 1]]);
-big_joint = setting.get([[1 1]; [2 1]; [3 1]; [4 1]]);
+small_joint = setting.getPMO([[1 1]; [2 1]]);
+big_joint = setting.getPMO([[1 1]; [2 1]; [3 1]; [4 1]]);
 
 as_tensor = big_joint.ImplicitOutcomes;
 disp(as_tensor.ObjectName);
