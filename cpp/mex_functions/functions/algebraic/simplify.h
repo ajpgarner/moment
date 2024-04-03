@@ -33,15 +33,11 @@ namespace Moment::mex::functions {
         /** Operators, as UTF-8 strings, if provided */
         std::vector<std::string> named_operators;
 
-        /** The data as polynomials */
-        std::vector<std::vector<raw_sc_data>> rawPolynomials;
-
         enum class InputType {
             Unknown,
             Numbers,
             NumbersArray,
-            String,
-            SymbolCell
+            String
         } input_type = InputType::Unknown;
 
         enum class OutputMode {
@@ -57,8 +53,6 @@ namespace Moment::mex::functions {
         [[nodiscard]] bool scalar_input() const noexcept { return this->input_type != InputType::NumbersArray; }
 
     private:
-        void parse_as_polynomial();
-
         void parse_as_operators();
     };
 
@@ -73,9 +67,6 @@ namespace Moment::mex::functions {
         void simplify_operator(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
 
         void simplify_operator_array(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
-
-        void simplify_polynomials(IOArgumentRange& output, SimplifyParams& input, const MatrixSystem& matrixSystem);
-
     };
 
 }

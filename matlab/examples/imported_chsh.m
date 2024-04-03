@@ -16,8 +16,8 @@ imported_mm = imported_scenario.ImportHermitianMatrix(mm_str);
 disp(imported_scenario.Symbols)
 
 %% Make inequality by manually specifying symbols
-chsh_ineq = imported_scenario.ImportPolynomial({{{1, 2.0}, {2, -4.0},...
-    {4, -4.0}, {7, 4.0}, {8, 4.0}, {9, 4.0}, {10, -4.0}}});
+chsh_ineq = imported_scenario.ImportPolynomial( ...
+    ["2.0", "-4#2", "-4#4", "4#7", "4#8", "4#9", "-4#10"]);
 
 %% Set-up and solve SDP
 mtk_solve(imported_mm, chsh_ineq)

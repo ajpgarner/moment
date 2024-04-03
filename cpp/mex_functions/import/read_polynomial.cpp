@@ -14,21 +14,14 @@
 
 #include "utilities/read_as_scalar.h"
 #include "utilities/reporting.h"
+#include "utilities/utf_conversion.h"
 
 
 namespace Moment::mex {
     [[nodiscard]] raw_sc_data
-    read_raw_monomial(matlab::engine::MATLABEngine& matlabEngine,
-                      const std::string& fieldName, const matlab::data::Array& input) {
-        // Input must be cell
-        if (input.getType() != matlab::data::ArrayType::CELL) {
-            std::stringstream errSS;
-            errSS << fieldName << " should be provided as a cell array.";
-            throw BadParameter{errSS.str()};
-        }
-
-        // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
-        const auto cell_input = static_cast<matlab::data::CellArray>(input);
+    read_raw_monomial_cell(matlab::engine::MATLABEngine& matlabEngine,
+                      const std::string& fieldName, const matlab::data::CellArray& cell_input) {
+        // Try to parse...
         size_t num_elems = cell_input.getNumberOfElements();
         if ((num_elems < 1) || (num_elems > 3)) {
             std::stringstream errSS;
@@ -52,35 +45,125 @@ namespace Moment::mex {
         return output;
     }
 
+    raw_sc_data
+    read_raw_monomial_string(matlab::engine::MATLABEngine& matlabEngine,
+                      const std::string& fieldName, const matlab::data::MATLABString& input) {
+
+        // If empty string, parse as zero
+        if (!input.has_value()) {
+            return {0, 0, false};
+        }
+
+        // Otherwise, attempt to read string
+        const std::string input_string{UTF16toUTF8Convertor::convert_as_ascii(*input)};
+        try {
+            Monomial as_monomial{input_string};
+            return raw_sc_data{static_cast<uint64_t>(as_monomial.id), as_monomial.factor, as_monomial.conjugated};
+        } catch (const Monomial::SymbolParseException& spe) {
+            // If parsing fails, report why
+            std::stringstream errSS;
+            errSS << fieldName << " could not be parsed: " << spe.what();
+            throw BadParameter{errSS.str()};
+        }
+    }
+
+    raw_sc_data read_raw_monomial(matlab::engine::MATLABEngine& matlabEngine,
+                                  const std::string& fieldName, const matlab::data::Array& input) {
+
+        switch (input.getType()) {
+            case matlab::data::ArrayType::CELL:
+                return read_raw_monomial_cell(matlabEngine, fieldName,
+                                              static_cast<matlab::data::CellArray>(input));
+            case matlab::data::ArrayType::MATLAB_STRING:
+                // Empty string array -> parse as zero.
+                if (input.isEmpty()) {
+                    return raw_sc_data{0, 0, false};
+                } else if (input.getNumberOfElements() == 1) {
+                    auto sa = static_cast<matlab::data::StringArray>(input);
+                    return read_raw_monomial_string(matlabEngine, fieldName, *sa.begin());
+                } else {
+                    std::stringstream errSS;
+                    errSS << fieldName << " should be provided as a cell or string.";
+                    throw BadParameter{errSS.str()};
+                }
+                break;
+            default: {
+                std::stringstream errSS;
+                errSS << fieldName << " should be provided as a cell array or string.";
+                throw BadParameter{errSS.str()};
+            }
+        }
+    }
+
+    namespace {
+        std::vector<raw_sc_data>
+        read_raw_polynomial_data_cell (matlab::engine::MATLABEngine& matlabEngine,
+                                       const std::string& fieldName,
+                                       const matlab::data::CellArray& cell_input) {
+            auto raw_elem_num = cell_input.getNumberOfElements();
+
+            // Prepare output
+            std::vector<raw_sc_data> output;
+            output.reserve(raw_elem_num);
+
+            // Read each individual expression
+            size_t index = 0;
+            for (const auto& elem : cell_input) {
+                std::stringstream elemSS;
+                elemSS << fieldName << " element #" << (index+1);
+                if (elem.getType() != matlab::data::ArrayType::CELL) {
+                    elemSS << " was not a cell array!";
+                    throw BadParameter{elemSS.str()};
+                }
+
+                output.emplace_back(read_raw_monomial_cell(matlabEngine, elemSS.str(), elem));
+                ++index;
+            }
+            return output;
+        }
+
+        std::vector<raw_sc_data>
+        read_raw_polynomial_data_string(matlab::engine::MATLABEngine& matlabEngine,
+                                        const std::string& fieldName,
+                                        const matlab::data::StringArray& string_input) {
+            auto raw_elem_num = string_input.getNumberOfElements();
+
+            // Prepare output
+            std::vector<raw_sc_data> output;
+            output.reserve(raw_elem_num);
+
+            // Read each individual expression...
+            size_t index = 0;
+            for (const auto& elem : string_input) {
+                std::stringstream elemSS;
+                elemSS << fieldName << " element #" << (index+1);
+                output.emplace_back(read_raw_monomial_string(matlabEngine, elemSS.str(), elem));
+                ++index;
+            }
+            return output;
+        }
+    }
+
 
     std::vector<raw_sc_data>
     read_raw_polynomial_data(matlab::engine::MATLABEngine &matlabEngine,
                              const std::string& fieldName,
                              const matlab::data::Array &input) {
-        // Input must be cell
-        if (input.getType() != matlab::data::ArrayType::CELL) {
-            std::stringstream errSS;
-            errSS << fieldName << " should be provided as a cell array.";
-            throw BadParameter{errSS.str()};
+
+        switch (input.getType()) {
+            case matlab::data::ArrayType::CELL:
+                return read_raw_polynomial_data_cell(matlabEngine, fieldName,
+                                                     static_cast<matlab::data::CellArray>(input));
+            case matlab::data::ArrayType::MATLAB_STRING:
+                return read_raw_polynomial_data_string(matlabEngine, fieldName,
+                                                      static_cast<matlab::data::StringArray>(input));
+            default: {
+                std::stringstream errSS;
+                errSS << fieldName << " should be provided as a cell or string array.";
+                throw BadParameter{errSS.str()};
+            }
         }
 
-        // Cast input to cell array [matlab says this will be a reference, not copy. We can hope...]
-        const auto cell_input = static_cast<matlab::data::CellArray>(input);
-        auto raw_elem_num = cell_input.getNumberOfElements();
-
-        // Prepare output
-        std::vector<raw_sc_data> output;
-        output.reserve(raw_elem_num);
-
-        // Read each individual expression
-        size_t index = 0;
-        for (const auto& elem : cell_input) {
-            std::stringstream elemSS;
-            elemSS << fieldName << " element #" << (index+1);
-            output.emplace_back(read_raw_monomial(matlabEngine, elemSS.str(), elem));
-            ++index;
-        }
-        return output;
     }
 
     void check_raw_polynomial_data(matlab::engine::MATLABEngine &matlabEngine, const SymbolTable &symbols,

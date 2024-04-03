@@ -28,14 +28,31 @@ namespace Moment::mex {
      */
     [[nodiscard]] std::vector<raw_sc_data>
     read_raw_polynomial_data(matlab::engine::MATLABEngine& engine,
-                             const std::string& fieldName, const matlab::data::Array& input);
+                             const std::string& fieldName,
+                             const matlab::data::Array& input);
 
     /**
      * Parse cell array into possible symbol expression.
      */
     [[nodiscard]] raw_sc_data
+    read_raw_monomial_cell(matlab::engine::MATLABEngine& engine,
+                           const std::string& fieldName, const matlab::data::CellArray& input);
+
+    /**
+     * Parse MATLAB string into possible symbol expression.
+     */
+    [[nodiscard]] raw_sc_data
+    read_raw_monomial_string(matlab::engine::MATLABEngine& engine,
+                             const std::string& fieldName, const matlab::data::MATLABString& input);
+
+    /**
+     * Parse array into possible symbol expression.
+     */
+    [[nodiscard]] raw_sc_data
     read_raw_monomial(matlab::engine::MATLABEngine& engine,
                       const std::string& fieldName, const matlab::data::Array& input);
+
+
 
     /**
      * Convert possible symbol combo data into an actual polynomial, using factory.

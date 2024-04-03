@@ -166,9 +166,18 @@ classdef ImportedScenario < MTKScenario
             error("Imported scenarios cannot create moment matrices.");
         end
         
-        function val = ImportPolynomial(obj, input)
+        function val = ImportPolynomial(obj, input, register_new)
         % IMPORTPOLYNOMIAL Construct MTKSymbolicObject from symbol cell
-            val = MTKSymbolicObject(obj, input);
+            if nargin < 3
+                register_new = false;
+            end
+            
+            extra_args = {};
+            if register_new
+                extra_args{end+1} = 'register';
+            end
+            
+            val = MTKSymbolicObject(obj, input, extra_args{:});                        
         end
     end    
 end

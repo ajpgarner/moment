@@ -9,6 +9,7 @@
 
 #include "functions/generate_basis.h"
 #include "functions/import_matrix.h"
+#include "functions/import_polynomial.h"
 #include "functions/lattice_symmetrize.h"
 #include "functions/make_representation.h"
 #include "functions/release.h"
@@ -82,6 +83,7 @@ namespace Moment::mex::functions {
             output.emplace("generate_basis",            MTKEntryPointID::GenerateBasis);
             output.emplace("list",                      MTKEntryPointID::List);
             output.emplace("import_matrix",             MTKEntryPointID::ImportMatrix);
+            output.emplace("import_polynomial",         MTKEntryPointID::ImportPolynomial);
             output.emplace("imported_matrix_system",    MTKEntryPointID::ImportedMatrixSystem);
             output.emplace("inflation_matrix_system",   MTKEntryPointID::InflationMatrixSystem);
             output.emplace("lattice_symmetrize",        MTKEntryPointID::LatticeSymmetrize);
@@ -200,6 +202,9 @@ namespace Moment::mex::functions {
                 break;
             case functions::MTKEntryPointID::ImportMatrix:
                 the_function = std::make_unique<functions::ImportMatrix>(engine, storageManager);
+                break;
+            case functions::MTKEntryPointID::ImportPolynomial:
+                the_function = std::make_unique<functions::ImportPolynomial>(engine, storageManager);
                 break;
             case functions::MTKEntryPointID::ImportedMatrixSystem:
                 the_function = std::make_unique<functions::ImportedMatrixSystem>(engine, storageManager);

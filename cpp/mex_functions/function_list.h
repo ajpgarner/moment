@@ -41,6 +41,7 @@ namespace Moment::mex::functions {
         FullCorrelator,
         GenerateBasis,
         ImportMatrix,
+        ImportPolynomial,
         ImportedMatrixSystem,
         InflationMatrixSystem,
         LatticeSymmetrize,

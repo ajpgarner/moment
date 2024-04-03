@@ -17,6 +17,7 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
             overwrite = false;
             raw = false;
             read_only = false;
+            register_new = false;
             if numel(varargin) >= 1
                 if any(cellfun(@(x) strcmp(x, 'overwrite'), varargin))
                     overwrite = true;
@@ -27,9 +28,18 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
                 end
                 if any(cellfun(@(x) strcmp(x, 'read_only'), varargin))
                     read_only = true;
-                end                    
+                end                
+                if any(cellfun(@(x) strcmp(x, 'register'), varargin))
+                    register_new = true;
+                end
             end
             
+            % If single polynomial, wrap into cell array
+            if ~raw && ~iscell(symbol_cell)
+                assert(isstring(symbol_cell), ...
+                    "Input must be cell or string array");
+                symbol_cell = {symbol_cell};
+            end
             
             dimensions = size(symbol_cell);            
             obj = obj@MTKObject(scenario, dimensions, read_only);
@@ -40,12 +50,18 @@ classdef (InferiorClasses={?MTKMonomial, ?MTKPolynomial}) ...
                 obj.SymbolCell = symbol_cell;
             else
                 obj.SymbolCell = ...
-                    obj.Scenario.SimplifySymbolCell(symbol_cell);
+                    obj.Scenario.SimplifySymbolCell(symbol_cell, ...
+                                                    register_new);
             end
             
             % Determine if object is polynomial
             if ~overwrite
                 obj.IsPolynomial = test_if_polynomial(obj);
+            end
+            
+            % Notify for symbol creation, in register mode
+            if register_new
+                obj.Scenario.System.UpdateSymbolTable();
             end
         end
     end
