@@ -39,6 +39,8 @@ cmake --build .</pre>
 Once the build is complete, the binary `mtk.mexa64` will be automatically copied into the `moment/matlab` folder. 
 
 To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
+This can be done automatically by running the script `mtk_install` from the `moment/matlab` folder, and then restarting MATLAB.
+If everything is correctly installed, calling function `mtk` (from any folder) should display the version information of Moment.
 
 ### Mac 
 Only tested on Intel-based Macs. You first need the compilation tools if you don't already have:
@@ -57,6 +59,8 @@ cmake --build .</pre>
 Once the build is complete, the binary `mtk.mexmaci64` will be automatically copied into the `moment/matlab` folder. 
 
 To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
+This can be done automatically by running the script `mtk_install` from the `moment/matlab` folder, and then restarting MATLAB.
+If everything is correctly installed, calling function `mtk` (from any folder) should display the version information of Moment.
 
 ### Windows: CLion
 Clone the repository (e.g. with GitHub desktop).
@@ -69,6 +73,8 @@ button. Alternatively, select `Build Project` from the `Build` menu.
 Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
 
 To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
+This can be done automatically by running the script `mtk_install` from the `moment/matlab` folder, and then restarting MATLAB.
+If everything is correctly installed, calling function `mtk` (from any folder) should display the version information of Moment.
 
 ### Windows: Visual Studio 
 Clone the repository (e.g. with GitHub desktop).
@@ -80,6 +86,8 @@ Open Visual Studio 2022, and select "Open a local folder". Navigate to the root 
 Once the build is complete, the binary `mtk.mexw64` will have been copied to the `moment/matlab` folder.
 
 To use from MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
+This can be done automatically by running the script `mtk_install` from the `moment/matlab` folder, and then restarting MATLAB.
+If everything is correctly installed, calling function `mtk` (from any folder) should display the version information of Moment.
 
 ## Dependencies
 **[Googletest](https://github.com/google/googletest):** C++ unit test suite.
@@ -88,14 +96,10 @@ To use from MATLAB, add the following folders to the matlab path: `moment/matlab
 
 Both dependencies are included as git submodules (and hence will be pulled by using the above installation instructions).
 
+If using a pre-compiled binary (and not requiring C++ unit tests), it is not necessary to pull these dependencies.
 
-## List of classes, functions and folders
-### Moment functions
-The matlab module `mtk` defines a set of functions, the names of which should be provided as the first argument
-to the call to function `mtk(...)`. For information about these, type `help mtk` from MATLAB, or read the file 
-`matlab/mtk.m`
 
-### Directory outline
+## Directory outline
 
 `\`: Root of Moment.
 
@@ -109,7 +113,7 @@ to the call to function `mtk(...)`. For information about these, type `help mtk`
 
 `\cpp\mex_functions`: Root for MATLAB/C++ interface code (i.e. building `mtk` mex library).
 
-`\cpp\stress_tests`: Stand-alone benchmarking tests.
+`\cpp\stress_tests`: Stand-alone benchmarking / CPU profiling tests.
 
 `\cpp\tests`: C++ unit tests for `lib_moment` (build using googletest).
 
