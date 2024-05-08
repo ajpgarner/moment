@@ -136,19 +136,13 @@ namespace Moment {
 
         // Operator sequence info: all empty operator sequences
         if (context.defines_operators()) {
-            auto operator_data = std::make_unique<OperatorMatrix>(context,
-                std::make_unique<OperatorMatrix::OpSeqMatrix>(
-                        dimension, std::vector<OperatorSequence>(dimension * dimension, context.zero())
-                    )
-                );
+            auto operator_data = std::make_unique<OperatorMatrix>(context, dimension,
+                std::vector<OperatorSequence>(dimension * dimension, OperatorSequence::Zero(context)));
 
             std::unique_ptr<OperatorMatrix> aliased_matrix;
             if (context.can_have_aliases()) {
-                aliased_matrix = std::make_unique<OperatorMatrix>(context,
-                      std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension,
-                        std::vector<OperatorSequence>(dimension * dimension, context.zero())
-                    )
-                );
+                aliased_matrix = std::make_unique<OperatorMatrix>(context, dimension,
+                  std::vector<OperatorSequence>(dimension * dimension, OperatorSequence::Zero(context)));
             }
 
 

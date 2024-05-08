@@ -44,22 +44,12 @@ namespace Moment {
 
     }
 
-   OperatorMatrix::OpSeqMatrix::OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data)
-        : SquareMatrix<OperatorSequence>(dimension, std::move(matrix_data)) {
-       this->non_hermitian_elem = NonHInfo::find_first_index(*this);
-       this->hermitian = !this->non_hermitian_elem.has_value();
-    }
 
-    OperatorMatrix::OpSeqMatrix::OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data,
-                                             std::optional<NonHInfo> h_info)
-        : SquareMatrix<OperatorSequence>(dimension, std::move(matrix_data)), non_hermitian_elem{std::move(h_info)} {
-        this->hermitian = !non_hermitian_elem.has_value();
+    OperatorMatrix::OperatorMatrix(const Context& context, size_t dimension, std::vector<OperatorSequence>&& op_seq_data)
+       : context{context}, SquareMatrix<OperatorSequence>{dimension, std::move(op_seq_data)} {
+        this->non_hermitian_elem = NonHInfo::find_first_index(*this);
+        this->hermitian = !this->non_hermitian_elem.has_value();
     }
-
-    OperatorMatrix::OperatorMatrix(const Context& context, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-       : context{context},  op_seq_matrix{std::move(op_seq_mat)} {
-           assert(op_seq_matrix);
-       }
 
     OperatorMatrix::~OperatorMatrix() noexcept = default;
 
@@ -68,10 +58,9 @@ namespace Moment {
 
         std::vector<OperatorSequence> cloned_data;
         cloned_data.reserve(dimension * dimension);
-        std::copy(this->op_seq_matrix->begin(), this->op_seq_matrix->end(), std::back_inserter(cloned_data));
+        std::copy(this->begin(), this->end(), std::back_inserter(cloned_data));
 
-        return std::make_unique<OperatorMatrix>(this->context,
-                        std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(cloned_data)));
+        return std::make_unique<OperatorMatrix>(this->context, this->dimension, std::move(cloned_data));
     }
 
     const OSGPair& OperatorMatrix::generators() const {

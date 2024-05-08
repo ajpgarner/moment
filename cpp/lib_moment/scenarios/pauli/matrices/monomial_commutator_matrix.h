@@ -96,9 +96,9 @@ namespace Moment::Pauli {
          * @param mt_policy Whether or not to use multi-threaded creation.
          */
         MonomialCommutatorMatrix(const PauliContext& context, const Pauli::CommutatorMatrixIndex& cmi,
-                              std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+                                 size_t dimension, std::vector<OperatorSequence> op_seq_data)
               :  OperatorMatrixImpl<Pauli::CommutatorMatrixIndex, PauliContext, CommutatorMatrixGenerator<false>,
-                                    MonomialCommutatorMatrix>{context, cmi, std::move(op_seq_mat)} { }
+                                    MonomialCommutatorMatrix>{context, cmi, dimension, std::move(op_seq_data)} { }
     };
 
     /**
@@ -116,9 +116,9 @@ namespace Moment::Pauli {
          * @param mt_policy Whether or not to use multi-threaded creation.
          */
         MonomialAnticommutatorMatrix(const PauliContext& context, const Pauli::AnticommutatorMatrixIndex& acmi,
-                              std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+                                     size_t dimension, std::vector<OperatorSequence> op_seq_data)
               :  OperatorMatrixImpl<AnticommutatorMatrixIndex, PauliContext, CommutatorMatrixGenerator<true>,
-                                    MonomialAnticommutatorMatrix>{context, acmi, std::move(op_seq_mat)} { }
+                                    MonomialAnticommutatorMatrix>{context, acmi, dimension, std::move(op_seq_data)} { }
 
     };
 

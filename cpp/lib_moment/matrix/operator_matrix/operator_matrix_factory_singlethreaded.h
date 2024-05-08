@@ -65,8 +65,8 @@ namespace Moment {
                     matrix_data.emplace_back(factory.elem_functor(rowSeq, colSeq));
                 }
             }
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(matrix_data));
-            return std::make_unique<os_matrix_t>(factory.context, factory.Index, std::move(OSM));
+            return std::make_unique<os_matrix_t>(factory.context, factory.Index,
+                                                 factory.dimension, std::move(matrix_data));
 
         }
 
@@ -77,13 +77,12 @@ namespace Moment {
             aliased_data.reserve(this->factory.dimension * this->factory.dimension);
             const auto& context = this->factory.context;
 
-            std::transform( unaliased_matrix().cbegin(), unaliased_matrix().cend(),
-                            std::back_inserter(aliased_data),
+            std::transform(unaliased_matrix.cbegin(), unaliased_matrix.cend(), std::back_inserter(aliased_data),
                             [&context](const OperatorSequence& unaliased_sequence) {
                         return context.simplify_as_moment(unaliased_sequence);
                     });
-            auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(aliased_data));
-            return std::make_unique<os_matrix_t>(factory.context, factory.Index, std::move(aOSM));
+            return std::make_unique<os_matrix_t>(factory.context, factory.Index, factory.dimension,
+                                                 std::move(aliased_data));
         }
     };
 }

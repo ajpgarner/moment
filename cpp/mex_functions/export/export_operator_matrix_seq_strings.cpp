@@ -240,7 +240,7 @@ namespace Moment::mex {
             sfc.format_info.show_braces = true;
             sfc.format_info.display_symbolic_as = StringFormatContext::DisplayAs::Operators;
 
-            return do_export<DirectFormatView>(engine, opMatrix(), sfc);
+            return do_export<DirectFormatView>(engine, opMatrix, sfc);
         }
 
         inline matlab::data::StringArray export_only_symbols(matlab::engine::MATLABEngine& engine,
@@ -303,7 +303,7 @@ namespace Moment::mex {
                 using AppropriateInferredFormatView = FormatView<typename matrix_t::ElementType>;
                 return do_export<AppropriateInferredFormatView>(engine, inputMatrix.SymbolMatrix(), sfc);
             } else {
-                return do_export<DirectFormatView>(engine, inputMatrix.aliased_operator_matrix()(), sfc);
+                return do_export<DirectFormatView>(engine, inputMatrix.aliased_operator_matrix(), sfc);
             }
         }
     }

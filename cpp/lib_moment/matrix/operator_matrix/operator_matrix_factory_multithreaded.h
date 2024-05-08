@@ -383,13 +383,11 @@ namespace Moment {
             this->os_data_ptr = unaliased_data.data();
             this->generate_operator_sequence_matrix();
 
-            // Create operator sequence square matrix, with aliased data, and knowledge of Hermiticity
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(unaliased_data),
-                                                                     this->non_hermitian_info());
-
             // Create OSM
             auto unaliased_operator_matrix = std::make_unique<os_matrix_t>(factory.context, factory.Index,
-                                                                           std::move(OSM));
+                                                                           factory.dimension,
+                                                                           std::move(unaliased_data));
+
             // Likely same as before; promise not to change from here on!
             this->os_data_ptr = const_cast<OperatorSequence *>(unaliased_operator_matrix->raw());
 
@@ -402,11 +400,8 @@ namespace Moment {
                 std::atomic_thread_fence(std::memory_order_release);
                 this->generate_aliased_operator_sequence_matrix();
 
-                auto aOSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension,
-                                                                          std::move(aliased_data),
-                                                                          this->non_hermitian_info());
                 aliased_operator_matrix = std::make_unique<os_matrix_t>(factory.context, factory.Index,
-                                                                        std::move(aOSM));
+                                                                        factory.dimension, std::move(aliased_data));
 
                 // Likely same as before; promise not to change from here on!
                 this->alias_data_ptr = const_cast<OperatorSequence *>(aliased_operator_matrix->raw());
@@ -431,13 +426,9 @@ namespace Moment {
             this->os_data_ptr = unaliased_data.data();
             this->generate_operator_sequence_matrix();
 
-            // Create operator sequence square matrix, with aliased data, and knowledge of Hermiticity
-            auto OSM = std::make_unique<OperatorMatrix::OpSeqMatrix>(factory.dimension, std::move(unaliased_data),
-                                                                     this->non_hermitian_info());
-
             // Create OSM
             auto unaliased_operator_matrix = std::make_unique<os_matrix_t>(factory.context, factory.Index,
-                                                                           std::move(OSM));
+                                                                           factory.dimension, std::move(unaliased_data));
             // Likely same as before; promise not to change from here on!
             this->os_data_ptr = const_cast<OperatorSequence *>(unaliased_operator_matrix->raw());
 

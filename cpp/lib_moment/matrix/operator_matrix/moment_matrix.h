@@ -62,11 +62,10 @@ namespace Moment {
          * Constructs a moment matrix at the requested hierarchy depth (level) for the supplied context.
          * @param context The setting/scenario.
          * @param index The hierarchy depth.
-         * @param mt_policy Whether or not to use multi-threaded creation.
          */
         MomentMatrix(const Context& context, MomentMatrixIndex index,
-                     std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
-            : OperatorMatrixImpl{context, index, std::move(op_seq_mat)} { }
+                     size_t dimension, std::vector<OperatorSequence> op_seq_data)
+            : OperatorMatrixImpl{context, index, dimension, std::move(op_seq_data)} { }
 
         /**
          * String label for this moment matrix.

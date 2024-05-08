@@ -81,10 +81,10 @@ namespace Moment {
              * @param mt_policy Whether or not to use multi-threaded creation.
              */
             MonomialLocalizingMatrix(const PauliContext& context, const Pauli::LocalizingMatrixIndex& plmi,
-                              std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+                                     size_t dimension, std::vector<OperatorSequence> op_seq_data)
                  : OperatorMatrixImpl<Pauli::LocalizingMatrixIndex, PauliContext,
                                       PauliLocalizingMatrixGenerator,
-                                      MonomialLocalizingMatrix>{context, plmi, std::move(op_seq_mat)}{ }
+                                      MonomialLocalizingMatrix>{context, plmi, dimension, std::move(op_seq_data)}{ }
 
         };
     }

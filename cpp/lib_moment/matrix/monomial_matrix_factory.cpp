@@ -28,18 +28,18 @@ namespace Moment {
         private:
             const Context& context;
             SymbolTable& symbol_table;
-            const OperatorMatrix::OpSeqMatrix& osm;
+            const OperatorMatrix& osm;
 
         public:
             const bool hermitian = false;
             const std::complex<double> prefactor = {1.0, 1.0};
         public:
             OpSeqToSymbolConverter(const Context& context, SymbolTable& symbol_table,
-                                   const OperatorMatrix::OpSeqMatrix& osm)
+                                   const OperatorMatrix& osm)
                     : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()} {}
 
             OpSeqToSymbolConverter(const Context& context, SymbolTable& symbol_table,
-                                   const OperatorMatrix::OpSeqMatrix& osm, const std::complex<double> the_factor)
+                                   const OperatorMatrix& osm, const std::complex<double> the_factor)
                     : context{context}, symbol_table{symbol_table}, osm{osm}, hermitian{osm.is_hermitian()},
                       prefactor{the_factor} {}
 
@@ -286,9 +286,9 @@ namespace Moment {
         do_os_to_sym_st(SymbolTable& symbols, const OperatorMatrix& op_matrix) {
             const auto& context = op_matrix.context;
             if (context.can_be_nonhermitian()) {
-                return OpSeqToSymbolConverter<false, false>{context, symbols, op_matrix()}();
+                return OpSeqToSymbolConverter<false, false>{context, symbols, op_matrix}();
             } else {
-                return OpSeqToSymbolConverter<false, true>{context, symbols, op_matrix()}();
+                return OpSeqToSymbolConverter<false, true>{context, symbols, op_matrix}();
             }
         }
 
@@ -296,9 +296,9 @@ namespace Moment {
         do_os_to_sym_st(SymbolTable& symbols, const OperatorMatrix& op_matrix, const std::complex<double> prefactor) {
             const auto& context = op_matrix.context;
             if (context.can_be_nonhermitian()) {
-                return OpSeqToSymbolConverter<true, false>{context, symbols, op_matrix(), prefactor}();
+                return OpSeqToSymbolConverter<true, false>{context, symbols, op_matrix, prefactor}();
             } else {
-                return OpSeqToSymbolConverter<true, true>{context, symbols, op_matrix(), prefactor}();
+                return OpSeqToSymbolConverter<true, true>{context, symbols, op_matrix, prefactor}();
             }
         }
 

@@ -66,9 +66,9 @@ namespace Moment {
           * @param lmi Index, describing the hierarchy depth and localizing word.
           */
         LocalizingMatrix(const Context& context, LocalizingMatrixIndex lmi,
-                         std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+                         size_t dimension, std::vector<OperatorSequence> op_seq_data)
              : OperatorMatrixImpl<LocalizingMatrixIndex, Context, LocalizingMatrixGenerator, LocalizingMatrix>{
-                        context, std::move(lmi), std::move(op_seq_mat)} { }
+                        context, std::move(lmi), dimension, std::move(op_seq_data)} { }
 
         [[nodiscard]] std::string description() const override {
             return this->Index.to_string(this->context);

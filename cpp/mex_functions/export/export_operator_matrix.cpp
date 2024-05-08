@@ -166,10 +166,10 @@ namespace Moment::mex {
         }
 
         auto read_iter = IterTuple{matrix.SymbolMatrix().begin(),
-                                   matrix.aliased_operator_matrix()().begin()};
+                                   matrix.aliased_operator_matrix().begin()};
 
         const auto read_iter_end = IterTuple{matrix.SymbolMatrix().end(),
-                                             matrix.aliased_operator_matrix()().end()};
+                                             matrix.aliased_operator_matrix().end()};
 
         auto write_iter = output.full_write_begin();
         const auto write_iter_end = output.full_write_end();

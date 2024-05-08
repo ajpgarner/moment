@@ -38,7 +38,8 @@ namespace Moment {
         {functor_t::get_generators(context, an_osg_index)} -> std::same_as<const OSGPair&>;
     };
 
-    template<typename index_t, typename context_t, generates_operator_matrices<index_t, context_t> functor_t,
+    template<typename index_t, typename context_t,
+            generates_operator_matrices<index_t, context_t> functor_t,
             typename matrix_t>
     class OperatorMatrixImpl : public OperatorMatrix {
     public:
@@ -65,8 +66,10 @@ namespace Moment {
          * @param op_seq_mat The generated matrix.
          */
         OperatorMatrixImpl(const context_t& context, IndexT input_index,
-                           std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat) :
-            OperatorMatrix{context, std::move(op_seq_mat)}, Index{std::move(input_index)}, SpecializedContext{context} {
+                           size_t dimension,
+                           std::vector<OperatorSequence>  op_seq_data) :
+            OperatorMatrix{context, dimension, std::move(op_seq_data)},
+            Index{std::move(input_index)}, SpecializedContext{context} {
         }
 
         OperatorMatrixImpl(const OperatorMatrixImpl& rhs) = delete;

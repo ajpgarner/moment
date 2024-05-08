@@ -78,11 +78,9 @@ namespace Moment {
              * @param mt_policy Whether or not to use multi-threaded creation.
              */
             MomentMatrix(const PauliContext& context, const Pauli::MomentMatrixIndex& index,
-                              std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat)
+                         size_t dimension, std::vector<OperatorSequence> op_seq_data)
                       : OperatorMatrixImpl<Pauli::MomentMatrixIndex, PauliContext, PauliMomentMatrixGenerator,
-                                           Pauli::MomentMatrix>{context, index, std::move(op_seq_mat)} { }
-
-
+                                           Pauli::MomentMatrix>{context, index, dimension, std::move(op_seq_data)} { }
         };
     }
 }

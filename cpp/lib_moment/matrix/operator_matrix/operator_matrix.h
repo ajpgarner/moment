@@ -35,90 +35,37 @@ namespace Moment {
     class SymbolTable;
     class SymbolMatrix;
 
-    class OperatorMatrix {
-    public:
-        /**
-         * Extend square matrix with Hermicity tests.
-         */
-        class OpSeqMatrix : public SquareMatrix<OperatorSequence> {
-        private:
-            bool hermitian = false;
-            std::optional<NonHInfo> non_hermitian_elem;
-
-        public:
-            OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data);
-
-            OpSeqMatrix(size_t dimension, std::vector<OperatorSequence> matrix_data, std::optional<NonHInfo> h_info);
-
-            /**
-             * True if the matrix is Hermitian.
-             */
-            [[nodiscard]] bool is_hermitian() const noexcept { return this->hermitian; }
-
-            /**
-             * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise nullopt.
-             */
-            [[nodiscard]] std::optional<Index> nonhermitian_index() const noexcept {
-                if (non_hermitian_elem.has_value()) {
-                    return non_hermitian_elem->Index;
-                } else {
-                    return std::nullopt;
-                }
-            }
-        };
-
-
-    private:
-        /** Matrix, as operator sequences */
-        std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_matrix;
-
+    class OperatorMatrix : public SquareMatrix<OperatorSequence> {
     public:
         const Context& context;
+    private:
+        bool hermitian = false;
+        std::optional<NonHInfo> non_hermitian_elem;
 
     public:
-        explicit OperatorMatrix(const Context& context, std::unique_ptr<OperatorMatrix::OpSeqMatrix> op_seq_mat);
+        explicit OperatorMatrix(const Context& context, size_t dimension, std::vector<OperatorSequence>&& op_seq_data);
 
         OperatorMatrix(OperatorMatrix&& rhs) noexcept = default;
 
         virtual ~OperatorMatrix() noexcept;
 
-        [[nodiscard]] size_t Dimension() const noexcept { return this->op_seq_matrix->dimension; }
-
-        [[nodiscard]] bool is_hermitian() const noexcept { return this->op_seq_matrix->is_hermitian(); }
+        [[nodiscard]] inline size_t Dimension() const noexcept { return this->dimension; }
 
         /**
-          * Return a view (std::span<const OperatorSequence>) to the requested row of the NPA matrix's operator
-          * sequences. Since std::span also provides an operator[], it is possible to index using
-          * "mySMV[row][col]" notation.
-          * @param row The index of the row to return.
-          * @return A std::span<const OperatorSequence> of the requested row.
-          */
-        const OperatorSequence&
-        operator()(SquareMatrix<OperatorSequence>::IndexView index) const noexcept(!debug_mode) {
-            return (*(this->op_seq_matrix))(index);
-        };
-
-        /**
-         * Convenience indexing..
+         * True if the matrix is Hermitian.
          */
-        const OperatorSequence&
-        operator()(size_t row, size_t col) const noexcept(!debug_mode) {
-            return (*(this->op_seq_matrix))(SquareMatrix<OperatorSequence>::Index{row, col});
-        };
+        [[nodiscard]] inline bool is_hermitian() const noexcept { return this->hermitian; }
 
         /**
-         * Provides direct access to square matrix of operator sequences.
+         * Get first row and column indices of non-hermitian element in matrix, if any. Otherwise nullopt.
          */
-        const auto& operator()() const noexcept {
-            return (*(this->op_seq_matrix));
+        [[nodiscard]] inline std::optional<Index> nonhermitian_index() const noexcept {
+            if (this->non_hermitian_elem.has_value()) {
+                return this->non_hermitian_elem->Index;
+            } else {
+                return std::nullopt;
+            }
         }
-
-        /**
-         * Provide extremely raw access to operator sequences.
-         */
-         [[nodiscard]] const OperatorSequence* raw() const noexcept {
-             return this->op_seq_matrix->raw();
-         }
 
         /**
          * Operator matrices usually are made in an algorithmic manner, and can provide a name to their symbolization.
@@ -131,7 +78,6 @@ namespace Moment {
          * Provide access to matrix generators
          */
          [[nodiscard]] virtual const OSGPair& generators() const;
-
 
         /** Apply the properties from this operator matrix to the supplied matrix. */
         void set_properties(SymbolicMatrix& matrix) const;

@@ -78,11 +78,8 @@ namespace Moment {
             // Apply transformation
             std::transform(input_raw, input_raw+numel, std::back_inserter(output_data), this->functor);
 
-            // Make tensor
-            auto op_seq_mat = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(output_data));
-
             // Make operator matrix object
-            return std::make_unique<OperatorMatrix>(input.context, std::move(op_seq_mat));
+            return std::make_unique<OperatorMatrix>(input.context, dimension, std::move(output_data));
         }
 
 
@@ -103,11 +100,8 @@ namespace Moment {
             // Apply transformation
             Multithreading::transform_matrix_data(dimension, input_raw, output_data.data(), this->functor);
 
-            // Make tensor
-            auto op_seq_mat = std::make_unique<OperatorMatrix::OpSeqMatrix>(dimension, std::move(output_data));
-
             // Make operator matrix object
-            return std::make_unique<OperatorMatrix>(input.context, std::move(op_seq_mat));
+            return std::make_unique<OperatorMatrix>(input.context, dimension, std::move(output_data));
         }
     };
 
