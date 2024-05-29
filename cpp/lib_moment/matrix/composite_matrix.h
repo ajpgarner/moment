@@ -64,7 +64,7 @@ namespace Moment {
             }
 
             /** Do not construct collection including pointer to transient r-value. */
-            explicit ConstituentInfo(SymbolicMatrix&& input) = delete;
+            explicit ConstituentInfo(SymbolicMatrix&& input, std::complex<double> scale) = delete;
 
             /** Size of constituents is number of elements. */
             [[nodiscard]] inline size_t size() const noexcept {

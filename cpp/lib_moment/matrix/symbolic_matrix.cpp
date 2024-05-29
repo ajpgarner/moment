@@ -143,9 +143,11 @@ namespace Moment {
                 return MonomialMatrix::zero_matrix(matrix.context, symbol_registry, matrix.Dimension());
             }
 
-            // Special case: identity / factor
+            // Special case: identity
             if (mono.id == 1) {
-                // TODO: Special case
+                if (approximately_equal(mono.factor, 1.0, poly_factory.zero_tolerance)) {
+                    return matrix.clone(mt_policy);
+                }
             }
 
             // Check matrix can be multiplied

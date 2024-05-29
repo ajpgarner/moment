@@ -128,6 +128,7 @@ namespace Moment {
           */
         [[nodiscard]] SymbolicMatrix& get(ptrdiff_t index);
 
+
         /**
          * Counts matrices in system.
          * For thread safety, call for a read lock first.
@@ -179,6 +180,15 @@ namespace Moment {
          * @return The index of the newly appended matrix.
          */
         [[nodiscard]] ptrdiff_t push_back(const WriteLock& lock, std::unique_ptr<SymbolicMatrix> matrix);
+
+        /**
+         * Frees a matrix by ID. Changes should not be made without a write lock.
+         * Indices referring to the matrix *must* be removed beforehand, to avoid dangling references.
+         * @param index The matrix to delete.
+         * @return true if a matrix was at the supplied index, and released.
+         */
+        [[nodiscard]] bool delete_matrix(const MaintainsMutex::WriteLock& lock, ptrdiff_t index) noexcept;
+
 
     protected:
         /**

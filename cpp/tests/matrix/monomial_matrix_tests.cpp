@@ -17,6 +17,56 @@
 #include "scenarios/pauli/pauli_matrix_system.h"
 
 namespace Moment::Tests {
+
+    TEST(Matrix_MonomialMatrix, Clone) {
+        Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
+        const auto& context = system.pauliContext;
+        const auto& factory = system.polynomial_factory();
+        auto& symbols = system.Symbols();
+
+        // Create and check moment matrix
+        const auto& [mm_index, mm] = system.MomentMatrix.create(1);
+        ASSERT_EQ(mm.Dimension(), 4);
+        ASSERT_TRUE(mm.is_monomial());
+        const auto& mm_monomial = dynamic_cast<const MonomialMatrix&>(mm);
+
+        // Clone matrix, and check it exists
+        auto cloned_matrix = mm_monomial.clone(Multithreading::MultiThreadPolicy::Never);
+        ASSERT_NE(cloned_matrix, nullptr);
+        ASSERT_TRUE(cloned_matrix->is_monomial());
+        const auto& cloned_monomial = dynamic_cast<const MonomialMatrix&>(*cloned_matrix);
+        ASSERT_EQ(cloned_monomial.Dimension(), 4);
+
+        // Check clone isn't just a pointer to original
+        EXPECT_NE(&mm_monomial, &cloned_monomial);
+
+        // Check data is identical, but not an alias
+        const auto* ref_mat = mm_monomial.raw_data();
+        ASSERT_NE(ref_mat, nullptr);
+        const auto* test_mat = cloned_monomial.raw_data();
+        ASSERT_NE(test_mat, nullptr);
+        EXPECT_NE(ref_mat, test_mat);
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const size_t index = col * 4 + row;
+                EXPECT_EQ(test_mat[index], ref_mat[index]) << "[" << col << "," << row << "]";
+            }
+        }
+
+        ASSERT_TRUE(mm_monomial.has_unaliased_operator_matrix());
+        ASSERT_TRUE(cloned_monomial.has_unaliased_operator_matrix());
+
+        const auto& ref_op_mat = mm_monomial.unaliased_operator_matrix();
+        const auto& test_op_mat = cloned_monomial.unaliased_operator_matrix();
+        ASSERT_EQ(ref_op_mat.Dimension(), 4);
+        ASSERT_EQ(test_op_mat.Dimension(), 4);
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                EXPECT_EQ(test_op_mat(row, col), ref_op_mat(row, col)) << "[" << col << "," << row << "]";
+            }
+        }
+    }
+
     TEST(Matrix_MonomialMatrix, PreMultiply) {
         Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
         const auto& context = system.pauliContext;
@@ -75,6 +125,45 @@ namespace Moment::Tests {
                                 Monomial{sY, i}, Monomial{sZ, 1.0},  Monomial{1, i},   Monomial{sX, -1.0},
                                 Monomial{sX, -i}, Monomial{1, -i},  Monomial{sZ, 1.0},  Monomial{sY, -1.0},
                                 Monomial{1, 1.0}, Monomial{sX, 1.0},   Monomial{sY, 1.0},  Monomial{sZ, 1.0}});
+    }
+
+    TEST(Matrix_MonomialMatrix, Multiply_Clone) {
+        Pauli::PauliMatrixSystem system{std::make_unique<Pauli::PauliContext>(1)};
+        const auto& context = system.pauliContext;
+        const auto& factory = system.polynomial_factory();
+        auto& symbols = system.Symbols();
+
+        // Produce moment matrix
+        const auto& mm = system.MomentMatrix(1);
+        ASSERT_EQ(mm.Dimension(), 4);
+        ASSERT_TRUE(mm.is_monomial());
+        const auto& mm_monomial = dynamic_cast<const MonomialMatrix&>(mm);
+
+        // Make scalar
+        const Monomial one{1, 1.0, false};
+
+        auto mult_ptr = mm_monomial.pre_multiply(one, factory, symbols, Multithreading::MultiThreadPolicy::Never);
+        ASSERT_NE(mult_ptr, nullptr);
+        ASSERT_TRUE(mult_ptr->is_monomial());
+        const auto& cloned_monomial = dynamic_cast<const MonomialMatrix&>(*mult_ptr);
+        ASSERT_EQ(cloned_monomial.Dimension(), 4);
+        EXPECT_EQ(cloned_monomial.global_factor(), std::complex<double>(1.0, 0));
+
+
+        // Check data is identical, but not an alias
+        const auto* ref_mat = mm_monomial.raw_data();
+        ASSERT_NE(ref_mat, nullptr);
+        const auto* test_mat = cloned_monomial.raw_data();
+        ASSERT_NE(test_mat, nullptr);
+        EXPECT_NE(ref_mat, test_mat);
+        for (size_t col = 0; col < 4; ++col) {
+            for (size_t row = 0; row < 4; ++row) {
+                const size_t index = col * 4 + row;
+                EXPECT_EQ(test_mat[index], ref_mat[index]) << "[" << col << "," << row << "]";
+            }
+        }
+
+
     }
 
     TEST(Matrix_MonomialMatrix, PostMultiply) {

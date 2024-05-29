@@ -90,6 +90,23 @@ namespace Moment {
         return matrixIndex;
     }
 
+    bool MatrixSystem::delete_matrix(const MaintainsMutex::WriteLock& lock, ptrdiff_t index) noexcept {
+        assert(this->is_locked_write_lock(lock));
+        // No deletion for bad index
+        if ((index < 0) || (index > this->matrices.size())) {
+            return false;
+        }
+        // No deletion for missing matrix
+        if (!this->matrices[index]) {
+            return false;
+        }
+
+        // Call matrix destructor, and flag that deletion occurred
+        this->matrices[index].reset();
+        return true;
+    }
+
+
     std::unique_ptr<class SymbolicMatrix>
     MatrixSystem::create_moment_matrix(const MaintainsMutex::WriteLock& lock,
                                        const size_t level, const Multithreading::MultiThreadPolicy mt_policy) {
