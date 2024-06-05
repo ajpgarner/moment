@@ -42,8 +42,11 @@ namespace Moment::mex::functions {
             ss << Moment::version::PROJECT_NAME << ", "
                << "v" << Moment::version::VERSION_MAJOR
                << "." << Moment::version::VERSION_MINOR
-               << "." << Moment::version::VERSION_PATCH << "\n";
-            ss << Moment::version::PROJECT_COPYRIGHT << "\n";
+               << "." << Moment::version::VERSION_PATCH;
+            if constexpr (debug_mode) {
+                ss << " (debug)";
+            }
+            ss << "\n" << Moment::version::PROJECT_COPYRIGHT << "\n";
 
             if (this->debug) {
                 ss << "Maximum worker threads: " << Multithreading::get_max_worker_threads() << "\n";
