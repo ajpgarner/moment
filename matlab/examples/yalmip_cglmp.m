@@ -6,7 +6,7 @@
 
 %% Define number of outputs
 
-d = 3;
+k = 3;
 
 % Two parties
 scenario = LocalityScenario(2);
@@ -14,16 +14,16 @@ Alice = scenario.Parties(1);
 Bob = scenario.Parties(2);
 
 % Each party with two measurements
-A0 = Alice.AddMeasurement(d);
-A1 = Alice.AddMeasurement(d);
-B0 = Bob.AddMeasurement(d);
-B1 = Bob.AddMeasurement(d);
+A0 = Alice.AddMeasurement(k);
+A1 = Alice.AddMeasurement(k);
+B0 = Bob.AddMeasurement(k);
+B1 = Bob.AddMeasurement(k);
 
 %% Make moment matrix
 matrix = scenario.MomentMatrix(2);
 
 % Make CGLMP object via Collins-Gisin notation
-CGLMP = scenario.CGTensor(cglmp_cg(d));
+CGLMP = scenario.CGTensor(cglmp_cg(k));
 
 %% Define and solve SDP
 yalmip('clear')
@@ -48,20 +48,20 @@ a = value(a);
 %% Print out value found
 cglmp_max_val = CGLMP.Apply(a)
 
-function M = cglmp_cg(d)
+function M = cglmp_cg(k)
 
-oa = d;
-ob = d;
+oa = k;
+ob = k;
 ia = 2;
 ib = 2;
 
 V = zeros(oa-1,ob-1,ia,ib);
 
-for a = 0:d-2
-    for b = 0:d-2
+for a = 0:k-2
+    for b = 0:k-2
 	for x = 0:1
 	    for y = 0:1
-		if ((a+b -(d-2))*(-1)^((1-x)*(1-y)) >= 0)
+		if ((a+b -(k-2))*(-1)^((1-x)*(1-y)) >= 0)
 	    	    V(a+1,b+1,x+1,y+1) = (-1)^(x*y);
 		end
 	    end
@@ -69,9 +69,9 @@ for a = 0:d-2
     end
 end
 
-M = [0 -ones(1,d-1) zeros(1,d-1);
-     -ones(d-1,1) V(:,:,1,1) V(:,:,1,2);
-     zeros(d-1,1) V(:,:,2,1) V(:,:,2,2);];
+M = [0 -ones(1,k-1) zeros(1,k-1);
+     -ones(k-1,1) V(:,:,1,1) V(:,:,1,2);
+     zeros(k-1,1) V(:,:,2,1) V(:,:,2,2);];
 
 end
 
