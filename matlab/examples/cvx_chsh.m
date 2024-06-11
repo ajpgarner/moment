@@ -36,10 +36,10 @@ CHSH_ineq3 = scenario.CGTensor([[2 -4 0]; [-4 4 4]; [0 4 -4]]);
 cvx_begin sdp
 
     % Declare basis variables a (real) and b (imaginary)
-    scenario.cvxVars('a', 'b');
+    scenario.cvxVars('a');
     
     % Compose moment matrix from these basis variables
-    M = matrix.Apply(a, b);
+    M = matrix.Apply(a);
 
     % Normalization
     a(1) == 1;
@@ -53,6 +53,6 @@ cvx_begin sdp
 cvx_end
 
 %% Print out values found (should be identical!)
-chsh_max_val = CHSH_ineq.Apply(a, b)
-chsh_max_val2 = CHSH_ineq2.Apply(a, b)
-chsh_max_val3 = CHSH_ineq3.Apply(a, b)
+chsh_max_val = CHSH_ineq.Apply(a)
+chsh_max_val2 = CHSH_ineq2.Apply(a)
+chsh_max_val3 = CHSH_ineq3.Apply(a)
