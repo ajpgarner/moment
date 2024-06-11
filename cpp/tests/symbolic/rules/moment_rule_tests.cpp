@@ -233,7 +233,7 @@ namespace Moment::Tests {
             MomentRule impossible_rule(factory, Polynomial{impossiblePoly});
 
             EXPECT_TRUE(impossible_rule.is_partial());
-            EXPECT_TRUE(approximately_equal(impossible_rule.partial_direction(), factor_Xstar))
+            EXPECT_TRUE(approximately_equal(impossible_rule.partial_direction(), factor_Xstar, factory.zero_tolerance))
                 << "Actual = " << impossible_rule.partial_direction()
                 << ",\n Expected = " << factor_Xstar;
         }
