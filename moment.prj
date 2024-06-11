@@ -1,13 +1,13 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration file="${PROJECT_ROOT}\moment.prj" location="${PROJECT_ROOT}" name="moment" target="target.toolbox" target-name="Package Toolbox">
+  <configuration file="C:\Users\ajpga\Documents\moment\moment.prj" location="." name="moment" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Moment</param.appname>
-    <param.authnamewatermark>Andrew Garner</param.authnamewatermark>
+    <param.authnamewatermark>Andrew J. P. Garner</param.authnamewatermark>
     <param.email>physics@ajpgarner.co.uk</param.email>
     <param.company>Austrian Academy of Sciences</param.company>
     <param.summary>Moment matrix generation and manipulation.</param.summary>
     <param.description />
     <param.screenshot>${PROJECT_ROOT}\doc\logo.png</param.screenshot>
-    <param.version>0.1.1</param.version>
+    <param.version>0.9.0</param.version>
     <param.output>${PROJECT_ROOT}\Moment.mltbx</param.output>
     <param.products.name />
     <param.products.id />
@@ -34,7 +34,7 @@ install.m</param.exclude.filters>
     <param.release.end>latest</param.release.end>
     <param.release.current.only>false</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
-    <param.compatiblity.macos>false</param.compatiblity.macos>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
     <param.compatiblity.matlabonline>false</param.compatiblity.matlabonline>
     <param.installation.map />
@@ -68,6 +68,7 @@ install.m</param.exclude.filters>
       <param.matlab.project.name />
       <param.release.current.only />
       <param.compatiblity.windows />
+      <param.compatiblity.macos />
       <param.compatiblity.linux />
       <param.installation.map />
       <param.additional.sw.names />
@@ -83,19 +84,29 @@ install.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\matlab\classes</file>
       <file>${PROJECT_ROOT}\matlab\examples</file>
       <file>${PROJECT_ROOT}\matlab\functions</file>
+      <file>${PROJECT_ROOT}\matlab\mtk.m</file>
+      <file>${PROJECT_ROOT}\matlab\mtk.mexa64</file>
       <file>${PROJECT_ROOT}\matlab\mtk.mexw64</file>
+      <file>${PROJECT_ROOT}\matlab\mtk_install.m</file>
       <file>${PROJECT_ROOT}\matlab\tests</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="Moment.mltbx" optional="false">${PROJECT_ROOT}\Moment.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="Moment.mltbx" optional="false">.\Moment.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
       <root>C:\Program Files\MATLAB\R2021a</root>
-      <toolboxes />
+      <toolboxes>
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
     </matlab>
     <platform>
       <unix>false</unix>
