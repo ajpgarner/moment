@@ -21,7 +21,9 @@ First, make sure MATLAB (version 2018a+ / 9.4+) and (at least) one of [YALMIP](h
 or [CVX](https://cvxr.com/cvx/) are installed.
 
 Depending on your platform (Windows, GNU/Linux or MacOS) from the releases, download the appropriate:
-`moment-0.9.0-win.zip`, `moment-0.9.0-linux.zip`,`moment-0.9.0-mac.zip`, 
+[`moment-0.9.0-win.zip`](https://github.com/ajpgarner/moment/releases/download/v0.9.0-beta/moment-0.9.0-win.zip),
+[`moment-0.9.0-linux.zip`](https://github.com/ajpgarner/moment/releases/download/v0.9.0-beta/moment-0.9.0-linux.zip),
+or [`moment-0.9.0-mac.zip`](https://github.com/ajpgarner/moment/releases/download/v0.9.0-beta/moment-0.9.0-mac.zip),
 and extract the contents to the desired installation location.
 
 From within MATLAB, add the following folders to the matlab path: `moment/matlab`, `moment/matlab/classes`, and `moment/matlab/functions`.
