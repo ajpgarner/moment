@@ -48,11 +48,15 @@ namespace Moment::mex::functions {
             }
             ss << "\n" << Moment::version::PROJECT_COPYRIGHT << "\n";
 
+
+            ss << "Author: Andrew J. P Garner" << "\n\n"
+               << "This program comes with ABSOLUTELY NO WARRANTY. " << "\n"
+               << "This is free software, and may be redistributed under the conditions of the GNU GPL-3.0 " << "\n"
+               << "(a copy of which should have been included with this software).\n";
+
             if (this->debug) {
                 ss << "Maximum worker threads: " << Multithreading::get_max_worker_threads() << "\n";
             }
-
-            ss << "\n";
 
             print_to_console(this->matlabEngine, ss.str());
         }
