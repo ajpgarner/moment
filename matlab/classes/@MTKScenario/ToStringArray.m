@@ -22,7 +22,7 @@ function str = ToStringArray(obj, input)
     extended_names = obj.OperatorNames;
     
     % Do nothing if out of range
-    if any(input <= 0) || any(input > length(extended_names))
+    if any(input <= 0) || any(input > numel(extended_names))
         str = input;
         return;
     end

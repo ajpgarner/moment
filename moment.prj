@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration file="C:\Users\ajpga\Documents\moment\moment.prj" location="." name="moment" target="target.toolbox" target-name="Package Toolbox">
+  <configuration file=".\moment.prj" location="." name="moment" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Moment</param.appname>
     <param.authnamewatermark>Andrew J. P. Garner</param.authnamewatermark>
     <param.email>physics@ajpgarner.co.uk</param.email>
@@ -15,8 +15,7 @@
     <param.platforms />
     <param.guid>a6dd8a4a-eda4-4f58-ba52-e9f314e67f42</param.guid>
     <param.exclude.filters>temp*
-photonic*
-install.m</param.exclude.filters>
+mtk_install.m</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples />
     <param.demosxml />
