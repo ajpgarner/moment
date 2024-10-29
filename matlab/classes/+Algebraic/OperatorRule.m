@@ -5,6 +5,7 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
         LHS % Left-hand-side (match pattern) of rule.
         RHS % Right-hand-side (substitution) of rule.
         Negated = false % True if rule replaces LHS with -RHS.
+		Imaginary = false % True if RHS should be multiplied by a multiple of i
     end
     
     properties(GetAccess = public, Dependent)
@@ -13,7 +14,7 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
         
     
     methods
-        function obj = OperatorRule(lhs, rhs, negate)
+        function obj = OperatorRule(lhs, rhs, negate, imaginary)
 		
 			% Validate inputs
 			if nargin < 2
@@ -39,10 +40,15 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
             if nargin < 3
                 negate = false;
             end
+			
+			if nargin < 4
+				imaginary = false;
+			end
             
             obj.LHS = lhs;
             obj.RHS = rhs;
             obj.Negated = logical(negate(1));
+			obj.Imaginary = logical(imaginary(1));
         end
         
         function str = string(obj)
@@ -106,6 +112,9 @@ classdef OperatorRule < matlab.mixin.CustomDisplay
             if obj.Negated
                 str = str + "-";
             end
+			if obj.Imaginary
+				str = str + "i";
+			end
             str = str + rhs_str;
         end
     end

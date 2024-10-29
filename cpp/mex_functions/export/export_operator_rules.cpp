@@ -50,11 +50,13 @@ namespace Moment::mex {
                         break;
                     case SequenceSignType::Imaginary:
                         rule_pair[1] = factory.createCharArray("i");
+                        break;
                     case SequenceSignType::Negative:
                         rule_pair[1] = factory.createCharArray("-");
+                        break;
                     case SequenceSignType::NegativeImaginary:
                         rule_pair[1] = factory.createCharArray("-i");
-
+                        break;
                 }
             }
 

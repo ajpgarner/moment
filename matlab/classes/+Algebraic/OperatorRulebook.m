@@ -147,7 +147,7 @@ classdef OperatorRulebook < handle
     
     %% Add rules
     methods
-        function AddRule(obj, new_rule, new_rule_rhs, negate)
+        function AddRule(obj, new_rule, new_rule_rhs, negate, imaginary)
         % ADDRULE Add a generic rule to the rule book.
         % 
         % SYNTAX
@@ -165,6 +165,7 @@ classdef OperatorRulebook < handle
         %   new_rule_rhs - An array defining the operator sequence to 
         %                  replace new_rule with.
         %   negate       - Set to true for LHS => -RHS.
+		%   imaginary    - Set to true for LHS => i RHS (or -i RHS)
         %
         % See also: AlgebraicScenario, Algebraic.OperatorRule
         %
@@ -177,11 +178,17 @@ classdef OperatorRulebook < handle
             else
                 negate = logical(negate);
             end
+			
+			if nargin < 5
+				imaginary = false;
+			else
+				imaginary = logical(imaginary)
+			end
             
             % Construct rule from inputs and append to list
             if nargin >= 3
-                obj.Rules(end+1) = Algebraic.OperatorRule(new_rule, ...
-                                                  new_rule_rhs, negate);
+                obj.Rules(end+1) = Algebraic.OperatorRule(...
+					new_rule, new_rule_rhs, negate, imaginary);
             elseif nargin >= 2
                 if isa(new_rule, 'Algebraic.OperatorRule')
                     obj.Rules(end+1) = new_rule;
@@ -189,11 +196,23 @@ classdef OperatorRulebook < handle
                     if isequal(size(new_rule), [1, 2])
                         obj.Rules(end+1) = Algebraic.OperatorRule(new_rule{1}, ...
                                                           new_rule{2});
-                    elseif isequal(size(new_rule), [1, 3]) ...
-                            && isequal(new_rule{2}, '-')
-                        obj.Rules(end+1) = Algebraic.OperatorRule(new_rule{1}, ...
-                                                          new_rule{2}, ...
-                                                          true);
+                    elseif isequal(size(new_rule), [1, 3])
+						
+						if new_rule{2} == '-'
+							negate = true;
+							imaginary = false
+						elseif new_rule{2} == 'i'
+							negate = false;
+							imaginary = true;
+						elseif new_rule{2} == '-i'
+							negate = true;
+							imaginary = true;
+						else
+							error(obj.err_cellpair); % Can't be positive here
+						end
+					    obj.Rules(end+1) = Algebraic.OperatorRule(new_rule{1}, ...
+                                                          new_rule{3}, ...
+                                                          negate, imaginary);
                     else
                         error(obj.err_cellpair);
                     end
@@ -444,13 +463,23 @@ classdef OperatorRulebook < handle
                 if ~iscell(input)
                     error(obj.err_cellpair);
                 end
-                rhs_index = 2;
+                rhs_index = 2;				
                 negate = false;
+				imaginary = false;
                 if isequal(size(rule), [1, 3])
                     if rule{2} == '-'
                         negate = true;
+						imaginary = false;
                         rhs_index = 3;
-                    else
+                    elseif rule{2} == 'i'
+						negate = false;
+						imaginary = true;
+						rhs_index = 3;
+					elseif rule{2} == '-i'
+						negate = true;
+						imaginary = true;
+						rhs_index = 3;
+					else
                         error(obj.err_cellpair);
                     end
                 elseif ~isequal(size(rule), [1, 2])
@@ -467,7 +496,7 @@ classdef OperatorRulebook < handle
                     rhs = obj.ToStringArray(rhs);
                 end
                 
-                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs, negate);
+                obj.Rules(end+1) = Algebraic.OperatorRule(lhs, rhs, negate, imaginary);
             end
             
             obj.tested_complete = false;
@@ -479,10 +508,19 @@ classdef OperatorRulebook < handle
         %
             val = cell(1, length(obj.Rules));
             for index = 1:length(obj.Rules)
-                if obj.Rules(index).Negated
-                    val{index} = cell(1, 3);
+                if obj.Rules(index).Negated || obj.Rules(index).Imaginary
+                    val{index} = cell(1, 3); 
                     val{index}{1} = obj.Rules(index).LHS;
-                    val{index}{2} = '-';
+                    
+					if obj.Rules(index).Imaginary
+						if obj.Rules(index).Negated
+							val{index}{2} = '-i';
+						else
+							val{index}{2} = 'i';
+						end							
+					else % must be negative real
+						val{index}{2} = '-';
+					end
                     val{index}{3} = obj.Rules(index).RHS;
                 else
                     val{index} = cell(1, 2);
